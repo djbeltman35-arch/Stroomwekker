@@ -48,7 +48,8 @@ export function validateDevice(d) {
   if (!d || typeof d !== 'object') throw new Error('Geen apparaat');
   const name = String(d.name || '').slice(0, 40).trim() || 'Apparaat';
   const rule = d.rule || {};
-  const cleanRule = rule.type === 'battery'
+  const cleanRule = rule.type === 'cheap' ? { type: 'cheap' }
+    : rule.type === 'battery'
     ? { type: 'battery', hours: Math.max(0.25, Math.min(12, Number(rule.hours) || 3)) }
     : rule.type === 'solar'
     ? { type: 'solar', limit: Math.max(-0.5, Math.min(0.2, Number(rule.limit) || 0)) }

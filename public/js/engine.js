@@ -157,6 +157,11 @@ export function deviceWants(device, quarters, t, s, lastOn) {
     }
     return cheapestSet(quarters, start, end, n).has(cur.t);
   }
+  if (r.type === 'cheap') {
+    // Simpelste stand: aan zolang het kwartier bij het goedkoopste derde van de dag hoort
+    const { start, end } = nlDayBounds(t);
+    return levelOf(cur.spot, levels(inRange(quarters, start, end))) === 'goedkoop';
+  }
   if (r.type === 'battery') {
     // Slimme stekker voor de lader: AAN tijdens het laden, anders UIT.
     const m = batteryMode(r.hours, quarters, t, s);

@@ -76,8 +76,10 @@ function render() {
     $('nowPrice').innerHTML = `<span class="e">€</span>${a},${b}<span class="u">/kWh</span>`;
     const l = levelOf(cur.spot, lv);
     $('nowLevel').className = 'pill ' + l;
-    $('stripP').textContent = ct(p) + ' cent';
-    $('stripL').textContent = { goedkoop: '🟢 goedkoop', normaal: '⚪ gewone prijs', duur: '🔴 duur' }[l];
+    $('licht').dataset.l = l;
+    $('lichtT').textContent = { goedkoop: 'Nu goedkoop: goed moment', normaal: 'Nu een gewone prijs', duur: 'Nu duur: liever even wachten' }[l];
+    $('lichtS').textContent = `Tot ${nlTime(cur.t + Q)} · tik voor alle prijzen`;
+    $('lichtP').textContent = ct(p) + ' ct';
     $('nowLevel').textContent = { goedkoop: '🟢 Goedkoop: goed moment', normaal: '⚪ Gewone prijs', duur: '🔴 Duur: liever wachten' }[l];
     $('nowUntil').textContent = `Deze prijs geldt tot ${nlTime(cur.t + Q)}`;
     $('updated').textContent = `Prijzen bijgewerkt om ${nlTime(data.updated)}`;
@@ -206,6 +208,7 @@ document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click
 const alertText = a => a.type === 'below' ? `Stroom goedkoper dan ${ct(a.value)} cent` : a.type === 'above' ? `Stroom duurder dan ${ct(a.value)} cent`
   : a.type === 'cheapest' ? `De goedkoopste ${a.hours} uur beginnen` : a.type === 'negative' ? '☀️ Zonnepanelen beter uit' : a.type === 'battery' ? '🔋 Thuisbatterij laden of gebruiken' : 'De prijzen van morgen zijn er';
 function renderAlerts() {
+  if (typeof renderMijn === 'function') setTimeout(renderMijn);
   $('alertList').innerHTML = alerts.map(a => `<li class="item"><div class="txt"><b>${alertText(a)}</b></div><button class="x" data-del="${a.id}" aria-label="Verwijderen">×</button></li>`).join('');
 }
 $('alertList').addEventListener('click', e => { const id = e.target.dataset.del; if (!id) return; alerts = alerts.filter(a => a.id !== id); renderAlerts(); sync().catch(() => {}); });
@@ -257,8 +260,9 @@ async function localAlerts() {
 setInterval(localAlerts, 60e3);
 
 // ---------- Apparaten ----------
-const ruleText = r => r.type === 'battery' ? `Thuisbatterij: laden als het goedkoop is (${r.hours} uur)` : r.type === 'solar' ? 'Uit als terugleveren geld kost' : r.type === 'cheapest' ? `Aan in de goedkoopste ${r.hours} uur van de dag${r.block ? ' (achter elkaar)' : ''}` : `Aan onder ${ct(r.on)} cent, uit boven ${ct(r.off ?? r.on)} cent`;
+const ruleText = r => r.type === 'cheap' ? 'Aan als stroom goedkoop is' : r.type === 'battery' ? `Thuisbatterij: laden als het goedkoop is (${r.hours} uur)` : r.type === 'solar' ? 'Uit als terugleveren geld kost' : r.type === 'cheapest' ? `Aan in de goedkoopste ${r.hours} uur van de dag${r.block ? ' (achter elkaar)' : ''}` : `Aan onder ${ct(r.on)} cent, uit boven ${ct(r.off ?? r.on)} cent`;
 function renderDevices() {
+  if (typeof renderMijn === 'function') setTimeout(renderMijn);
   $('devList').innerHTML = devices.map(d => {
     const s = d.status;
     const st = d.enabled === false ? '<span class="status muted">Staat op pauze</span>'
@@ -298,7 +302,7 @@ function openDev(d) {
   kindUI(); ruleUI(); $('dName').focus();
 }
 $('devAdd').onclick = () => openDev(null);
-$('heroStart').onclick = () => { openDev(null); $('apparaten').scrollIntoView({ behavior: 'smooth' }); };
+
 $('zonDevice').onclick = () => {
   openDev(null); $('dName').value = 'Zonnepanelen'; $('dKind').value = 'webhook'; $('dRule').value = 'solar'; kindUI(); ruleUI();
   $('apparaten').scrollIntoView({ behavior: 'smooth' });
@@ -390,3 +394,166 @@ renderAlerts(); renderDevices(); renderPushNotice();
 data = LS.get('sw-lastdata', null); render();
 load();
 api({ action: 'get' }).then(j => { if (j.devices?.length || j.alerts?.length || j.hasPush) applyServer(j); }).catch(() => {});
+
+// ================= Stappenplan (één vraag per scherm) =================
+const W = { stack: [], d: {} };
+const wiz = $('wiz');
+const PRESETS = {
+  boiler: { name: 'Boiler', icon: '🚿', rule: { type: 'cheapest', hours: 4, block: false }, uitleg: 'in de 4 goedkoopste uren van de dag' },
+  was: { name: 'Wasmachine', icon: '👕', rule: { type: 'cheapest', hours: 2, block: true }, uitleg: 'in de goedkoopste 2 uur achter elkaar' },
+  auto: { name: 'Auto laden', icon: '🚗', rule: { type: 'cheapest', hours: 6, block: false }, uitleg: 'in de 6 goedkoopste uren van de dag' },
+  anders: { name: 'Apparaat', icon: '🔌', rule: { type: 'cheap' }, uitleg: 'als stroom goedkoop is' },
+};
+function wizOpen(first) { W.stack = []; W.d = {}; wiz.hidden = false; document.body.style.overflow = 'hidden'; go(first); }
+function wizClose() { wiz.hidden = true; document.body.style.overflow = ''; }
+function go(fn) { W.stack.push(fn); show(); }
+function back() { if (W.stack.length > 1) { W.stack.pop(); show(); } else wizClose(); }
+function show() {
+  const fn = W.stack[W.stack.length - 1];
+  const v = fn();
+  $('wizT').textContent = v.t;
+  $('wizB').innerHTML = (v.p ? `<p>${v.p}</p>` : '') + (v.html || '') + (v.opts ? '<div class="opts">' + v.opts.map((o, i) =>
+    `<button class="opt" type="button" data-i="${i}"><span>${o.i || ''}</span><div><b>${o.l}</b>${o.s ? `<small>${o.s}</small>` : ''}</div></button>`).join('') + '</div>' : '');
+  if (v.opts) $('wizB').querySelectorAll('.opt').forEach(b => b.onclick = () => v.opts[+b.dataset.i].go());
+  const total = v.of || 4, step = Math.min(W.stack.length, total);
+  $('wizDots').innerHTML = Array.from({ length: total }, (_, i) => `<i class="${i < step ? 'on' : ''}"></i>`).join('');
+  $('wizBack').textContent = W.stack.length > 1 ? '← Terug' : '← Sluiten';
+  v.after && v.after();
+  wiz.scrollTop = 0;
+}
+$('wizBack').onclick = back; $('wizClose').onclick = wizClose;
+addEventListener('keydown', e => { if (e.key === 'Escape' && !wiz.hidden) wizClose(); });
+
+// ---- Apparaat ----
+const sApparaat = () => ({ t: 'Wat wil je vanzelf laten aangaan?', p: 'Kies wat het meest lijkt. Wij kiezen dan de beste tijden.', opts: [
+  ...Object.entries(PRESETS).map(([k, v]) => ({ i: v.icon, l: { boiler: 'Boiler', was: 'Wasmachine, droger of vaatwasser', auto: 'Elektrische auto', anders: 'Iets anders' }[k], s: 'Aan ' + v.uitleg, go: () => { W.d.preset = k; go(sStekker); } })),
+  { i: '⚙️', l: 'Zelf instellen', s: 'Voor wie alles zelf wil kiezen', go: () => { wizClose(); openMeer(); openDev(null); $('apparaten').scrollIntoView({ behavior: 'smooth' }); } },
+] });
+const sStekker = () => ({ t: 'Welke slimme stekker heb je?', opts: [
+  { i: '🛒', l: 'Van de Action (LSC)', go: () => { W.d.kind = 'tuya'; W.d.lsc = true; go(sTuya); } },
+  { i: '📱', l: 'Smart Life of Tuya', s: 'Ook Hema, Calex, Nedis, Woox', go: () => { W.d.kind = 'tuya'; go(sTuya); } },
+  { i: '🔵', l: 'Shelly', go: () => { W.d.kind = 'shelly'; go(sShelly); } },
+  { i: '❓', l: 'Ik heb nog geen slimme stekker', go: () => go(sGeenStekker) },
+] });
+const sGeenStekker = () => ({ t: 'Je hebt een slimme stekker nodig', of: 4,
+  p: 'Een slimme stekker zet je tussen het stopcontact en je apparaat. Wij kunnen hem dan aan en uit zetten. De goedkoopste koop je bij de Action, voor een paar euro. Zoek naar <b>LSC Smart Connect slimme stekker</b>.',
+  html: '<p class="small muted">Let op: een slimme stekker kan meestal maximaal 3.680 watt aan. Voor een laadpaal of grote boiler heb je soms iets anders nodig.</p>',
+  opts: [{ i: '🔔', l: 'Stuur me intussen een bericht als stroom goedkoop is', go: () => go(sBerichtKies) }, { i: '🏠', l: 'Terug naar het begin', go: wizClose }] });
+
+function fieldsHTML(f) { return '<div class="form">' + f.map(([id, label, hint, ph]) => `<label>${label}<input id="${id}" autocomplete="off" spellcheck="false" ${ph ? `placeholder="${ph}"` : ''}>${hint ? `<span class="hint">${hint}</span>` : ''}</label>`).join('') + '</div>'; }
+const testRow = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn-line" type="button" id="wTest">🔌 Test: zet aan</button><button class="btn" type="button" id="wNext">Klaar, verder →</button></div><p class="msg" id="wMsg" role="status"></p>';
+function wDevice() {
+  const p = PRESETS[W.d.preset || 'anders'];
+  const v = id => ($(id) ? $(id).value.trim() : '');
+  const d = { id: W.d.id || (W.d.id = crypto.randomUUID()), name: W.d.name || p.name, kind: W.d.kind, notify: true, rule: W.d.rule || p.rule };
+  if (W.d.kind === 'tuya') Object.assign(d, { accessId: v('wA'), accessSecret: v('wS'), deviceId: v('wD'), region: 'eu', code: 'switch_1' });
+  if (W.d.kind === 'shelly') Object.assign(d, { host: v('wH'), key: v('wK'), deviceId: v('wD'), channel: 0 });
+  return d;
+}
+function wireTest() {
+  const msg = (t, ok) => { $('wMsg').textContent = t; $('wMsg').className = 'msg ' + (ok ? 'ok' : 'err'); };
+  $('wTest').onclick = async () => { msg('Even geduld…', true); try { await api({ action: 'test', device: wDevice(), on: true }); msg('✓ Gelukt! Gaat je apparaat aan? Dan werkt het.', true); W.d.tested = true; } catch (e) { msg(e.message); } };
+  $('wNext').onclick = async () => {
+    if (!W.d.tested && !W.d.warned) { W.d.warned = true; msg('Tik eerst op "Test: zet aan" om te zien of het werkt. Wil je het toch bewaren? Tik dan nog een keer op "Klaar, verder".'); return; }
+    msg('Bewaren…', true);
+    const d = wDevice(), prev = devices;
+    devices = [...devices.filter(x => x.id !== d.id), d];
+    try { await sync(); go(sKlaarApparaat); } catch (e) { devices = prev; LS.set('sw-devices', prev); msg(e.message); }
+  };
+}
+const sTuya = () => ({ t: W.d.lsc ? 'Koppel je stekker van de Action' : 'Koppel je Smart Life-stekker', of: 4,
+  html: `<ol>${W.d.lsc ? '<li><b>Zet de stekker in de app Smart Life.</b> Met de app van de Action lukt het niet. Haal de stekker weg uit de LSC-app, download de gratis app <b>Smart Life</b> en voeg de stekker daar toe.</li>' : ''}
+    <li>Ga op je computer naar <b>platform.tuya.com</b> en maak een gratis account.</li>
+    <li>Klik op <b>Cloud</b> → <b>Development</b> → <b>Create Cloud Project</b>. Kies Data Center: <b>Central Europe</b>.</li>
+    <li>Klik op <b>Devices</b> → <b>Link App Account</b>. Scan de QR-code met Smart Life (tab <b>Ik</b>, knopje rechtsboven).</li>
+    <li>Neem hieronder over: de <b>Access ID</b> en <b>Access Secret</b> (bij Overview) en het <b>Device ID</b> (bij Devices).</li></ol>`
+    + fieldsHTML([['wA', 'Access ID'], ['wS', 'Access Secret'], ['wD', 'Device ID']]) + testRow,
+  after: wireTest });
+const sShelly = () => ({ t: 'Koppel je Shelly', of: 4,
+  html: `<ol><li>Open de <b>Shelly-app</b>. Ga naar <b>Instellingen</b> → <b>Gebruikersinstellingen</b> → <b>Cloud-sleutel</b>.</li><li>Neem de <b>servernaam</b> en de <b>sleutel</b> over.</li><li>Tik in de app op je stekker → <b>Instellingen</b> → <b>Apparaatinformatie</b> en neem het <b>Device ID</b> over.</li></ol>`
+    + fieldsHTML([['wH', 'Servernaam', '', 'shelly-49-eu.shelly.cloud'], ['wK', 'Cloud-sleutel'], ['wD', 'Device ID']]) + testRow,
+  after: wireTest });
+const sKlaarApparaat = () => {
+  const p = PRESETS[W.d.preset || 'anders'];
+  return { t: 'Klaar! 🎉', of: 4, html: `<p class="bigok">${p.icon}</p><p>Je ${W.d.rule?.type === 'battery' ? 'batterij laadt' : p.name.toLowerCase() + ' gaat'} vanaf nu vanzelf aan <b>${W.d.rule?.type === 'battery' ? 'als stroom het goedkoopst is' : p.uitleg}</b>. Je hoeft niets meer te doen.</p>`,
+    opts: [{ i: '🔔', l: 'Stuur mij een bericht als hij aan of uit gaat', go: async () => { await enablePush(); sync().catch(() => {}); wizClose(); } },
+      { i: '✅', l: 'Nee, klaar', go: wizClose }] };
+};
+
+// ---- Thuisbatterij ----
+const sBatterij = () => ({ t: 'Heeft je batterij een eigen app?', p: 'Kijk in die app of er een stand is zoals <b>"dynamisch tarief"</b> of <b>"slim laden"</b>.', opts: [
+  { i: '👍', l: 'Ja, die stand heeft hij', s: 'Dan is dat het makkelijkst', go: () => go(sBatEigen) },
+  { i: '🔌', l: 'Nee, ik laad hem met een stekker', s: 'Wij zetten de stekker aan als laden goedkoop is', go: () => go(sBatUren) },
+  { i: '❓', l: 'Weet ik niet', go: () => go(sBatUren) },
+] });
+const sBatEigen = () => ({ t: 'Zet die stand aan', of: 3, html: '<p class="bigok">🔋</p><p>Zet in de app van je batterij de stand <b>dynamisch tarief</b> of <b>slim laden</b> aan. Dan laadt je batterij vanzelf als stroom goedkoop is. Je hoeft verder niets te doen.</p>',
+  opts: [{ i: '🔔', l: 'Stuur mij ook een bericht met de beste tijden', go: async () => { addAlert({ type: 'battery', hours: 3 }); await enablePush(); go(sKlaarBericht); } }, { i: '✅', l: 'Klaar', go: wizClose }] });
+const sBatUren = () => ({ t: 'Hoe lang duurt het om je batterij vol te laden?', p: 'Weet je het niet? Kies dan 3 uur.', opts: [1, 2, 3, 4, 6].map(h => ({ i: '⏱️', l: h + (h === 1 ? ' uur' : ' uur'), go: () => {
+  W.d.preset = 'anders'; W.d.rule = { type: 'battery', hours: h }; W.d.name = 'Thuisbatterij'; go(sBatHoe); } })) });
+const sBatHoe = () => ({ t: 'Hoe wil je het regelen?', opts: [
+  { i: '🔌', l: 'Wij zetten de stekker van de lader aan en uit', s: 'Je hebt een slimme stekker nodig', go: () => go(sStekker) },
+  { i: '🔔', l: 'Stuur mij alleen een bericht', s: 'Dan zet je hem zelf aan', go: async () => { addAlert({ type: 'battery', hours: W.d.rule.hours }); await enablePush(); go(sKlaarBericht); } },
+] });
+
+// ---- Zonnepanelen ----
+const sZon = () => ({ t: 'Zonnepanelen', p: 'Soms moet je betalen om stroom terug te leveren. Dat gebeurt op hele zonnige dagen. Zet je panelen dan even uit.', opts: [
+  { i: '🔔', l: 'Stuur mij een bericht als ze uit moeten', s: 'Ook de dag ervoor al', go: async () => { addAlert({ type: 'negative', value: 0 }); await enablePush(); go(sKlaarBericht); } },
+  { i: '⚙️', l: 'Vanzelf uitzetten', s: 'Alleen via een installateur, Homey of Home Assistant', go: () => { wizClose(); openMeer(); $('zonDevice').click(); } },
+] });
+
+// ---- Berichten ----
+const BERICHT = [
+  ['cheapest', '🟢', 'Als stroom het goedkoopst is', { hours: 2 }],
+  ['tomorrow', '📅', 'Als de prijzen van morgen er zijn', {}],
+  ['negative', '☀️', 'Als ik mijn zonnepanelen uit moet zetten', { value: 0 }],
+  ['battery', '🔋', 'Als ik mijn batterij moet laden', { hours: 3 }],
+];
+const sBerichtKies = () => ({ t: 'Wanneer wil je een bericht?', p: 'Tik aan wat je wilt. Je kunt er meer kiezen.',
+  html: '<div class="opts">' + BERICHT.map(([k, i, l]) => `<button class="opt${alerts.some(a => a.type === k) ? ' sel' : ''}" type="button" data-k="${k}"><span>${i}</span><div><b>${l}</b></div></button>`).join('') + '</div>'
+    + '<button class="btn big" type="button" id="wBer" style="margin-top:16px">🔔 Berichten aanzetten</button>',
+  after: () => {
+    $('wizB').querySelectorAll('[data-k]').forEach(b => b.onclick = () => b.classList.toggle('sel'));
+    $('wBer').onclick = async () => {
+      const kies = [...$('wizB').querySelectorAll('.sel')].map(b => b.dataset.k);
+      alerts = alerts.filter(a => !BERICHT.some(([k]) => k === a.type) || kies.includes(a.type));
+      for (const k of kies) if (!alerts.some(a => a.type === k)) addAlert({ type: k, ...BERICHT.find(x => x[0] === k)[3] }, true);
+      renderAlerts(); await enablePush(); sync().catch(() => {}); go(sKlaarBericht);
+    };
+  } });
+const sKlaarBericht = () => {
+  const perm = 'Notification' in window ? Notification.permission : 'unsupported';
+  const ios = /iPhone|iPad/.test(navigator.userAgent) && !matchMedia('(display-mode: standalone)').matches;
+  const html = ios ? '<p>📱 <b>Nog één ding:</b> op een iPhone moet je Stroomwekker eerst op je beginscherm zetten. Tik onderin op <b>Deel</b> en kies <b>Zet op beginscherm</b>. Open de app daarna via je beginscherm en zet berichten aan.</p>'
+    : perm === 'granted' ? '<p class="bigok">🔔</p><p>Je krijgt vanaf nu een bericht op dit apparaat. Ook als de site dicht is.</p>'
+    : '<p>🔕 Je browser staat berichten nog niet toe. Tik op het slotje naast het webadres en zet <b>Meldingen</b> aan. Probeer het daarna opnieuw.</p>';
+  return { t: perm === 'granted' && !ios ? 'Klaar! 🎉' : 'Bijna klaar', of: 3, html, opts: [{ i: '✅', l: 'Sluiten', go: wizClose }] };
+};
+function addAlert(a, quiet) {
+  if (!alerts.some(x => x.type === a.type)) alerts.push({ id: crypto.randomUUID(), value: 0, hours: 1, ...a });
+  if (!quiet) { renderAlerts(); sync().catch(() => {}); }
+}
+
+const FLOWS = { apparaat: sApparaat, batterij: sBatterij, zon: sZon, bericht: sBerichtKies };
+document.querySelectorAll('[data-flow]').forEach(b => b.onclick = () => wizOpen(FLOWS[b.dataset.flow]));
+function openMeer() { $('meer').open = true; }
+$('navStart').onclick = e => { e.preventDefault(); scrollTo({ top: 0, behavior: 'smooth' }); };
+$('navMeer').onclick = e => { e.preventDefault(); openMeer(); $('meer').scrollIntoView({ behavior: 'smooth' }); };
+$('licht').onclick = e => { e.preventDefault(); openMeer(); $('prijs').scrollIntoView({ behavior: 'smooth' }); };
+$('mijnMeer').onclick = () => scrollTo({ top: 0, behavior: 'smooth' });
+
+// ---- "Wat staat er aan" ----
+function renderMijn() {
+  const items = [
+    ...devices.map(d => `<li class="item"><div class="txt"><b>${{ battery: '🔋', solar: '☀️' }[d.rule?.type] || '🔌'} ${esc(d.name)}</b><span>${ruleText(d.rule)}</span><br>${d.status ? (d.status.ok ? `<span class="status ok">● Nu ${d.status.on === 'supply' ? 'aan het leveren' : d.status.on ? 'aan' : 'uit'}</span>` : `<span class="status err">⚠ ${esc(d.status.msg || 'Het lukte niet')}</span>`) : '<span class="status muted">Begint bij het volgende kwartier</span>'}</div><button class="x" data-mdev="${d.id}" aria-label="Weghalen">×</button></li>`),
+    ...alerts.map(a => `<li class="item"><div class="txt"><b>🔔 ${alertText(a)}</b></div><button class="x" data-malert="${a.id}" aria-label="Weghalen">×</button></li>`),
+  ];
+  $('mijn').hidden = !items.length;
+  $('mijnList').innerHTML = items.join('');
+}
+$('mijnList').addEventListener('click', e => {
+  const d = e.target.dataset.mdev, a = e.target.dataset.malert;
+  if (d) devices = devices.filter(x => x.id !== d);
+  if (a) alerts = alerts.filter(x => x.id !== a);
+  if (d || a) { renderDevices(); renderAlerts(); sync().catch(() => {}); }
+});
+renderMijn();
