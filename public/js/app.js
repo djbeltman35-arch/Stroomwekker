@@ -283,7 +283,7 @@ function proefHTML(d) {
   if (!d.proef || accInfo.betaaldTot > Date.now()) return '';
   const over = d.proef.eind - Date.now();
   if (over <= 0) return accInfo.proefAfdwingen ? '<div class="proefr op">Je gratis proefperiode is voorbij.</div>' : '';
-  return `<div class="proefr">Gratis tot ${datumNL(d.proef.eind)}. Daarna € 2,50 per maand.</div>`;
+  return accInfo.proefAfdwingen ? `<div class="proefr">Gratis tot ${datumNL(d.proef.eind)}.</div>` : '';
 }
 function renderDevices() {
   if (typeof renderMijn === 'function') setTimeout(renderMijn);

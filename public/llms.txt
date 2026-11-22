@@ -9,7 +9,7 @@
 - Pushberichten bij goedkope, dure of negatieve stroomprijzen, en als de prijzen van morgen bekend zijn (rond 13:00 uur).
 - Plan voor de thuisbatterij: wanneer laden en wanneer leveren (rekening houdend met 85% rendement).
 - Waarschuwing voor zonnepanelen als terugleveren geld kost (negatieve prijs).
-- Prijzen bekijken is gratis. Automatisch schakelen en berichten: 3 maanden gratis proberen, daarna € 2,50 per maand.
+- Stroomwekker is nu helemaal gratis: prijzen, berichten en automatisch schakelen.
 - Prijsbronnen: Energy-Charts (Fraunhofer ISE, EPEX day-ahead Nederland, CC BY 4.0) en EnergyZero. All-in prijs = beursprijs + 21% btw + energiebelasting (€ 0,11085 per kWh in 2026) + inkoopvergoeding (standaard € 0,02, instelbaar).
 - Gemaakt door Erik Beltman. Contact: info@stroomwekker.eu.
 
