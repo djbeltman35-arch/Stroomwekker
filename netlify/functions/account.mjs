@@ -1,6 +1,7 @@
 import { store, keyFor } from '../lib/store.mjs';
 import { validateDevice, switchDevice, readMeter } from '../lib/devices.mjs';
 import { nlDayBounds } from '../../public/js/engine.js';
+import { proefVoor, afdwingen } from '../lib/proef.mjs';
 
 // Samenvatting van het verbruik voor de app: nu, vandaag en deze maand.
 function verbruik(d, m) {
@@ -19,7 +20,8 @@ const MASK = '••••';
 const mask = acc => ({
   settings: acc.settings, alerts: acc.alerts, hasPush: !!acc.push,
   devices: (acc.devices || []).map(d => ({ ...d, key: d.key ? MASK + d.key.slice(-4) : undefined, accessSecret: d.accessSecret ? MASK + d.accessSecret.slice(-4) : undefined,
-    status: acc.state?.devices?.[d.id] || null, verbruik: verbruik(d, acc.state?.meter?.[d.id]) })),
+    status: acc.state?.devices?.[d.id] || null, verbruik: verbruik(d, acc.state?.meter?.[d.id]), proef: acc.proef?.[d.id] || null })),
+  betaaldTot: acc.betaaldTot || null, proefAfdwingen: afdwingen(),
 });
 
 // Gemaskeerde geheimen ('••••1234') vervangen door de bewaarde waarde
@@ -63,6 +65,7 @@ export default async (req) => {
           d = keepSecrets(d, old[d.id]);
           return validateDevice(d);
         });
+        acc.proef = await proefVoor(s, acc.devices, Date.now(), acc.created || Date.now());
       }
       acc.updated = Date.now();
       await s.setJSON(key, acc);

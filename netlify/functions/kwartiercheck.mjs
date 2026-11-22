@@ -3,6 +3,7 @@ import webpush from 'web-push';
 import { store } from '../lib/store.mjs';
 import { refreshPrices } from '../lib/data.mjs';
 import { switchDevice, readMeter } from '../lib/devices.mjs';
+import { magSchakelen, afdwingen, proefVoor } from '../lib/proef.mjs';
 import { alertsDue, deviceWants, batteryMode, price, current, fmtCt, nlTime, nlDayBounds, inRange, quarterStart, Q, DEFAULT_SETTINGS } from '../../public/js/engine.js';
 
 // Verbruik van het afgelopen kwartier optellen bij de dag: kWh, wat het kostte, en wat het op een gemiddeld moment had gekost.
@@ -43,12 +44,27 @@ export default async () => {
     const settings = { ...DEFAULT_SETTINGS, ...(acc.settings || {}) };
     const msgs = alertsDue(acc.alerts || [], quarters, now, settings, st.alerts || (st.alerts = {}));
 
+    // Proefperiode per stekker bijhouden (ook voor oudere accounts)
+    if ((acc.devices || []).some(d => !acc.proef?.[d.id])) acc.proef = await proefVoor(s, acc.devices, now, acc.created || now);
+
     // Apparaten
     st.devices = st.devices || {};
     const cur = current(quarters, now);
     for (const d of acc.devices || []) {
       if (d.enabled === false) continue;
       const ds = st.devices[d.id] || {};
+      const p = acc.proef?.[d.id];
+      if (!magSchakelen(acc, p, now)) {
+        if (!ds.proefOp) {
+          st.devices[d.id] = { ...ds, ok: false, proefOp: true, at: now, msg: 'Je gratis proefperiode is voorbij. Start een abonnement om dit apparaat weer automatisch te laten schakelen.' };
+          msgs.push({ id: 'proef-' + d.id, title: `⏰ Proefperiode voorbij voor ${d.name}`, body: 'Start een abonnement in Stroomwekker om weer automatisch te schakelen.' });
+        }
+        continue;
+      }
+      if (afdwingen() && p && !st.proefHerinnerd?.[d.id] && p.eind - now < 7 * 86400e3 && !(acc.betaaldTot > now)) {
+        (st.proefHerinnerd ||= {})[d.id] = true;
+        msgs.push({ id: 'proefbijna-' + d.id, title: `⏳ Nog een week gratis voor ${d.name}`, body: 'Daarna kost automatisch schakelen € 2,50 per maand.' });
+      }
       let want = deviceWants(d, quarters, now, settings, ds.on);
       // Batterij met eigen links: drie standen (laden / leveren / stoppen)
       if (d.rule?.type === 'battery' && d.kind === 'webhook' && d.supplyUrl) {

@@ -21,6 +21,7 @@ if (!token) { token = newToken(); LS.set('sw-token', token); }
 let settings = { ...DEFAULT_SETTINGS, ...LS.get('sw-settings', {}) };
 let alerts = LS.get('sw-alerts', []);
 let devices = LS.get('sw-devices', []);
+let accInfo = { betaaldTot: null, proefAfdwingen: false };
 let hasPush = LS.get('sw-haspush', false);
 let data = null, day = 0, editing = null;
 
@@ -45,6 +46,7 @@ function sync(extra = {}) {
 }
 function applyServer(j) {
   if (j.devices) { devices = j.devices; LS.set('sw-devices', devices); }
+  if ('betaaldTot' in j) accInfo = { betaaldTot: j.betaaldTot, proefAfdwingen: j.proefAfdwingen };
   if ('hasPush' in j) { hasPush = j.hasPush; LS.set('sw-haspush', hasPush); }
   renderDevices(); renderPushNotice();
 }
@@ -276,6 +278,13 @@ function verbruikHTML(d) {
     + (v.maand.kwh > 0.05 ? `<p class="besp">${bespaard >= 0 ? `Bespaard deze maand: <b>${eur(bespaard, 2)}</b> vergeleken met stroom op gemiddelde momenten` : `Deze maand ${eur(-bespaard, 2)} duurder dan op gemiddelde momenten`}</p>` : '')
     + (v.est ? '<small>Schatting: deze stekker geeft elk kwartier het vermogen door, geen meterstand.</small>' : '') + '</div>';
 }
+const datumNL = t => new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(t));
+function proefHTML(d) {
+  if (!d.proef || accInfo.betaaldTot > Date.now()) return '';
+  const over = d.proef.eind - Date.now();
+  if (over <= 0) return accInfo.proefAfdwingen ? '<div class="proefr op">Je gratis proefperiode is voorbij.</div>' : '';
+  return `<div class="proefr">Gratis tot ${datumNL(d.proef.eind)}. Daarna € 2,50 per maand.</div>`;
+}
 function renderDevices() {
   if (typeof renderMijn === 'function') setTimeout(renderMijn);
   $('devList').innerHTML = devices.map(d => {
@@ -284,7 +293,7 @@ function renderDevices() {
       : s ? (s.ok ? `<span class="status ok">● ${s.on ? 'Aan' : 'Uit'} sinds ${nlTime(s.at)}</span>` : `<span class="status err">⚠ ${esc(s.msg || 'Het lukte niet')}</span>`)
       : '<span class="status muted">Begint bij het volgende kwartier</span>';
     return `<li class="item"><div class="txt"><b>${esc(d.name)}</b><span>${ruleText(d.rule)} · ${{ shelly: 'Shelly', tuya: 'Action / Smart Life' }[d.kind] || 'eigen link'}</span><br>${st}</div>
-      <button class="btn-line btn-sm" data-edit="${d.id}">Wijzig</button><button class="x" data-deldev="${d.id}" aria-label="Verwijderen">×</button>${verbruikHTML(d)}</li>`;
+      <button class="btn-line btn-sm" data-edit="${d.id}">Wijzig</button><button class="x" data-deldev="${d.id}" aria-label="Verwijderen">×</button>${proefHTML(d)}${verbruikHTML(d)}</li>`;
   }).join('');
 }
 document.addEventListener('click', e => {

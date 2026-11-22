@@ -425,6 +425,7 @@ maak('/privacy/', 'Privacyverklaring | Stroomwekker',
       <li><b>Een code van je browser</b> (push-adres), zodat we je een bericht kunnen sturen.</li>
       <li><b>De gegevens van je slimme stekker</b> (codes en sleutels), zodat we hem aan en uit kunnen zetten.</li>
       <li><b>Het verbruik van je apparaat</b>, als je stekker dat meet, zodat we kunnen laten zien wat het kost en wat je bespaart. We bewaren maximaal de laatste 62 dagen.</li>
+      <li><b>Wanneer de gratis proefperiode van je stekker begon.</b> Daarvoor bewaren we het nummer van je stekker alleen onherkenbaar gemaakt (versleuteld met een hash). Zo kan iedere stekker één keer gratis proberen.</li>
       <li><b>Berichten via het contactformulier</b>, zodat we je kunnen antwoorden.</li>
     </ul>
     <p>Je instellingen worden gekoppeld aan een lange, willekeurige code die alleen in jouw browser staat. Wij weten dus niet wie je bent. We verkopen niets en geven niets aan anderen, behalve wat nodig is om de dienst te laten werken (zie hieronder).</p>
