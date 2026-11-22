@@ -69,9 +69,9 @@ h3{font:600 17px/1.3 var(--text);margin:0 0 4px}
 
 
 /* Logo over de volle breedte */
-.top{position:static}
+.top{position:static;overflow:hidden}
 .bar{height:auto;display:block;position:relative;padding-top:52px;padding-bottom:6px}
-.brand{display:flex;align-items:center;gap:.22em;width:100%;font-weight:700;font-size:clamp(42px,13.2vw,146px);line-height:1;letter-spacing:-.045em;color:#fff;white-space:nowrap}
+.brand{display:flex;align-items:center;gap:.22em;width:100%;font-weight:700;font-size:clamp(44px,14vw,156px);line-height:1;letter-spacing:-.045em;color:#fff;white-space:nowrap}
 .brand .mark{flex:none;width:.92em;height:.92em}
 .brand span{flex:none}
 .nav{position:absolute;top:10px;right:max(20px,env(safe-area-inset-right))}
@@ -90,7 +90,7 @@ h3{font:600 17px/1.3 var(--text);margin:0 0 4px}
 .foot .fl{display:flex;align-items:center;gap:10px;color:#fff;font-weight:700;font-size:22px;letter-spacing:-.02em;margin-bottom:8px}.foot .fl svg{width:28px;height:28px}
 @media (max-width:720px){.foot .cols{grid-template-columns:1fr 1fr}.foot .cols>div:first-child{grid-column:1/-1}}
 .brand .woord{position:relative;display:inline-block}
-.brand{gap:.08em}.brand .flits{flex:none;width:.5em;height:.8em;margin-top:-.02em}
+.brand .w{position:relative;display:inline-block;isolation:isolate}.brand .flits{position:absolute;z-index:-1;left:-4%;width:110%;top:18%;height:64%;transform:rotate(-9deg);overflow:visible}
 .brand .flits path{fill:#F5B700}
 /* Hero: blauw vlak met prijspaneel */
 .hero{background:var(--navy);color:#fff;padding:36px 0 44px;margin-bottom:28px}
@@ -227,7 +227,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
 <header class="top">
   <div class="wrap bar">
     <a class="brand" href="/" aria-label="Stroomwekker, naar de startpagina">
-      <span class="woord">Stroomwekker</span><svg class="flits" viewBox="0 0 40 64" aria-hidden="true"><path d="M26 0 4 36h14L12 64 36 24H21z"/></svg>
+      <span class="woord">Stroom<span class="w">wekker<svg class="flits" viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 46 480 20 455 50 1000 56 520 82 545 52Z"/></svg></span></span>
     </a>
     <nav class="nav" aria-label="Menu"><a href="#" id="navStart">Regelen</a><a href="#meer" id="navMeer">Prijzen</a></nav>
   </div>
