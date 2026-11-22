@@ -76,8 +76,19 @@ h3{font:600 17px/1.3 var(--text);margin:0 0 4px}
 .brand span{flex:1}
 .nav{position:absolute;top:10px;right:max(20px,env(safe-area-inset-right))}
 .hero{padding-top:28px}
-.hero .wrap{border-top:1px solid var(--navy-3);padding-top:28px}
+.hero .wrap{padding-top:28px;position:relative}.hero .wrap::before{content:"";position:absolute;top:0;left:max(20px,env(safe-area-inset-left));right:max(20px,env(safe-area-inset-right));border-top:1px solid var(--navy-3)}
 @media (max-width:820px){.nav{display:none}.bar{padding-top:20px}.hero{padding-top:18px}.hero .wrap{padding-top:20px}}
+.feiten{background:var(--surface);border-bottom:1px solid var(--line);margin:-28px 0 28px}
+.feiten ul{list-style:none;margin:0 auto;padding-block:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.feiten li{display:flex;gap:12px;align-items:flex-start;font-size:14.5px;color:var(--muted)}
+.feiten li b{display:block;color:var(--ink);font-weight:600;font-size:15px}
+.feiten .fi{flex:none;width:34px;height:34px;border-radius:6px;background:var(--blue-soft);color:var(--navy);display:grid;place-items:center}.feiten .fi svg{width:18px;height:18px}
+@media (max-width:720px){.feiten ul{grid-template-columns:1fr;gap:12px}}
+.foot .cols{display:grid;grid-template-columns:2fr 1fr 1fr;gap:28px;padding-bottom:18px;border-bottom:1px solid var(--navy-3)}
+.foot .cols h3{color:#fff;font-size:14.5px;margin:0 0 8px}
+.foot .cols nav{display:grid;gap:6px}
+.foot .fl{display:flex;align-items:center;gap:10px;color:#fff;font-weight:700;font-size:22px;letter-spacing:-.02em;margin-bottom:8px}.foot .fl svg{width:28px;height:28px}
+@media (max-width:720px){.foot .cols{grid-template-columns:1fr 1fr}.foot .cols>div:first-child{grid-column:1/-1}}
 /* Hero: blauw vlak met prijspaneel */
 .hero{background:var(--navy);color:#fff;padding:36px 0 44px;margin-bottom:28px}
 .hero .wrap{display:grid;grid-template-columns:1.1fr 1fr;gap:40px;align-items:start}
@@ -174,7 +185,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
 .partnerlabel{font-size:12.5px;color:var(--muted);margin:0}
 @media (max-width:720px){.tiles{grid-template-columns:1fr 1fr}.tiles a:nth-child(3){border-left:0}.tiles a:nth-child(n+3){border-top:1px solid var(--line)}.row3{grid-template-columns:1fr}.mini{border-left:0;border-top:1px solid var(--line)}.mini:first-child{border-top:0}.two{grid-template-columns:1fr}}
 .faq details{border-top:1px solid var(--line);padding:12px 0}
-.faq summary{cursor:pointer;font-weight:600}
+.faq summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}.faq summary::-webkit-details-marker{display:none}.faq summary::after{content:"";flex:none;width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg)}.faq details[open] summary::after{transform:rotate(-135deg)}
 .faq p{margin:8px 0 0;font-size:15.5px;max-width:70ch}
 .foot{background:var(--navy);color:#C9D4E5;margin-top:32px}
 .foot .wrap{padding-block:24px 96px;display:grid;gap:10px;font-size:14px}
@@ -243,6 +254,14 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
     </a>
   </div>
 </section>
+<section class="feiten" aria-label="Over Stroomwekker">
+  <ul class="wrap">
+    <li><span class="fi" data-ic="chip"></span><span><b>Officiële beursprijzen</b>Day-aheadmarkt EPEX, biedzone Nederland</span></li>
+    <li><span class="fi" data-ic="clock"></span><span><b>Elk kwartier bijgewerkt</b>Automatisch schakelen, ook als de app dicht is</span></li>
+    <li><span class="fi" data-ic="check"></span><span><b>Gratis en zonder account</b>Je gegevens worden niet gedeeld of verkocht</span></li>
+  </ul>
+</section>
+
 
 <section class="wrap">
   <div class="card" id="mijn" hidden>
@@ -477,9 +496,13 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
 
 <footer class="foot">
   <div class="wrap">
-    <p style="margin:0">Stroomwekker is gratis. Wij helpen je besparen op je energierekening.</p>
-    <nav aria-label="Over"><a href="/privacy/">Privacy</a><a href="/privacy/#contact">Contact</a><a href="https://boodschappenvergelijk.nl/" target="_blank" rel="noopener">Boodschappen vergelijken</a><a href="https://salderingscheck-nl.netlify.app/" target="_blank" rel="noopener">Salderingscheck</a><a href="#" id="installLink">Installeer als app</a></nav>
-    <p class="muted" style="margin:0;font-size:13px">© 2026 Stroomwekker – Erik Beltman. Alle rechten voorbehouden. Prijsdata: Energy-Charts (Fraunhofer ISE), EnergyZero. We doen ons best, maar kunnen fouten maken. De prijs van je energiebedrijf telt.</p>
+    <div class="cols">
+      <div><div class="fl"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="19" fill="none" stroke="#fff" stroke-width="3.6"/><path d="M27.4 9.5 16.4 26h7.2l-3.4 12.5 12-17.3h-7.6z" fill="#F5B700"/></svg>Stroomwekker</div>
+        <p style="margin:0;max-width:40ch">Gratis hulp voor iedereen met een dynamisch energiecontract: de stroomprijs per kwartier, berichten en apparaten die vanzelf schakelen.</p></div>
+      <div><h3>Stroomwekker</h3><nav aria-label="Stroomwekker"><a href="#" id="installLink">Installeer als app</a><a href="#meer" id="footMeer">Alle prijzen</a><a href="/privacy/">Privacy</a><a href="/privacy/#contact">Contact</a></nav></div>
+      <div><h3>Ook van de maker</h3><nav aria-label="Ook van de maker"><a href="https://bespaarvriend.nl/?bron=stroomwekker" target="_blank" rel="noopener">Bespaarvriend</a><a href="https://boodschappenvergelijk.nl/" target="_blank" rel="noopener">Boodschappenvergelijk</a><a href="https://salderingscheck-nl.netlify.app/" target="_blank" rel="noopener">Salderingscheck</a></nav></div>
+    </div>
+    <p class="muted" style="margin:0;font-size:13px">© 2026 Stroomwekker – Erik Beltman. Alle rechten voorbehouden. Prijsdata: Energy-Charts (Fraunhofer ISE, CC BY 4.0) en EnergyZero. We doen ons best, maar kunnen fouten maken. De prijs van je energiebedrijf is leidend.</p>
   </div>
 </footer>
 

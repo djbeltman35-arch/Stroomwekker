@@ -565,6 +565,7 @@ const FLOWS = { apparaat: sApparaat, batterij: sBatterij, zon: sZon, bericht: sB
 document.querySelectorAll('[data-flow]').forEach(b => b.onclick = () => wizOpen(FLOWS[b.dataset.flow]));
 function openMeer() { $('meer').open = true; }
 $('navStart').onclick = e => { e.preventDefault(); scrollTo({ top: 0, behavior: 'smooth' }); };
+$('footMeer') && ($('footMeer').onclick = e => { e.preventDefault(); openMeer(); $('meer').scrollIntoView({ behavior: 'smooth' }); });
 $('navMeer').onclick = e => { e.preventDefault(); openMeer(); $('meer').scrollIntoView({ behavior: 'smooth' }); };
 $('licht').onclick = e => { e.preventDefault(); openMeer(); $('prijs').scrollIntoView({ behavior: 'smooth' }); };
 $('mijnMeer').onclick = () => scrollTo({ top: 0, behavior: 'smooth' });
