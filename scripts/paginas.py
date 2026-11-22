@@ -168,7 +168,7 @@ maak('/zo-rekenen-wij/', 'Zo berekenen wij de stroomprijs: formule en bronnen',
   <section class="card">
     <h2>Bronnen en updates</h2>
     <ul>
-      <li><b>Energy-Charts</b> van Fraunhofer ISE: officiële day-ahead prijzen per kwartier voor Nederland (licentie CC BY 4.0).</li>
+      <li><a href="https://www.energy-charts.info/" rel="noopener"><b>Energy-Charts</b></a> van Fraunhofer ISE: officiële day-ahead prijzen per kwartier voor Nederland (licentie CC BY 4.0).</li>
       <li><b>EnergyZero</b>: prijzen van morgen zodra die er zijn, en de gasprijs per dag (inclusief belasting).</li>
       <li><b>Rijksoverheid</b>: tarieven van de energiebelasting.</li>
     </ul>
@@ -404,7 +404,76 @@ maak('/gids/saldering-stopt-2027/', 'Saldering stopt in 2027: wat betekent het m
       <li>Reken uit wat het einde van saldering jou kost met de <a href="https://salderingscheck-nl.netlify.app/" rel="noopener">Salderingscheck</a>.</li>
     </ul>
     {lees_ook('/gids/saldering-stopt-2027/')}
-    <p class="bronnen">Bron: Rijksoverheid.nl, salderingsregeling.</p>
+    <p class="bronnen">Bron: <a href="https://www.rijksoverheid.nl/onderwerpen/energie-thuis/salderingsregeling" rel="noopener">Rijksoverheid, salderingsregeling</a>.</p>
   </section>
 {faq_html(fq)}
 {CTA}''', kruimels=G, extra_ld=[faq_ld(fq)])
+
+# ---------------- Privacy ----------------
+maak('/privacy/', 'Privacyverklaring | Stroomwekker',
+     'Welke gegevens Stroomwekker bewaart voor berichten, het schakelen van apparaten en het verbruik, waarom, hoe lang, en hoe je alles zelf meteen wist.',
+     'Privacy', 'Zo min mogelijk gegevens, alleen om de dienst te laten werken. Je kunt alles zelf meteen wissen.', '''
+  <section class="card">
+    <h2>In het kort</h2>
+    <p>Je hebt geen account nodig. Je hoeft geen naam of e-mailadres in te vullen. Wij gebruiken geen volgcookies en geen advertentienetwerken die je volgen.</p>
+  </section>
+  <section class="card">
+    <h2>Wat bewaren wij, en waarom?</h2>
+    <p>Alleen als je berichten of apparaten aanzet, bewaren wij op onze server:</p>
+    <ul>
+      <li><b>Welke berichten je wilt krijgen</b>, zodat we ze op tijd kunnen sturen.</li>
+      <li><b>Een code van je browser</b> (push-adres), zodat we je een bericht kunnen sturen.</li>
+      <li><b>De gegevens van je slimme stekker</b> (codes en sleutels), zodat we hem aan en uit kunnen zetten.</li>
+      <li><b>Het verbruik van je apparaat</b>, als je stekker dat meet, zodat we kunnen laten zien wat het kost en wat je bespaart. We bewaren maximaal de laatste 62 dagen.</li>
+      <li><b>Berichten via het contactformulier</b>, zodat we je kunnen antwoorden.</li>
+    </ul>
+    <p>Je instellingen worden gekoppeld aan een lange, willekeurige code die alleen in jouw browser staat. Wij weten dus niet wie je bent. We verkopen niets en geven niets aan anderen, behalve wat nodig is om de dienst te laten werken (zie hieronder).</p>
+  </section>
+  <section class="card">
+    <h2>Wie helpen ons daarbij?</h2>
+    <ul>
+      <li><b>Netlify</b>: hier draait de website en worden je instellingen bewaard.</li>
+      <li><b>Tuya / Smart Life</b> of <b>Shelly</b>: via hun cloud zetten wij je stekker aan en uit, met de codes die jij invult.</li>
+      <li><b>De pushdienst van je browser</b> (bijvoorbeeld van Google, Apple of Mozilla): die bezorgt onze berichten op je telefoon.</li>
+      <li><b>Hostnet</b>: hier komt de e-mail van het contactformulier binnen.</li>
+    </ul>
+  </section>
+  <section class="card">
+    <h2>Hoe lang?</h2>
+    <p>We bewaren je instellingen zolang je Stroomwekker gebruikt. Haal je een apparaat weg, dan wissen we de gegevens van dat apparaat meteen. Met de knop hieronder wis je alles in één keer.</p>
+  </section>
+  <section class="card" id="wissen">
+    <h2>Alles wissen</h2>
+    <p>Wil je dat wij alles wissen wat bij deze telefoon of computer hoort? Druk dan op deze knop:</p>
+    <p><button class="btn" id="wis" type="button">Wis al mijn gegevens</button></p>
+    <p id="wisMsg" class="small" role="status"></p>
+  </section>
+  <section class="card">
+    <h2>Jouw rechten</h2>
+    <p>Je mag vragen welke gegevens wij van je hebben, ze laten verbeteren of laten wissen. Stuur daarvoor een bericht via het <a href="/contact/">contactformulier</a> of naar info@stroomwekker.eu. Ben je het niet eens met hoe wij met je gegevens omgaan? Dan kun je een klacht indienen bij de Autoriteit Persoonsgegevens.</p>
+    <p>Verantwoordelijk voor Stroomwekker is <a href="/over/">Erik Beltman</a>.</p>
+  </section>
+  <section class="card">
+    <h2>Advertenties</h2>
+    <p>Lager op de startpagina staan tegels van vergelijkingssites. Dat zijn advertenties. Kies je via zo'n tegel een contract? Dan krijgt Stroomwekker soms een klein bedrag. Jij betaalt niets extra. Die sites hebben hun eigen privacyregels.</p>
+  </section>''', soort='WebPage', byline=False)
+p = PUB / 'privacy/index.html'
+p.write_text(p.read_text().replace('</body>', '<script src="/js/privacy.js" defer></script>\n</body>', 1))
+
+# ---------------- 404 ----------------
+maak('/404-tmp/', 'Pagina niet gevonden | Stroomwekker', 'Deze pagina bestaat niet (meer).', 'Deze pagina bestaat niet', 'Misschien is de link oud of zit er een typfout in.', '''
+  <section class="card">
+    <h2>Waar wil je heen?</h2>
+    <ul>
+      <li><a href="/">Naar de startpagina</a></li>
+      <li><a href="/stroomprijs-vandaag/">Stroomprijs vandaag</a> en <a href="/stroomprijs-morgen/">morgen</a></li>
+      <li><a href="/gids/">Uitleg en tips</a></li>
+      <li><a href="/contact/">Contact</a></li>
+    </ul>
+  </section>''', soort='WebPage', byline=False)
+src = PUB / '404-tmp/index.html'
+t = src.read_text().replace('<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">', '<meta name="robots" content="noindex">')
+t = re.sub(r'<link rel="canonical"[^>]*>\n?', '', t)
+(PUB / '404.html').write_text(t)
+src.unlink(); src.parent.rmdir()
+print('gemaakt /404.html')

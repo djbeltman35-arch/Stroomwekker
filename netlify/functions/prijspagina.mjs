@@ -128,6 +128,7 @@ ${rijen}
     <p>Met een dynamisch energiecontract betaal je per kwartier de prijs van de Europese stroombeurs (EPEX day-ahead). Die prijzen worden elke middag rond 13:00 uur vastgesteld voor de hele volgende dag. Wij tellen er de btw, de energiebelasting en een gemiddelde inkoopvergoeding van je energiebedrijf bij op. Zo zie je ongeveer wat je echt betaalt. Vaste kosten, zoals netbeheerkosten, zitten er niet in.</p>
     <p>Rekent jouw energiebedrijf een andere inkoopvergoeding? Stel die in bij Stroomwekker, dan kloppen alle prijzen precies voor jou. Bron: ${esc(data.source)}. Bijgewerkt om ${nlTime(data.updated)} uur.</p>
     <p>Liever niet zelf opletten? <a href="/hoe-werkt-het/">Lees hoe Stroomwekker je apparaten vanzelf aanzet</a> in de goedkoopste kwartieren.</p>
+    <p>Meer weten? <a href="/gids/dynamisch-energiecontract/">Wat is een dynamisch energiecontract?</a> · <a href="/gids/negatieve-stroomprijs/">Negatieve stroomprijs</a> · <a href="/gids/stroomprijs-per-kwartier/">Waarom per kwartier?</a> · <a href="/zo-rekenen-wij/">Zo berekenen wij de prijs</a></p>
   </section>`;
 
   const desc = `Stroomprijs ${morgen ? 'morgen' : 'vandaag'} (${dag}): gemiddeld ${ct(gem)} cent per kWh. Goedkoopst om ${nlTime(laag.t)} uur (${ct(P(laag))} ct), duurst om ${nlTime(hoog.t)} uur. Alle 96 kwartierprijzen inclusief belasting.`;
