@@ -14,7 +14,8 @@ async function getJSON(url, ms = 8000) {
 
 async function fromEnergyCharts(now) {
   const start = ymd(now - 86400e3), end = ymd(now + 2 * 86400e3);
-  const d = await getJSON(`https://api.energy-charts.info/price?bzn=NL&start=${start}&end=${end}`);
+  const d = await getJSON(`https://api.energy-charts.info/price?bzn=NL&start=${start}&end=${end}`, 12000);
+  if (!d.unix_seconds?.length) throw new Error('leeg antwoord');
   const out = [];
   d.unix_seconds.forEach((s, i) => {
     const v = d.price[i];
@@ -65,7 +66,9 @@ export async function getPrices(now = Date.now()) {
   let cached = st ? await st.get('latest', { type: 'json' }).catch(() => null) : memCache.v;
   const age = cached ? now - cached.updated : Infinity;
   // Na 13:00 vaker kijken tot de prijzen van morgen binnen zijn
-  const maxAge = (nlHour(now) >= 13 && cached && !hasTomorrow(cached, now)) ? 5 * 60e3 : 20 * 60e3;
+  // Kwartierbron ontbrak? Dan snel opnieuw proberen. Na 13:00 vaker tot morgen binnen is.
+  const maxAge = cached && !String(cached.source).startsWith('Energy-Charts') ? 3 * 60e3
+    : (nlHour(now) >= 13 && cached && !hasTomorrow(cached, now)) ? 5 * 60e3 : 20 * 60e3;
   if (cached && age < maxAge && cached.quarters?.length) return cached;
   try { return await refreshPrices(now); }
   catch (e) { if (cached) return cached; throw e; }
