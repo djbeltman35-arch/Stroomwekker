@@ -16,7 +16,7 @@
 <link rel="preload" href="/fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/ibm-plex-sans-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebApplication","name":"Stroomwekker","url":"https://stroomwekker.netlify.app/","applicationCategory":"UtilitiesApplication","operatingSystem":"Alle","inLanguage":"nl","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"author":{"@type":"Person","name":"Erik Beltman"}}
+{"@context":"https://schema.org","@type":"WebApplication","name":"Stroomwekker","url":"https://stroomwekker.netlify.app/","applicationCategory":"UtilitiesApplication","operatingSystem":"Alle","inLanguage":"nl","offers":{"@type":"Offer","price":"1.95","priceCurrency":"EUR","description":"3 maanden gratis proberen, daarna € 1,95 per maand"},"author":{"@type":"Person","name":"Erik Beltman"}}
 </script>
 <style>
 @font-face{font-family:"Plex";font-weight:400;font-display:swap;src:url(/fonts/ibm-plex-sans-latin-400-normal.woff2) format("woff2")}
@@ -68,6 +68,14 @@ h3{font:600 17px/1.3 var(--text);margin:0 0 4px}
 .nav a:hover{color:#fff;background:var(--navy-2)}
 
 
+.aanbod{background:#F5B700;color:#0F2340}
+.aanbod-in{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;padding-block:12px;text-align:center}
+.aanbod p{margin:0;font-size:17px;line-height:1.35}
+.aanbod b{font-weight:700}
+.aanbod-lbl{background:#0F2340;color:#F5B700;font-weight:700;font-size:13.5px;padding:4px 10px;border-radius:4px}
+.aanbod-knop{background:#0F2340;color:#fff;font-weight:600;font-size:15px;padding:9px 16px;border-radius:6px}
+.aanbod-knop:hover{background:#1B3358}
+@media (max-width:520px){.aanbod-in{gap:8px 10px;padding-block:10px}.aanbod p{font-size:15.5px;flex-basis:100%;order:2}.aanbod-lbl{order:1}.aanbod-knop{order:3}}
 /* Logo over de volle breedte */
 .top{position:static;overflow:hidden}
 .bar{height:auto;display:block;position:relative;padding-top:52px;padding-bottom:6px}
@@ -249,6 +257,13 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
 </style>
 </head>
 <body>
+<div class="aanbod" role="region" aria-label="Aanbieding">
+  <div class="wrap aanbod-in">
+    <span class="aanbod-lbl">Aanbieding</span>
+    <p><b>3 maanden gratis proberen</b>, daarna slechts <b>€&nbsp;1,95 per maand</b></p>
+    <button type="button" class="aanbod-knop" data-flow="apparaat">Probeer gratis</button>
+  </div>
+</div>
 <header class="top">
   <div class="wrap bar">
     <a class="brand" href="/" aria-label="Stroomwekker, naar de startpagina">
@@ -286,7 +301,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
   <ul class="wrap">
     <li><span class="fi" data-ic="chip"></span><span><b>Officiële beursprijzen</b>Day-aheadmarkt EPEX, biedzone Nederland</span></li>
     <li><span class="fi" data-ic="clock"></span><span><b>Elk kwartier bijgewerkt</b>Automatisch schakelen, ook als de app dicht is</span></li>
-    <li><span class="fi" data-ic="check"></span><span><b>Gratis en zonder account</b>Je gegevens worden niet gedeeld of verkocht</span></li>
+    <li><span class="fi" data-ic="check"></span><span><b>3 maanden gratis proberen</b>Daarna slechts € 1,95 per maand. Geen account nodig.</span></li>
   </ul>
 </section>
 
@@ -532,6 +547,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
     <details><summary>Hoe zet ik mijn zonnepanelen vanzelf uit?</summary><p>Dat gaat via het kastje van je zonnepanelen, de omvormer. Dit is lastig en kan gevaarlijk zijn als het fout gaat. Vraag het daarom aan een installateur. Wil je dat niet? Zet dan een bericht aan. Je kunt de panelen dan zelf uitzetten in de app van je omvormer.</p></details>
     <details><summary>Wanneer moet ik mijn thuisbatterij laden?</summary><p>Laad je batterij als stroom het goedkoopst is. Vaak is dat 's nachts of op een zonnige middag. Gebruik de stroom uit je batterij als stroom het duurst is. Vaak is dat 's ochtends vroeg en tussen 17:00 en 21:00 uur. Bij het blok Thuisbatterij zie je elke dag de beste tijden. Is het verschil te klein, dan zeggen we dat ook: laden en ontladen kost namelijk altijd een beetje stroom (ongeveer 15%).</p></details>
     <details><summary>Hoe laat ik mijn thuisbatterij vanzelf werken?</summary><p>Het makkelijkst: zet in de app van je batterij de stand "dynamisch tarief" of "slim laden" aan. Heeft je batterij dat niet? Zet de lader dan op een slimme stekker en kies bij "Apparaat toevoegen" voor Thuisbatterij. Wij zetten de stekker dan aan als laden het goedkoopst is. Heb je Homey of Home Assistant? Dan kun je ook een link voor laden, leveren en stoppen invullen.</p></details>
+    <details><summary>Wat kost Stroomwekker?</summary><p>De stroomprijzen bekijken is altijd gratis. Apparaten automatisch aan en uit zetten en berichten krijgen kun je 3 maanden gratis proberen. Daarna kost het slechts € 1,95 per maand.</p></details>
     <details><summary>Is het veilig om mijn gegevens in te vullen?</summary><p>Ja. Wij gebruiken je gegevens alleen om je apparaat aan en uit te zetten. We laten ze aan niemand zien. Haal je een apparaat weg, dan wissen we de gegevens meteen. Meer lees je bij Privacy.</p></details>
     <details><summary>Ik heb IFTTT, Homey of Home Assistant. Kan dat ook?</summary><p>Ja. Kies bij "Welke slimme stekker heb je?" voor "Iets anders". Maak in je eigen systeem een link (webhook) om aan te zetten en een link om uit te zetten. Plak die hier.</p></details>
     <details><summary>Waar komen de prijzen vandaan?</summary><p>Van de Europese stroombeurs. Wij halen ze op via Energy-Charts van Fraunhofer ISE. De gasprijs komt van EnergyZero.</p></details>
@@ -543,7 +559,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
   <div class="wrap">
     <div class="cols">
       <div><div class="fl"><span style="color:#F5B700">Stroom</span>wekker</div>
-        <p style="margin:0;max-width:40ch">Gratis hulp voor iedereen met een dynamisch energiecontract: de stroomprijs per kwartier, berichten en apparaten die vanzelf schakelen.</p></div>
+        <p style="margin:0;max-width:40ch">Hulp voor iedereen met een dynamisch energiecontract: de stroomprijs per kwartier, berichten en apparaten die vanzelf schakelen.</p></div>
       <div><h3>Stroomwekker</h3><nav aria-label="Stroomwekker"><a href="#" id="installLink">Installeer als app</a><a href="/hoe-werkt-het/">Hoe werkt het?</a><a href="#meer" id="footMeer">Alle prijzen</a><a href="/privacy/">Privacy</a><a href="/contact/">Contact</a></nav></div>
       <div><h3>Ook van de maker</h3><nav aria-label="Ook van de maker"><a href="https://bespaarvriend.nl/?bron=stroomwekker" target="_blank" rel="noopener">Bespaarvriend</a><a href="https://boodschappenvergelijk.nl/" target="_blank" rel="noopener">Boodschappenvergelijk</a><a href="https://salderingscheck-nl.netlify.app/" target="_blank" rel="noopener">Salderingscheck</a></nav></div>
     </div>
