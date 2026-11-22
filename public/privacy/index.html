@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Privacy en contact | Stroomwekker</title>
+<meta name="description" content="Welke gegevens Stroomwekker bewaart voor meldingen en het schakelen van apparaten, en hoe je ze wist.">
+<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0e7c4a">
+<style>
+:root{--page:#f4f7f1;--surface:#fff;--ink:#1e2a22;--muted:#5d6a61;--line:#e1e7dc;--green:#0e7c4a;--green-soft:#e2f2e8;--on-green:#fff}
+@media (prefers-color-scheme:dark){:root{--page:#121813;--surface:#1a221c;--ink:#e9efe8;--muted:#a3b0a6;--line:#2b362e;--green:#3fbf7f;--green-soft:#1d3326;--on-green:#0f1a13}}
+body{margin:0;background:var(--page);color:var(--ink);font:17px/1.55 "Atkinson Hyperlegible",system-ui,sans-serif}
+.top{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0}
+.bar,.wrap{max-width:760px;margin:0 auto;padding:10px 16px}
+.bar{display:flex;gap:8px;align-items:center}
+.bar a{font-weight:700;text-decoration:none;padding:8px 12px;border-radius:10px;background:var(--green-soft);color:var(--ink)}
+h1{font-size:30px;line-height:1.15;margin:20px 0 8px}
+h2{font-size:20px;margin:26px 0 6px}
+button{font:700 16px inherit;background:var(--green);color:var(--on-green);border:0;border-radius:12px;padding:10px 16px;cursor:pointer}
+.small{font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="top"><div class="bar"><a href="/">🏠 Home</a><a href="javascript:history.length>1?history.back():location.assign('/')">← Terug</a></div></header>
+<main class="wrap">
+<h1>Privacy en contact</h1>
+<p>Stroomwekker werkt zonder account, naam of e-mailadres. Je browser maakt een willekeurige persoonlijke code aan. Alleen als je meldingen of apparaten instelt, bewaren we op onze server (Netlify, EU/VS):</p>
+<ul>
+  <li>je gekozen meldingen en prijsinstellingen;</li>
+  <li>het pushadres van je browser, zodat we je een melding kunnen sturen;</li>
+  <li>de gegevens van je apparaten: naam, Shelly-servernaam, cloud-sleutel en device ID, of de aan- en uit-links die je invult.</li>
+</ul>
+<p>We gebruiken deze gegevens alleen om je meldingen te sturen en je apparaten te schakelen. We verkopen of delen niets. Je persoonlijke code wordt versleuteld (gehasht) opgeslagen.</p>
+<h2>Gegevens wissen</h2>
+<p>Verwijder losse meldingen of apparaten in de app, of wis alles in één keer:</p>
+<p><button id="wis">Wis al mijn gegevens</button></p>
+<p id="wisMsg" class="small" role="status"></p>
+<h2>Prijsdata</h2>
+<p>Kwartierprijzen: Energy-Charts (Fraunhofer ISE), CC BY 4.0, op basis van de day-aheadmarkt (EPEX, biedzone Nederland). Gasprijs: EnergyZero. We doen ons best, maar geven geen garantie op juistheid.</p>
+<h2>Partnerlinks</h2>
+<p>De tegels bovenaan de site zijn partnerlinks. Sluit je via zo'n link een contract af, dan krijgt de site soms een vergoeding. Jij betaalt daar niets extra voor.</p>
+<h2 id="contact">Contact</h2>
+<p>Vragen of een fout gezien? Mail naar djbeltman35@gmail.com.</p>
+<p class="small">© 2026 Stroomwekker – Erik Beltman. Alle rechten voorbehouden.</p>
+</main>
+<script>
+document.getElementById('wis').onclick = async () => {
+  const m = document.getElementById('wisMsg');
+  let token = null; try { token = JSON.parse(localStorage.getItem('sw-token')); } catch {}
+  if (!token) { m.textContent = 'Er zijn geen gegevens van dit apparaat bekend.'; return; }
+  try {
+    await fetch('/api/account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, action: 'delete' }) });
+    ['sw-token','sw-alerts','sw-devices','sw-haspush','sw-alertstate'].forEach(k => localStorage.removeItem(k));
+    const reg = await navigator.serviceWorker?.getRegistration(); const sub = await reg?.pushManager?.getSubscription(); await sub?.unsubscribe();
+    m.textContent = '✓ Al je gegevens zijn gewist.';
+  } catch { m.textContent = 'Wissen lukte niet. Probeer het later opnieuw.'; }
+};
+</script>
+</body>
+</html>

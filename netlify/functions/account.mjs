@@ -1,0 +1,75 @@
+import { store, keyFor } from '../lib/store.mjs';
+import { validateDevice, switchDevice } from '../lib/devices.mjs';
+
+const MASK = '••••';
+const mask = acc => ({
+  settings: acc.settings, alerts: acc.alerts, hasPush: !!acc.push,
+  devices: (acc.devices || []).map(d => ({ ...d, key: d.key ? MASK + d.key.slice(-4) : undefined, accessSecret: d.accessSecret ? MASK + d.accessSecret.slice(-4) : undefined,
+    status: acc.state?.devices?.[d.id] || null })),
+});
+
+// Gemaskeerde geheimen ('••••1234') vervangen door de bewaarde waarde
+function keepSecrets(d, old) {
+  if (!old) return d;
+  if (String(d.key || '').startsWith(MASK)) d = { ...d, key: old.key };
+  if (String(d.accessSecret || '').startsWith(MASK)) d = { ...d, accessSecret: old.accessSecret };
+  return d;
+}
+
+function cleanAlerts(list) {
+  return (Array.isArray(list) ? list : []).slice(0, 12).map(a => ({
+    id: String(a.id || crypto.randomUUID()).slice(0, 40),
+    type: ['below', 'above', 'cheapest', 'tomorrow', 'negative'].includes(a.type) ? a.type : 'below',
+    value: Number(a.value) || 0, hours: Math.max(0.25, Math.min(12, Number(a.hours) || 1)),
+  }));
+}
+
+export default async (req) => {
+  if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
+  let body;
+  try { body = await req.json(); } catch { return Response.json({ error: 'Ongeldig verzoek' }, { status: 400 }); }
+  const s = store();
+  let key;
+  try { key = await keyFor(body.token); } catch (e) { return Response.json({ error: e.message }, { status: 400 }); }
+  const acc = (await s.get(key, { type: 'json' })) || { created: Date.now(), state: {} };
+
+  try {
+    if (body.action === 'get') return Response.json(mask(acc));
+
+    if (body.action === 'delete') { await s.delete(key); return Response.json({ ok: true }); }
+
+    if (body.action === 'save') {
+      if (body.settings) acc.settings = { mode: body.settings.mode === 'kaal' ? 'kaal' : 'allin',
+        opslag: Math.max(0, Math.min(0.5, Number(body.settings.opslag) || 0)) };
+      if ('alerts' in body) acc.alerts = cleanAlerts(body.alerts);
+      if ('push' in body) acc.push = body.push && body.push.endpoint?.startsWith('https://') ? body.push : null;
+      if ('devices' in body) {
+        const old = Object.fromEntries((acc.devices || []).map(d => [d.id, d]));
+        acc.devices = (body.devices || []).slice(0, 10).map(d => {
+          d = keepSecrets(d, old[d.id]);
+          return validateDevice(d);
+        });
+      }
+      acc.updated = Date.now();
+      await s.setJSON(key, acc);
+      return Response.json(mask(acc));
+    }
+
+    if (body.action === 'test') {
+      let dev = (acc.devices || []).find(d => d.id === body.deviceId);
+      if (body.device) {
+        let d = body.device;
+        d = keepSecrets(d, dev);
+        dev = validateDevice(d);
+      }
+      if (!dev) return Response.json({ error: 'Apparaat niet gevonden' }, { status: 404 });
+      await switchDevice(dev, !!body.on);
+      return Response.json({ ok: true });
+    }
+  } catch (e) {
+    return Response.json({ error: e.message || 'Er ging iets mis' }, { status: 400 });
+  }
+  return Response.json({ error: 'Onbekende actie' }, { status: 400 });
+};
+
+export const config = { path: '/api/account' };
