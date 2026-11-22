@@ -74,6 +74,8 @@ function render() {
     $('nowPrice').innerHTML = `<span class="e">€</span>${a},${b}<span class="u">/kWh</span>`;
     const l = levelOf(cur.spot, lv);
     $('nowLevel').className = 'pill ' + l;
+    $('stripP').textContent = ct(p) + ' cent';
+    $('stripL').textContent = { goedkoop: '🟢 goedkoop', normaal: '⚪ gewone prijs', duur: '🔴 duur' }[l];
     $('nowLevel').textContent = { goedkoop: '🟢 Goedkoop: goed moment', normaal: '⚪ Gewone prijs', duur: '🔴 Duur: liever wachten' }[l];
     $('nowUntil').textContent = `Deze prijs geldt tot ${nlTime(cur.t + Q)}`;
     document.title = `${ct(p)} ct – Stroomprijs nu | Stroomwekker`;
@@ -268,6 +270,7 @@ function openDev(d) {
   kindUI(); ruleUI(); $('dName').focus();
 }
 $('devAdd').onclick = () => openDev(null);
+$('heroStart').onclick = () => { openDev(null); $('apparaten').scrollIntoView({ behavior: 'smooth' }); };
 $('zonDevice').onclick = () => {
   openDev(null); $('dName').value = 'Zonnepanelen'; $('dKind').value = 'webhook'; $('dRule').value = 'solar'; kindUI(); ruleUI();
   $('apparaten').scrollIntoView({ behavior: 'smooth' });

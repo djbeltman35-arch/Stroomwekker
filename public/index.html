@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Stroomprijs nu – dynamische energieprijzen per kwartier | Stroomwekker</title>
-<meta name="description" content="Live stroomprijs voor dynamische energiecontracten, per kwartier. Zie de goedkoopste momenten van vandaag en morgen, krijg een melding en zet je apparaten automatisch aan of uit.">
+<title>Apparaten automatisch aan bij goedkope stroom | Stroomwekker</title>
+<meta name="description" content="Heb je een dynamisch energiecontract? Stroomwekker zet je slimme stekker (Action, Shelly, Smart Life) vanzelf aan als stroom goedkoop is. Gratis, met live stroomprijs per kwartier.">
 <link rel="canonical" href="https://stroomwekker.netlify.app/">
 <meta name="theme-color" content="#0e7c4a">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -70,7 +70,7 @@ button{font-weight:700;font-size:16px;cursor:pointer;border-radius:12px;border:2
 .nav a:hover{background:var(--green-soft);color:var(--green-dark)}
 @media (max-width:520px){.brand span{display:none}.nav a{font-size:14px;padding:7px 8px}}
 
-.hero{padding-block:16px 4px;text-align:center}
+.hero{padding-block:16px 14px;text-align:center}
 h1{font:700 clamp(26px,6vw,40px)/1.12 var(--text);letter-spacing:-.015em;margin:0 0 4px}
 .promise{margin:0 0 12px;font-size:14px;color:var(--muted)}
 h2{font:700 22px/1.25 var(--text);margin:0 0 10px}
@@ -86,6 +86,16 @@ h3{font:700 17px/1.3 var(--text);margin:0 0 4px}
 @media (max-width:640px){.tiles{grid-template-columns:1fr 1fr;gap:6px}.tiles a{flex-direction:row;align-items:center;gap:8px;padding:9px 10px}.tiles small{display:none}.tiles b{font-size:14px}.tiles .i{font-size:20px}}
 @media (prefers-color-scheme:dark){.tiles a{border-color:#2f5a41;box-shadow:none}}
 
+.steps{list-style:none;padding:0;margin:4px 0 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:left}
+.steps li{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:grid;gap:2px}
+.steps span{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--green);color:var(--on-green);font-weight:700}
+.steps b{font-size:15.5px;line-height:1.25}
+.steps small{font-size:13.5px;color:var(--muted);line-height:1.3}
+@media (max-width:640px){.steps{grid-template-columns:1fr}.steps li{grid-template-columns:28px 1fr;column-gap:10px;align-items:center}.steps span{grid-row:span 2}}
+.btn.big{font-size:18px;padding:14px 22px;border-radius:14px;width:100%;max-width:420px}
+.nowstrip{display:inline-flex;gap:6px;align-items:center;margin:12px 0 4px;text-decoration:none;font-size:15px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 14px}
+.nowstrip b{background:var(--tag);color:var(--tag-ink);padding:1px 7px;border-radius:4px;font-family:var(--num);font-size:18px}
+#vergelijken .tiles{margin-bottom:10px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:0 0 14px}
 .now{text-align:center;padding:20px 16px 16px}
 .now .label{font-weight:700;color:var(--muted);font-size:15px;margin:0 0 8px}
@@ -163,83 +173,26 @@ details.tbl summary{cursor:pointer;font-weight:700;font-size:14.5px;margin-top:8
 <header class="top">
   <div class="wrap bar">
     <a class="brand" href="/" aria-label="Stroomwekker, naar de startpagina"><img src="/icons/icon.svg" alt="" width="34" height="34"><span>Stroomwekker</span></a>
-    <nav class="nav" aria-label="Menu"><a href="#grafiek">Prijzen</a><a href="#meldingen">🔔 Berichten</a><a href="#apparaten">🔌 Apparaten</a></nav>
+    <nav class="nav" aria-label="Menu"><a href="#apparaten">🔌 Apparaten</a><a href="#prijs">Prijs nu</a><a href="#meldingen">🔔 Berichten</a></nav>
   </div>
 </header>
 
 <main>
 <section class="wrap hero">
-  <h1>Stroomprijs nu</h1>
-  <p class="promise">Voor iedereen met een dynamisch energiecontract. De prijs verandert elk kwartier.</p>
-  <div class="tiles" id="tiles"></div>
-  <p class="partnerlabel">Dit zijn advertenties. Kies je via een tegel een contract, dan krijgt deze site soms een klein bedrag. Jij betaalt niets extra.</p>
+  <h1>Je apparaten vanzelf aan als stroom goedkoop is</h1>
+  <p class="promise">Voor iedereen met een dynamisch energiecontract. Wij zetten je slimme stekker aan als stroom goedkoop is, en weer uit als het duur wordt. Jij hoeft niets te doen.</p>
+  <ol class="steps">
+    <li><span>1</span><b>Koppel je slimme stekker</b><small>Van de Action, Shelly of Smart Life</small></li>
+    <li><span>2</span><b>Kies wanneer</b><small>Bijvoorbeeld: aan als stroom minder dan 20 cent kost</small></li>
+    <li><span>3</span><b>Wij doen de rest</b><small>Elk kwartier, ook als je niet thuis bent</small></li>
+  </ol>
+  <button class="btn big" type="button" id="heroStart">🔌 Koppel je eerste apparaat</button>
+  <a class="nowstrip" href="#prijs" id="nowStrip">Stroom nu: <b id="stripP">…</b> <span id="stripL"></span></a>
 </section>
 
 <section class="wrap">
-  <div class="card now" aria-live="polite">
-    <p class="label" id="nowLabel">Zoveel kost stroom nu</p>
-    <div><span class="tag huge" id="nowPrice"><span class="e">€</span>–,––</span></div>
-    <p class="meta"><span class="pill normaal" id="nowLevel">laden…</span></p>
-    <p class="meta"><span id="nowUntil">Prijzen ophalen…</span> · nog <span class="count" id="countdown">–:––</span></p>
-    <div class="progress" aria-hidden="true"><i id="prog"></i></div>
-    <div class="row3">
-      <div class="mini"><span class="k">Straks</span><span class="v" id="nextP">–</span><span class="s" id="nextT"></span></div>
-      <div class="mini"><span class="k">Normaal vandaag</span><span class="v" id="avgP">–</span><span class="s">per kWh</span></div>
-      <div class="mini"><span class="k">Gas vandaag</span><span class="v" id="gasP">–</span><span class="s">per m³</span></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Wanneer is stroom het goedkoopst?</h2>
-    <p class="small muted" style="margin:-4px 0 10px">Zet dan je wasmachine, droger, vaatwasser of auto aan.</p>
-    <div class="best" id="best"></div>
-  </div>
-
-  <div class="card" id="zon">
-    <h2>☀️ Zonnepanelen</h2>
-    <div id="zonStatus"></div>
-    <p class="small muted" style="margin:8px 0 10px">Soms is er zoveel zonnestroom dat je moet betalen om stroom terug te leveren. Zet je panelen dan even uit. Of gebruik juist veel stroom: dan krijg je geld terug.</p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-sm" type="button" id="zonAlert">🔔 Stuur mij een bericht</button>
-      <button class="btn-line btn-sm" type="button" id="zonDevice">⚙️ Panelen vanzelf uitzetten</button>
-    </div>
-  </div>
-
-  <div class="card" id="grafiek">
-    <h2>Alle prijzen van de dag</h2>
-    <p class="small muted" style="margin:-4px 0 10px">Elk streepje is een kwartier. Tik op een streepje om de prijs te zien.</p>
-    <div class="tabs" role="tablist">
-      <button role="tab" aria-selected="true" data-day="0">Vandaag</button>
-      <button role="tab" aria-selected="false" data-day="1" id="tabTomorrow">Morgen</button>
-    </div>
-    <p class="small muted" id="chartNote" hidden></p>
-    <div class="chartbox" id="chartbox"><div class="tip" id="tip" hidden></div></div>
-    <div class="legend"><span><i style="background:var(--green)"></i>Goedkoop</span><span><i style="background:var(--mid)"></i>Normaal</span><span><i style="background:var(--deal)"></i>Duur</span><span>▲ = nu</span></div>
-    <details class="tbl"><summary>Toon alle prijzen als lijst</summary><table class="qtable" id="qtable"></table></details>
-  </div>
-
-  <div class="card" id="meldingen">
-    <h2>🔔 Berichten</h2>
-    <p class="small muted" style="margin-top:-4px">Krijg een bericht op je telefoon als stroom goedkoop of duur is. Ook als de app dicht is.</p>
-    <div class="notice" id="pushNotice"></div>
-    <ul class="list" id="alertList"></ul>
-    <form class="form" id="alertForm">
-      <label>Stuur mij een bericht als…
-        <select id="aType">
-          <option value="below">stroom goedkoper is dan…</option>
-          <option value="above">stroom duurder is dan…</option>
-          <option value="cheapest">de goedkoopste uren van de dag beginnen</option>
-          <option value="tomorrow">de prijzen van morgen er zijn</option>
-          <option value="negative">ik voor terugleveren moet betalen (zonnepanelen uit)</option>
-        </select></label>
-      <label id="aValWrap">Prijs in cent <input id="aVal" type="number" inputmode="decimal" step="0.1" value="20"></label>
-      <label id="aHrsWrap" hidden>Hoeveel uur? <select id="aHrs"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>6</option></select></label>
-      <button class="btn" type="submit">Bericht aanzetten</button>
-    </form>
-  </div>
-
   <div class="card" id="apparaten">
-    <h2>🔌 Apparaten vanzelf aan en uit</h2>
+    <h2>🔌 Jouw apparaten</h2>
     <p class="small muted" style="margin-top:-4px">Heb je een slimme stekker? Dan zetten wij je apparaat aan als stroom goedkoop is, en weer uit als het duur wordt. Bijvoorbeeld je boiler of laadpaal. Dit werkt ook als je niet thuis bent.</p>
     <ul class="list" id="devList"></ul>
     <button class="btn-line" id="devAdd" type="button">+ Apparaat toevoegen</button>
@@ -314,6 +267,68 @@ details.tbl summary{cursor:pointer;font-weight:700;font-size:14.5px;margin-top:8
     <p class="small muted" style="margin:10px 0 0">Wij kijken elk kwartier naar de prijs. Gebruik dit niet voor apparaten die altijd aan moeten staan, zoals je koelkast, vriezer of medische apparaten.</p>
   </div>
 
+  <div class="card now" id="prijs" aria-live="polite">
+    <p class="label" id="nowLabel">Zoveel kost stroom nu</p>
+    <div><span class="tag huge" id="nowPrice"><span class="e">€</span>–,––</span></div>
+    <p class="meta"><span class="pill normaal" id="nowLevel">laden…</span></p>
+    <p class="meta"><span id="nowUntil">Prijzen ophalen…</span> · nog <span class="count" id="countdown">–:––</span></p>
+    <div class="progress" aria-hidden="true"><i id="prog"></i></div>
+    <div class="row3">
+      <div class="mini"><span class="k">Straks</span><span class="v" id="nextP">–</span><span class="s" id="nextT"></span></div>
+      <div class="mini"><span class="k">Normaal vandaag</span><span class="v" id="avgP">–</span><span class="s">per kWh</span></div>
+      <div class="mini"><span class="k">Gas vandaag</span><span class="v" id="gasP">–</span><span class="s">per m³</span></div>
+    </div>
+  </div>
+
+  <div class="card" id="zon">
+    <h2>☀️ Zonnepanelen</h2>
+    <div id="zonStatus"></div>
+    <p class="small muted" style="margin:8px 0 10px">Soms is er zoveel zonnestroom dat je moet betalen om stroom terug te leveren. Zet je panelen dan even uit. Of gebruik juist veel stroom: dan krijg je geld terug.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-sm" type="button" id="zonAlert">🔔 Stuur mij een bericht</button>
+      <button class="btn-line btn-sm" type="button" id="zonDevice">⚙️ Panelen vanzelf uitzetten</button>
+    </div>
+  </div>
+
+  <div class="card" id="meldingen">
+    <h2>🔔 Berichten</h2>
+    <p class="small muted" style="margin-top:-4px">Krijg een bericht op je telefoon als stroom goedkoop of duur is. Ook als de app dicht is.</p>
+    <div class="notice" id="pushNotice"></div>
+    <ul class="list" id="alertList"></ul>
+    <form class="form" id="alertForm">
+      <label>Stuur mij een bericht als…
+        <select id="aType">
+          <option value="below">stroom goedkoper is dan…</option>
+          <option value="above">stroom duurder is dan…</option>
+          <option value="cheapest">de goedkoopste uren van de dag beginnen</option>
+          <option value="tomorrow">de prijzen van morgen er zijn</option>
+          <option value="negative">ik voor terugleveren moet betalen (zonnepanelen uit)</option>
+        </select></label>
+      <label id="aValWrap">Prijs in cent <input id="aVal" type="number" inputmode="decimal" step="0.1" value="20"></label>
+      <label id="aHrsWrap" hidden>Hoeveel uur? <select id="aHrs"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>6</option></select></label>
+      <button class="btn" type="submit">Bericht aanzetten</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Wanneer is stroom het goedkoopst?</h2>
+    <p class="small muted" style="margin:-4px 0 10px">Zet dan je wasmachine, droger, vaatwasser of auto aan.</p>
+    <div class="best" id="best"></div>
+  </div>
+
+  <div class="card" id="grafiek">
+    <h2>Alle prijzen van de dag</h2>
+    <p class="small muted" style="margin:-4px 0 10px">Elk streepje is een kwartier. Tik op een streepje om de prijs te zien.</p>
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-day="0">Vandaag</button>
+      <button role="tab" aria-selected="false" data-day="1" id="tabTomorrow">Morgen</button>
+    </div>
+    <p class="small muted" id="chartNote" hidden></p>
+    <div class="chartbox" id="chartbox"><div class="tip" id="tip" hidden></div></div>
+    <div class="legend"><span><i style="background:var(--green)"></i>Goedkoop</span><span><i style="background:var(--mid)"></i>Normaal</span><span><i style="background:var(--deal)"></i>Duur</span><span>▲ = nu</span></div>
+    <details class="tbl"><summary>Toon alle prijzen als lijst</summary><table class="qtable" id="qtable"></table></details>
+  </div>
+
   <div class="card" id="instellingen">
     <h2>⚙️ Instellingen</h2>
     <form class="form" id="setForm" style="background:none;border:0;padding:0">
@@ -332,6 +347,26 @@ details.tbl summary{cursor:pointer;font-weight:700;font-size:14.5px;margin-top:8
       <div style="display:flex;gap:8px;margin-top:8px"><input id="otherCode" placeholder="Plak hier een code" style="flex:1;padding:8px;border:1px solid var(--line);border-radius:8px"><button class="btn btn-sm" id="useCode" type="button">Gebruiken</button></div>
     </details>
   </div>
+
+  <div class="card" id="vergelijken">
+    <h2>Nog geen dynamisch contract? Of wil je overstappen?</h2>
+    <div class="tiles" id="tiles"></div>
+  <p class="partnerlabel">Dit zijn advertenties. Kies je via een tegel een contract, dan krijgt deze site soms een klein bedrag. Jij betaalt niets extra.</p>
+  </div>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
 
   <section class="card faq">
     <h2>Vragen</h2>
