@@ -23,6 +23,19 @@ User-agent: AI2Bot
 User-agent: img2dataset
 Disallow: /
 
+# AI-zoekmachines (ChatGPT search, Perplexity, Claude search, Bing Copilot) mogen de site wel lezen en ernaar verwijzen.
+# Alleen het verzamelen voor het trainen van AI-modellen is hierboven geblokkeerd.
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+Allow: /
+Disallow: /api/
+
 User-agent: *
 Allow: /
 Disallow: /api/
+
+Sitemap: https://stroomwekker.eu/sitemap.xml

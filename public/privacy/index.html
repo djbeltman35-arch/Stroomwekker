@@ -8,6 +8,18 @@
 <title>Privacy en contact | Stroomwekker</title>
 <meta name="description" content="Welke gegevens Stroomwekker bewaart voor meldingen en het schakelen van apparaten, en hoe je ze wist.">
 <link rel="icon" href="/icons/icon-48.png" type="image/png">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Stroomwekker">
+<meta property="og:locale" content="nl_NL">
+<meta property="og:title" content="Privacy en contact | Stroomwekker">
+<meta property="og:description" content="Welke gegevens Stroomwekker bewaart voor meldingen en het schakelen van apparaten, en hoe je ze wist.">
+<meta property="og:url" content="https://stroomwekker.eu/privacy/">
+<meta property="og:image" content="https://stroomwekker.eu/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Stroomwekker: gebruik volledig automatisch stroom als het goedkoop is">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0F2340">
 <style>
 :root{--page:#F3F5F8;--surface:#fff;--ink:#14213A;--muted:#5B6677;--line:#DCE2EA;--green:#0F2340;--green-soft:#E8EFFB;--on-green:#fff}
@@ -48,18 +60,6 @@ button{font:700 16px inherit;background:var(--green);color:var(--on-green);borde
 <p>Heb je een vraag of zie je een fout? Gebruik ons <a href="/contact/">contactformulier</a> of mail naar info@stroomwekker.eu.</p>
 <p class="small">© 2026 Stroomwekker – Erik Beltman. Alle rechten voorbehouden. Lees ook onze <a href="/gebruiksvoorwaarden/">auteursrecht en gebruiksvoorwaarden</a>.</p>
 </main>
-<script>
-document.getElementById('wis').onclick = async () => {
-  const m = document.getElementById('wisMsg');
-  let token = null; try { token = JSON.parse(localStorage.getItem('sw-token')); } catch {}
-  if (!token) { m.textContent = 'Er zijn geen gegevens van dit apparaat bekend.'; return; }
-  try {
-    await fetch('/api/account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, action: 'delete' }) });
-    ['sw-token','sw-alerts','sw-devices','sw-haspush','sw-alertstate'].forEach(k => localStorage.removeItem(k));
-    const reg = await navigator.serviceWorker?.getRegistration(); const sub = await reg?.pushManager?.getSubscription(); await sub?.unsubscribe();
-    m.textContent = '✓ Al je gegevens zijn gewist.';
-  } catch { m.textContent = 'Wissen lukte niet. Probeer het later opnieuw.'; }
-};
-</script>
+<script src="/js/privacy.js" defer></script>
 </body>
 </html>

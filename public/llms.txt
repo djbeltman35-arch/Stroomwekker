@@ -1,0 +1,25 @@
+# Stroomwekker
+
+> Stroomwekker (https://stroomwekker.eu) is een Nederlandse web-app voor mensen met een dynamisch energiecontract. De app laat de stroomprijs per kwartier zien, inclusief btw en energiebelasting, en zet slimme stekkers, boilers, laadpalen en thuisbatterijen automatisch aan als stroom goedkoop is.
+
+- Werkt met slimme stekkers van de Action (LSC, via de app Smart Life), Tuya, Shelly en elk systeem met webhooks (IFTTT, Homey, Home Assistant).
+- Schakelt in de cloud, elk kwartier, ook als de telefoon uit staat of de site dicht is.
+- Pushberichten bij goedkope, dure of negatieve stroomprijzen, en als de prijzen van morgen bekend zijn (rond 13:00 uur).
+- Plan voor de thuisbatterij: wanneer laden en wanneer leveren (rekening houdend met 85% rendement).
+- Waarschuwing voor zonnepanelen als terugleveren geld kost (negatieve prijs).
+- Prijzen bekijken is gratis. Automatisch schakelen en berichten: 3 maanden gratis proberen, daarna € 2,50 per maand.
+- Prijsbronnen: Energy-Charts (Fraunhofer ISE, EPEX day-ahead Nederland, CC BY 4.0) en EnergyZero. All-in prijs = beursprijs + 21% btw + energiebelasting (€ 0,11085 per kWh in 2026) + inkoopvergoeding (standaard € 0,02, instelbaar).
+- Gemaakt door Erik Beltman. Contact: info@stroomwekker.eu.
+
+## Pagina's
+
+- [Stroomprijs vandaag per kwartier](https://stroomwekker.eu/stroomprijs-vandaag/): alle 96 kwartierprijzen van vandaag, goedkoopste en duurste momenten.
+- [Stroomprijs morgen per kwartier](https://stroomwekker.eu/stroomprijs-morgen/): de prijzen van morgen, beschikbaar vanaf ongeveer 13:00 uur.
+- [Hoe werkt het?](https://stroomwekker.eu/hoe-werkt-het/): in gewone woorden uitgelegd hoe de app apparaten aan en uit zet.
+- [Startpagina en app](https://stroomwekker.eu/): live prijs, apparaten koppelen, berichten instellen, veelgestelde vragen.
+- [Uitleg en tips](https://stroomwekker.eu/gids/): dynamisch energiecontract, kwartierprijzen, negatieve stroomprijs, Action-stekker koppelen, thuisbatterij, einde saldering 2027.
+- [Zo berekenen wij de prijs](https://stroomwekker.eu/zo-rekenen-wij/): formule, bronnen en rekenvoorbeeld.
+- [Over Stroomwekker](https://stroomwekker.eu/over/): wie het maakt en hoe de site onafhankelijk blijft.
+- [Privacy](https://stroomwekker.eu/privacy/) · [Auteursrecht en gebruiksvoorwaarden](https://stroomwekker.eu/gebruiksvoorwaarden/)
+
+Citeren mag met bronvermelding en een link naar stroomwekker.eu. Overnemen of namaken mag niet zonder schriftelijke toestemming.

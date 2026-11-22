@@ -623,6 +623,7 @@ function addAlert(a, quiet) {
 
 const FLOWS = { apparaat: sApparaat, batterij: sBatterij, zon: sZon, bericht: sBerichtKies };
 document.querySelectorAll('[data-flow]').forEach(b => b.onclick = () => wizOpen(FLOWS[b.dataset.flow]));
+{ const st = new URLSearchParams(location.search).get('start'); if (FLOWS[st]) { history.replaceState(null, '', location.pathname); setTimeout(() => wizOpen(FLOWS[st]), 300); } }
 function openMeer() { $('meer').open = true; }
 $('navStart').onclick = e => { e.preventDefault(); scrollTo({ top: 0, behavior: 'smooth' }); };
 $('footMeer') && ($('footMeer').onclick = e => { e.preventDefault(); openMeer(); $('meer').scrollIntoView({ behavior: 'smooth' }); });

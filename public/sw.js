@@ -1,5 +1,5 @@
 // Stroomwekker service worker: snelle start, offline laatste prijzen, pushmeldingen.
-const V = 'sw-v5';
+const V = 'sw-v6';
 const SHELL = ['/', '/js/engine.js', '/js/app.js', '/icons/icon.svg', '/manifest.webmanifest',
   '/fonts/ibm-plex-sans-latin-400-normal.woff2', '/fonts/ibm-plex-sans-latin-600-normal.woff2',
   '/fonts/ibm-plex-sans-latin-500-normal.woff2'];
@@ -17,7 +17,11 @@ self.addEventListener('fetch', e => {
     return;
   }
   if (u.pathname.startsWith('/api/')) return;
-  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+  // Snel uit de cache, en op de achtergrond verversen zodat updates vanzelf binnenkomen
+  e.respondWith(caches.open(V).then(c => c.match(e.request).then(hit => {
+    const net = fetch(e.request).then(r => { if (r.ok) c.put(e.request, r.clone()); return r; }).catch(() => hit);
+    return hit || net;
+  })));
 });
 self.addEventListener('push', e => {
   let m = {};
