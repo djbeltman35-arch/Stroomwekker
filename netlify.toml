@@ -21,3 +21,15 @@
   for = "/fonts/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+[[redirects]]
+  from = "https://stroomwekker.netlify.app/*"
+  to = "https://stroomwekker.eu/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://www.stroomwekker.eu/*"
+  to = "https://stroomwekker.eu/:splat"
+  status = 301
+  force = true

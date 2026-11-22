@@ -7,7 +7,7 @@ function ymd(t) {
 }
 
 async function getJSON(url, ms = 8000) {
-  const r = await fetch(url, { signal: AbortSignal.timeout(ms), headers: { 'User-Agent': 'Stroomwekker/1.0 (+https://stroomwekker.netlify.app)' } });
+  const r = await fetch(url, { signal: AbortSignal.timeout(ms), headers: { 'User-Agent': 'Stroomwekker/1.0 (+https://stroomwekker.eu)' } });
   if (!r.ok) throw new Error(url + ' -> ' + r.status);
   return r.json();
 }
