@@ -45,17 +45,19 @@ async function gas(now) {
 }
 
 export async function loadPrices(now = Date.now()) {
-  let quarters = [], source = 'Energy-Charts (Fraunhofer ISE), day-ahead EPEX Nederland';
-  try { quarters = await fromEnergyCharts(now); }
-  catch (e) {
-    console.error('energy-charts', e.message);
-    quarters = await fromEnergyZero(now);
-    source = 'EnergyZero (uurprijzen, reserve)';
-  }
-  // Ontdubbelen en sorteren
-  const map = new Map(quarters.map(q => [q.t, q]));
-  quarters = [...map.values()].sort((a, b) => a.t - b.t);
-  let gasDays = {};
-  try { gasDays = await gas(now); } catch (e) { console.error('gas', e.message); }
+  // Beide bronnen tegelijk ophalen: Energy-Charts (kwartieren) en EnergyZero (uren, vaak eerder bekend voor morgen)
+  const [ec, ez, gasDays] = await Promise.all([
+    fromEnergyCharts(now).catch(e => { console.error('energy-charts', e.message); return []; }),
+    fromEnergyZero(now).catch(e => { console.error('energyzero', e.message); return []; }),
+    gas(now).catch(e => { console.error('gas', e.message); return {}; }),
+  ]);
+  if (!ec.length && !ez.length) throw new Error('Geen prijsbron bereikbaar');
+  const map = new Map(ez.map(q => [q.t, q]));      // eerst de uurprijzen
+  for (const q of ec) map.set(q.t, q);               // kwartierprijzen gaan voor
+  const quarters = [...map.values()].sort((a, b) => a.t - b.t);
+  const lastEc = ec.length ? ec[ec.length - 1].t : 0;
+  const source = ec.length
+    ? 'Energy-Charts (Fraunhofer ISE), day-ahead EPEX Nederland' + (quarters.some(q => q.t > lastEc) ? '; morgen voorlopig via EnergyZero (uurprijzen)' : '')
+    : 'EnergyZero (uurprijzen)';
   return { updated: now, source, quarters, gas: gasDays };
 }
