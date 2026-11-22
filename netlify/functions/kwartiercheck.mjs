@@ -2,8 +2,28 @@
 import webpush from 'web-push';
 import { store } from '../lib/store.mjs';
 import { refreshPrices } from '../lib/data.mjs';
-import { switchDevice } from '../lib/devices.mjs';
-import { alertsDue, deviceWants, batteryMode, price, current, fmtCt, nlTime, DEFAULT_SETTINGS } from '../../public/js/engine.js';
+import { switchDevice, readMeter } from '../lib/devices.mjs';
+import { alertsDue, deviceWants, batteryMode, price, current, fmtCt, nlTime, nlDayBounds, inRange, quarterStart, Q, DEFAULT_SETTINGS } from '../../public/js/engine.js';
+
+// Verbruik van het afgelopen kwartier optellen bij de dag: kWh, wat het kostte, en wat het op een gemiddeld moment had gekost.
+function boekVerbruik(m, r, now, quarters, settings) {
+  const prevQ = quarterStart(now) - Q, pq = quarters.find(q => q.t === prevQ);
+  let kwh = null;
+  if (r.totalWh != null) {
+    if (m.lastWh != null && r.totalWh >= m.lastWh && r.totalWh - m.lastWh < 5000) kwh = (r.totalWh - m.lastWh) / 1000;
+    m.lastWh = r.totalWh;
+  } else if (m.w != null && m.at && now - m.at < 20 * 60e3) {
+    kwh = ((m.w + r.w) / 2) * 0.25 / 1000; // schatting uit twee metingen
+  }
+  m.w = Math.max(0, r.w); m.at = now; m.meet = true; m.est = !!r.est; m.err = '';
+  if (!kwh || kwh <= 0 || !pq) return;
+  const dag = nlDayBounds(prevQ), dq = inRange(quarters, dag.start, dag.end);
+  const gem = dq.length ? dq.reduce((a, q) => a + price(q.spot, settings), 0) / dq.length : price(pq.spot, settings);
+  const d = (m.days[dag.day] ||= { kwh: 0, cost: 0, ref: 0 });
+  d.kwh += kwh; d.cost += kwh * price(pq.spot, settings); d.ref += kwh * gem;
+  const keys = Object.keys(m.days).sort(); while (keys.length > 62) delete m.days[keys.shift()];
+}
+
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -50,6 +70,21 @@ export default async () => {
       }
       if (d.kind === 'shelly') await sleep(1100); // Shelly Cloud: max. 1 opdracht per seconde
     }
+
+    // Verbruik meten (alleen stekkers met energiemeter; schakelen werkt met elke stekker)
+    st.meter = st.meter || {};
+    for (const d of acc.devices || []) {
+      if (d.kind !== 'shelly' && d.kind !== 'tuya') continue;
+      const m = (st.meter[d.id] ||= { days: {} });
+      if (m.meet === false && m.checked && now - m.checked < 24 * 3600e3) continue; // meet niet: dagelijks opnieuw proberen
+      try {
+        const r = await readMeter(d, m);
+        m.checked = now;
+        if (r) boekVerbruik(m, r, now, quarters, settings); else m.meet = false;
+      } catch (e) { m.err = String(e.message).slice(0, 120); }
+      if (d.kind === 'shelly') await sleep(1100);
+    }
+    for (const id of Object.keys(st.meter)) if (!(acc.devices || []).some(d => d.id === id)) delete st.meter[id];
 
     // Pushmeldingen
     if (vapidOk && acc.push && msgs.length) {

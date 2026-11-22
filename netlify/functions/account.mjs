@@ -1,11 +1,25 @@
 import { store, keyFor } from '../lib/store.mjs';
-import { validateDevice, switchDevice } from '../lib/devices.mjs';
+import { validateDevice, switchDevice, readMeter } from '../lib/devices.mjs';
+import { nlDayBounds } from '../../public/js/engine.js';
+
+// Samenvatting van het verbruik voor de app: nu, vandaag en deze maand.
+function verbruik(d, m) {
+  if (d.kind === 'webhook') return { meet: false, reden: 'link' };
+  if (!m) return { meet: null };
+  if (m.meet === false) return { meet: false, reden: 'stekker' };
+  const vandaag = nlDayBounds(Date.now()).day, maand = vandaag.slice(0, 7);
+  const som = keys => keys.reduce((a, k) => { const x = m.days[k]; a.kwh += x.kwh; a.cost += x.cost; a.ref += x.ref; return a; }, { kwh: 0, cost: 0, ref: 0 });
+  const dagen = Object.keys(m.days || {});
+  return { meet: m.meet ?? null, est: !!m.est, w: m.w ?? null, at: m.at || null, err: m.err || '',
+    vandaag: som(dagen.filter(k => k === vandaag)), maand: som(dagen.filter(k => k.startsWith(maand))) };
+}
+
 
 const MASK = '••••';
 const mask = acc => ({
   settings: acc.settings, alerts: acc.alerts, hasPush: !!acc.push,
   devices: (acc.devices || []).map(d => ({ ...d, key: d.key ? MASK + d.key.slice(-4) : undefined, accessSecret: d.accessSecret ? MASK + d.accessSecret.slice(-4) : undefined,
-    status: acc.state?.devices?.[d.id] || null })),
+    status: acc.state?.devices?.[d.id] || null, verbruik: verbruik(d, acc.state?.meter?.[d.id]) })),
 });
 
 // Gemaskeerde geheimen ('••••1234') vervangen door de bewaarde waarde
@@ -64,7 +78,10 @@ export default async (req) => {
       }
       if (!dev) return Response.json({ error: 'Apparaat niet gevonden' }, { status: 404 });
       await switchDevice(dev, body.on === 'supply' ? 'supply' : !!body.on);
-      return Response.json({ ok: true });
+      // Meteen kijken of deze stekker ook verbruik meet
+      let meet = false;
+      if (dev.kind !== 'webhook') { try { await new Promise(r => setTimeout(r, dev.kind === 'shelly' ? 1100 : 0)); meet = !!(await readMeter(dev, {})); } catch { meet = null; } }
+      return Response.json({ ok: true, meet });
     }
   } catch (e) {
     return Response.json({ error: e.message || 'Er ging iets mis' }, { status: 400 });

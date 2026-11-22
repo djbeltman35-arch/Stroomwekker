@@ -303,6 +303,7 @@ howto = {'@type': 'HowTo', 'name': 'Slimme stekker van de Action koppelen aan St
          'tool': [{'@type': 'HowToTool', 'name': 'Slimme stekker van de Action (LSC Smart Connect)'}, {'@type': 'HowToTool', 'name': 'App Smart Life'}, {'@type': 'HowToTool', 'name': 'Computer'}],
          'step': [{'@type': 'HowToStep', 'position': i + 1, 'name': n, 'text': t} for i, (n, t) in enumerate(stappen)]}
 fq = [('Werkt de slimme stekker van de Action met Stroomwekker?', 'Ja. Zet de stekker in de app Smart Life in plaats van in de app van de Action, en koppel hem daarna aan Stroomwekker. Dat doe je maar één keer.'),
+      ('Zie ik ook hoeveel stroom mijn apparaat gebruikt?', 'Alleen als je stekker van de Action een energiemeter heeft. Dan zie je per apparaat het verbruik, wat het kost en wat je bespaart. De goedkoopste stekker zonder energiemeter meet niets, maar aan en uit zetten werkt daarmee gewoon.'),
       ('Kost het koppelen geld?', 'Nee. De app Smart Life en het Tuya-account zijn gratis.'),
       ('Werkt het ook als mijn telefoon uit staat?', 'Ja. Stroomwekker stuurt het seintje via internet naar je stekker. Je telefoon hoeft niet aan te staan.'),
       ('Welke apparaten kan ik op de stekker zetten?', 'Apparaten die vanzelf weer starten als de stroom terugkomt: een boiler, een elektrische kachel of een lader. Een wasmachine moet je vaak eerst op uitgesteld starten zetten. Let op het maximale vermogen van de stekker.')]
@@ -312,6 +313,25 @@ maak('/gids/action-slimme-stekker-koppelen/', 'Slimme stekker Action (LSC) laten
   <section class="card">
     <h2>Wat heb je nodig?</h2>
     <ul><li>Een slimme stekker van de Action (LSC Smart Connect) of een andere stekker die met Smart Life of Tuya werkt.</li><li>Je telefoon met de gratis app Smart Life.</li><li>Een computer, voor het Tuya-account.</li></ul>
+  </section>
+  <section class="card">
+    <h2>Werkt mijn stekker? En zie ik het verbruik?</h2>
+<div class="meettabel" id="welkemeet">
+  <p class="mt-kop"><b>Aan en uit zetten werkt met elke slimme stekker hieronder, ook de goedkoopste.</b> Wil je ook zien hoeveel stroom je apparaat gebruikt en wat het kost? Dan heb je een stekker met <b>energiemeter</b> nodig.</p>
+  <table>
+    <thead><tr><th scope="col">Stekker</th><th scope="col">Aan en uit</th><th scope="col">Verbruik zien</th></tr></thead>
+    <tbody>
+      <tr><td>Action (LSC Smart Connect) <b>zonder</b> energiemeter, de goedkoopste</td><td class="ja">Ja</td><td class="nee">Nee</td></tr>
+      <tr><td>Action (LSC Smart Connect) <b>met</b> energiemeter</td><td class="ja">Ja</td><td class="ja">Ja <small>(schatting per kwartier)</small></td></tr>
+      <tr><td>Smart Life of Tuya (ook Hema, Calex, Nedis, Woox) <b>zonder</b> energiemeter</td><td class="ja">Ja</td><td class="nee">Nee</td></tr>
+      <tr><td>Smart Life of Tuya <b>met</b> energiemeter</td><td class="ja">Ja</td><td class="ja">Ja <small>(schatting per kwartier)</small></td></tr>
+      <tr><td>Shelly Plug S, Shelly Plus Plug S en Shelly-modellen met <b>PM</b> in de naam</td><td class="ja">Ja</td><td class="ja">Ja <small>(precieze meterstand)</small></td></tr>
+      <tr><td>Shelly zonder PM, zoals Shelly 1 en Plus 1</td><td class="ja">Ja</td><td class="nee">Nee</td></tr>
+      <tr><td>Eigen link: IFTTT, Homey, Home Assistant</td><td class="ja">Ja</td><td class="nee">Nee</td></tr>
+    </tbody>
+  </table>
+  <p class="mt-tip"><b>Zo zie je of jouw stekker een energiemeter heeft:</b> open de app van je stekker. Zie je daar hoeveel <b>watt</b> je apparaat nu gebruikt, of een kopje als <i>Elektriciteit</i> of <i>Verbruik</i>? Dan meet hij. Op de doos staat vaak <i>energiemeter</i>, <i>energiemonitor</i> of <i>verbruiksmeter</i>. Twijfel je? Koppel de stekker gewoon: bij de test zeggen wij meteen of hij het verbruik meet.</p>
+</div>
   </section>
   <section class="card">
     <h2>Zo doe je het</h2>

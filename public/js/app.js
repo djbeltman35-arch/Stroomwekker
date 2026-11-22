@@ -262,6 +262,20 @@ setInterval(localAlerts, 60e3);
 
 // ---------- Apparaten ----------
 const ruleText = r => r.type === 'cheap' ? 'Aan als stroom goedkoop is' : r.type === 'battery' ? `Thuisbatterij: laden als het goedkoop is (${r.hours} uur)` : r.type === 'solar' ? 'Uit als terugleveren geld kost' : r.type === 'cheapest' ? `Aan in de goedkoopste ${r.hours} uur van de dag${r.block ? ' (achter elkaar)' : ''}` : `Aan onder ${ct(r.on)} cent, uit boven ${ct(r.off ?? r.on)} cent`;
+// Verbruik: alleen bij stekkers met een energiemeter. Aan- en uitzetten werkt met elke stekker.
+const kwhTxt = v => v.toFixed(v < 10 ? 2 : 1).replace('.', ',') + ' kWh';
+function verbruikHTML(d) {
+  const v = d.verbruik;
+  if (!v) return '';
+  if (v.meet === false) return `<div class="verbr nee">Verbruik zien: ${v.reden === 'link' ? 'kan niet met een eigen link' : 'deze stekker meet geen verbruik'}. Aan en uit zetten werkt wel gewoon. <a href="#welkemeet" data-welke>Welke stekkers meten wel?</a></div>`;
+  if (v.meet == null) return `<div class="verbr">Verbruik: we kijken bij het volgende kwartier of deze stekker het verbruik meet.</div>`;
+  const bespaard = v.maand.ref - v.maand.cost;
+  return `<div class="verbr ja"><div><span>Nu</span><b>${v.w != null ? Math.round(v.w).toLocaleString('nl-NL') + ' W' : '–'}</b></div>`
+    + `<div><span>Vandaag</span><b>${kwhTxt(v.vandaag.kwh)}</b><span>${eur(v.vandaag.cost, 2)}</span></div>`
+    + `<div><span>Deze maand</span><b>${kwhTxt(v.maand.kwh)}</b><span>${eur(v.maand.cost, 2)}</span></div>`
+    + (v.maand.kwh > 0.05 ? `<p class="besp">${bespaard >= 0 ? `Bespaard deze maand: <b>${eur(bespaard, 2)}</b> vergeleken met stroom op gemiddelde momenten` : `Deze maand ${eur(-bespaard, 2)} duurder dan op gemiddelde momenten`}</p>` : '')
+    + (v.est ? '<small>Schatting: deze stekker geeft elk kwartier het vermogen door, geen meterstand.</small>' : '') + '</div>';
+}
 function renderDevices() {
   if (typeof renderMijn === 'function') setTimeout(renderMijn);
   $('devList').innerHTML = devices.map(d => {
@@ -270,10 +284,11 @@ function renderDevices() {
       : s ? (s.ok ? `<span class="status ok">● ${s.on ? 'Aan' : 'Uit'} sinds ${nlTime(s.at)}</span>` : `<span class="status err">⚠ ${esc(s.msg || 'Het lukte niet')}</span>`)
       : '<span class="status muted">Begint bij het volgende kwartier</span>';
     return `<li class="item"><div class="txt"><b>${esc(d.name)}</b><span>${ruleText(d.rule)} · ${{ shelly: 'Shelly', tuya: 'Action / Smart Life' }[d.kind] || 'eigen link'}</span><br>${st}</div>
-      <button class="btn-line btn-sm" data-edit="${d.id}">Wijzig</button><button class="x" data-deldev="${d.id}" aria-label="Verwijderen">×</button></li>`;
+      <button class="btn-line btn-sm" data-edit="${d.id}">Wijzig</button><button class="x" data-deldev="${d.id}" aria-label="Verwijderen">×</button>${verbruikHTML(d)}</li>`;
   }).join('');
 }
 $('devList').addEventListener('click', e => {
+  if (e.target.dataset.welke !== undefined) { e.preventDefault(); const m = document.querySelector('.meetuitleg'); if (m) { m.open = true; m.scrollIntoView({ behavior: 'smooth', block: 'start' }); } return; }
   const del = e.target.dataset.deldev, ed = e.target.dataset.edit;
   if (del) { devices = devices.filter(d => d.id !== del); renderDevices(); sync().catch(() => {}); }
   if (ed) openDev(devices.find(d => d.id === ed));
@@ -339,7 +354,7 @@ function formDevice() {
 const say = (t, ok) => { $('dMsg').textContent = t; $('dMsg').className = 'msg ' + (ok ? 'ok' : 'err'); };
 async function test(on) {
   say('Bezig…', true);
-  try { await api({ action: 'test', device: formDevice(), on }); say(on === 'supply' ? '✓ Verstuurd. Levert je batterij nu stroom?' : on ? '✓ Verstuurd. Gaat je apparaat nu aan?' : '✓ Verstuurd. Gaat je apparaat nu uit?', true); }
+  try { const r = await api({ action: 'test', device: formDevice(), on }); say((on === 'supply' ? '✓ Verstuurd. Levert je batterij nu stroom?' : on ? '✓ Verstuurd. Gaat je apparaat nu aan?' : '✓ Verstuurd. Gaat je apparaat nu uit?') + meetZin(r), true); }
   catch (e) { say(e.message); }
 }
 $('dTestOn').onclick = () => test(true); $('dTestOff').onclick = () => test(false); $('dTestSupply').onclick = () => test('supply');
@@ -467,10 +482,10 @@ const sApparaat = () => ({ t: 'Wat wil je vanzelf laten aangaan?', p: 'Kies wat 
   ...Object.entries(PRESETS).map(([k, v]) => ({ i: v.icon, l: { boiler: 'Boiler', was: 'Wasmachine, droger of vaatwasser', auto: 'Elektrische auto', anders: 'Iets anders' }[k], s: 'Aan ' + v.uitleg, go: () => { W.d.preset = k; go(sStekker); } })),
   { i: '⚙️', l: 'Zelf instellen', s: 'Voor wie alles zelf wil kiezen', go: () => { wizClose(); openMeer(); openDev(null); $('apparaten').scrollIntoView({ behavior: 'smooth' }); } },
 ] });
-const sStekker = () => ({ t: 'Welke slimme stekker heb je?', opts: [
-  { i: '🛒', l: 'Van de Action (LSC)', go: () => { W.d.kind = 'tuya'; W.d.lsc = true; go(sTuya); } },
-  { i: '📱', l: 'Smart Life of Tuya', s: 'Ook Hema, Calex, Nedis, Woox', go: () => { W.d.kind = 'tuya'; go(sTuya); } },
-  { i: '🔵', l: 'Shelly', go: () => { W.d.kind = 'shelly'; go(sShelly); } },
+const sStekker = () => ({ t: 'Welke slimme stekker heb je?', p: 'Aan en uit zetten werkt met élke stekker hieronder, ook de goedkoopste. Alleen voor het verbruik zien heb je een stekker met energiemeter nodig.', opts: [
+  { i: '🛒', l: 'Van de Action (LSC)', s: 'Aan en uit: altijd. Verbruik zien: alleen met energiemeter', go: () => { W.d.kind = 'tuya'; W.d.lsc = true; go(sTuya); } },
+  { i: '📱', l: 'Smart Life of Tuya', s: 'Ook Hema, Calex, Nedis, Woox. Aan en uit: altijd. Verbruik zien: alleen met energiemeter', go: () => { W.d.kind = 'tuya'; go(sTuya); } },
+  { i: '🔵', l: 'Shelly', s: 'Aan en uit: altijd. Verbruik zien: Plug S, Plus Plug S en modellen met PM', go: () => { W.d.kind = 'shelly'; go(sShelly); } },
   { i: '❓', l: 'Ik heb nog geen slimme stekker', go: () => go(sGeenStekker) },
 ] });
 const sGeenStekker = () => ({ t: 'Je hebt een slimme stekker nodig', of: 4,
@@ -502,9 +517,10 @@ function wDevice() {
   if (W.d.kind === 'shelly') Object.assign(d, { host: v('wH'), key: v('wK'), deviceId: v('wD'), channel: 0 });
   return d;
 }
+const meetZin = r => r?.meet === true ? ' Deze stekker meet ook het verbruik: je ziet straks wat je apparaat kost en wat je bespaart.' : r?.meet === false ? ' Deze stekker meet geen verbruik. Dat is niet erg: aan en uit zetten werkt gewoon.' : '';
 function wireTest() {
   const msg = (t, ok) => { $('wMsg').textContent = t; $('wMsg').className = 'msg ' + (ok ? 'ok' : 'err'); };
-  $('wTest').onclick = async () => { msg('Even geduld…', true); try { await api({ action: 'test', device: wDevice(), on: true }); msg('✓ Gelukt! Gaat je apparaat aan? Dan werkt het.', true); W.d.tested = true; } catch (e) { msg(e.message); } };
+  $('wTest').onclick = async () => { msg('Even geduld…', true); try { const r = await api({ action: 'test', device: wDevice(), on: true }); msg('✓ Gelukt! Gaat je apparaat aan? Dan werkt het.' + meetZin(r), true); W.d.tested = true; } catch (e) { msg(e.message); } };
   $('wNext').onclick = async () => {
     if (!W.d.tested && !W.d.warned) { W.d.warned = true; msg('Tik eerst op "Test: zet aan" om te zien of het werkt. Wil je het toch bewaren? Tik dan nog een keer op "Klaar, verder".'); return; }
     msg('Bewaren…', true);

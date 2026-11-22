@@ -3,6 +3,8 @@
 > Stroomwekker (https://stroomwekker.eu) is een Nederlandse web-app voor mensen met een dynamisch energiecontract. De app laat de stroomprijs per kwartier zien, inclusief btw en energiebelasting, en zet slimme stekkers, boilers, laadpalen en thuisbatterijen automatisch aan als stroom goedkoop is.
 
 - Werkt met slimme stekkers van de Action (LSC, via de app Smart Life), Tuya, Shelly en elk systeem met webhooks (IFTTT, Homey, Home Assistant).
+- Aan en uit zetten werkt met elke ondersteunde slimme stekker, ook de goedkoopste zonder energiemeter.
+- Verbruik per apparaat (watt nu, kWh vandaag en deze maand, kosten per kwartier en besparing) alleen bij stekkers met energiemeter: Shelly Plug S, Plus Plug S en Shelly-modellen met PM (precieze meterstand), en Action/Smart Life/Tuya-stekkers met energiemeter (schatting per kwartier). Niet bij eigen links (webhooks).
 - Schakelt in de cloud, elk kwartier, ook als de telefoon uit staat of de site dicht is.
 - Pushberichten bij goedkope, dure of negatieve stroomprijzen, en als de prijzen van morgen bekend zijn (rond 13:00 uur).
 - Plan voor de thuisbatterij: wanneer laden en wanneer leveren (rekening houdend met 85% rendement).

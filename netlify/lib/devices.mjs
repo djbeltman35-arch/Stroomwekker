@@ -32,6 +32,41 @@ async function tuyaSwitch(d, on) {
   await tuyaRequest(d, 'POST', `/v1.0/iot-03/devices/${d.deviceId}/commands`, { commands: [{ code: d.code || 'switch_1', value: !!on }] }, tok.access_token);
 }
 
+// ---------- Verbruik meten (alleen stekkers met energiemeter) ----------
+// Geeft { w, totalWh, est } terug, of null als de stekker geen verbruik meet.
+export async function readMeter(d, cache = {}) {
+  if (d.kind === 'shelly') {
+    const r = await fetch(`https://${d.host}/v2/devices/api/get?auth_key=${encodeURIComponent(d.key)}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: [d.deviceId], select: ['status'] }), signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) throw new Error('Shelly antwoordde ' + r.status);
+    const j = await r.json(); const st = (Array.isArray(j) ? j[0] : j)?.status || {};
+    const ch = d.channel || 0;
+    const g2 = st['switch:' + ch] || st['pm1:' + ch];
+    if (g2 && typeof g2.apower === 'number') return { w: g2.apower, totalWh: g2.aenergy?.total ?? null, est: g2.aenergy?.total == null };
+    const g1 = st.meters?.[ch] || st.emeters?.[ch];
+    if (g1 && typeof g1.power === 'number') return { w: g1.power, totalWh: typeof g1.total === 'number' ? (st.emeters ? g1.total : g1.total / 60) : null, est: typeof g1.total !== 'number' };
+    return null;
+  }
+  if (d.kind === 'tuya') {
+    const tok = (await tuyaRequest(d, 'GET', '/v1.0/token?grant_type=1')).access_token;
+    const list = await tuyaRequest(d, 'GET', `/v1.0/iot-03/devices/${d.deviceId}/status`, null, tok);
+    const p = (list || []).find(x => x.code === 'cur_power');
+    if (!p) return null;
+    if (cache.scale == null) {
+      cache.scale = 1;
+      try {
+        const spec = await tuyaRequest(d, 'GET', `/v1.0/iot-03/devices/${d.deviceId}/specification`, null, tok);
+        const v = JSON.parse((spec.status || []).find(x => x.code === 'cur_power')?.values || '{}');
+        if (Number.isFinite(v.scale)) cache.scale = v.scale;
+      } catch { /* standaard schaal 1 */ }
+    }
+    return { w: Number(p.value) / 10 ** cache.scale, totalWh: null, est: true };
+  }
+  return null; // eigen link: geen meting mogelijk
+}
+
 const SHELLY_HOST = /^shelly-\d{1,3}-[a-z]{2,4}\.shelly\.cloud$/;
 
 function safeUrl(u) {
