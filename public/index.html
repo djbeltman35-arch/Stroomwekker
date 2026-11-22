@@ -8,8 +8,8 @@
 <link rel="canonical" href="https://stroomwekker.netlify.app/">
 <meta name="theme-color" content="#0F2340">
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<link rel="icon" href="/icons/icon-48.png" type="image/png">
+<link rel="apple-touch-icon" href="/icons/icon-180.png">
 <meta property="og:title" content="Stroomwekker – live stroomprijs per kwartier">
 <meta property="og:description" content="Dynamische stroomprijs live, meldingen bij goedkope stroom en apparaten automatisch aan of uit.">
 <meta property="og:image" content="https://stroomwekker.netlify.app/icons/icon-512.png">
@@ -136,6 +136,10 @@ h3{font:600 17px/1.3 var(--text);margin:0 0 4px}
 .watis{margin-top:18px;padding:16px 18px;background:var(--soft);border-radius:6px}
 .watis h3{margin:0 0 6px}.watis p{margin:0;font-size:15px;max-width:75ch}
 @media (max-width:820px){.stappen{grid-template-columns:1fr}.stappen li{border-left:0;border-top:1px solid var(--line);grid-template-columns:32px 1fr;column-gap:14px}.stappen li:first-child{border-top:0}.stappen li::before{grid-row:1/3;margin:0}}
+.installknop{display:inline-flex;align-items:center;gap:10px;margin-top:14px;background:#fff;color:var(--navy);font-size:16px;padding:12px 18px}
+.installknop span{display:grid;width:20px;height:20px}.installknop svg{width:20px;height:20px}
+.installknop:hover{background:#E8EFFB}
+.nav a.navinst{background:#fff;color:var(--navy);font-weight:600}.nav a.navinst:hover{background:#E8EFFB;color:var(--navy)}
 /* Panelen */
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px;margin:0 0 16px}
 .card>h2{padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:16px}
@@ -206,7 +210,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
 .foot nav a{color:#fff;text-decoration:none;font-weight:500}
 .foot .muted{color:#8FA3C2!important}
 .install{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--navy);color:#fff;padding:12px max(16px,env(safe-area-inset-left)) calc(12px + env(safe-area-inset-bottom));display:flex;gap:12px;align-items:center;border-top:1px solid var(--navy-3)}
-.install .t{flex:1;font-size:14.5px;line-height:1.35;color:#C9D4E5}.install .t b{display:block;font-size:15.5px;color:#fff}
+.install .t{flex:1;font-size:14.5px;line-height:1.35;color:#C9D4E5}.install .t>b{display:block;font-size:15.5px;color:#fff}.ios b{color:#fff}
 .install .go{background:#fff;color:var(--navy)}.install .no{color:#fff;padding:8px;font-size:22px;line-height:1}
 .ios{font-size:14px;margin-top:4px}
 /* Stappenplan */
@@ -250,7 +254,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
     <a class="brand" href="/" aria-label="Stroomwekker, naar de startpagina">
       <span class="woord"><span class="s">Stroom</span><span class="w">wekker<svg class="flits" viewBox="0 0 600 200" aria-hidden="true"><path d="M0 200 285 52 215 112 600 0 315 148 385 88Z"/></svg></span></span>
     </a>
-    <nav class="nav" aria-label="Menu"><a href="#" id="navStart">Regelen</a><a href="/hoe-werkt-het/">Hoe werkt het?</a><a href="#meer" id="navMeer">Prijzen</a></nav>
+    <nav class="nav" aria-label="Menu"><a href="#" id="navStart">Regelen</a><a href="/hoe-werkt-het/">Hoe werkt het?</a><a href="#meer" id="navMeer">Prijzen</a><a href="#" id="navInstall" class="navinst">Installeer app</a></nav>
   </div>
 </header>
 
@@ -267,6 +271,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
         <button type="button" data-flow="zon"><span class="ico" data-ic="sun"></span><b>Zonnepanelen</b><small>Weten wanneer terugleveren geld kost</small></button>
         <button type="button" data-flow="bericht"><span class="ico" data-ic="bell"></span><b>Alleen een bericht</b><small>Als stroom goedkoop of duur is</small></button>
       </div>
+      <button type="button" class="installknop" id="installKnop"><span data-ic="phone"></span>Installeer Stroomwekker als app</button>
     </div>
     <a class="licht" id="licht" href="#meer" data-l="laden">
       <span class="kop"><span>Stroomprijs nu</span><span class="stand"><span class="bol" aria-hidden="true"></span><span id="lichtT">Ophalen…</span></span></span>

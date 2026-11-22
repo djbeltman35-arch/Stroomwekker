@@ -383,10 +383,20 @@ function maybeInstall() {
 }
 $('installGo').onclick = async () => { if (bip) { bip.prompt(); await bip.userChoice; bip = null; } $('install').hidden = true; };
 $('installNo').onclick = () => { $('install').hidden = true; LS.set('sw-installno', Date.now() + 5 * 86400e3); };
-$('installLink').onclick = e => {
+function installeer(e) {
+  e && e.preventDefault(); LS.set('sw-installno', 0);
+  if (standalone) { return; }
+  if (bip) { bip.prompt(); return; }
+  $('install').hidden = false; $('iosHint').hidden = false; $('installGo').hidden = true;
+  $('iosHint').innerHTML = isIOS ? 'Tik onderin op <b>Deel</b> en kies <b>Zet op beginscherm</b>.' : 'Open het menu van je browser (de drie puntjes) en kies <b>App installeren</b> of <b>Toevoegen aan startscherm</b>.';
+}
+$('installKnop') && ($('installKnop').onclick = installeer);
+$('navInstall') && ($('navInstall').onclick = installeer);
+$('installLink') && ($('installLink').onclick = e => {
   e.preventDefault(); LS.set('sw-installno', 0);
   if (bip) bip.prompt(); else { $('install').hidden = false; $('iosHint').hidden = false; $('installGo').hidden = true; }
-};
+});
+if (standalone) { $('installKnop') && ($('installKnop').hidden = true); $('navInstall') && ($('navInstall').hidden = true); }
 setTimeout(maybeInstall, 1500);
 
 // ---------- Start ----------
