@@ -44,6 +44,42 @@ async function gas(now) {
   return days; // { 'YYYY-MM-DD': prijs per m3 }
 }
 
+import { getStore } from '@netlify/blobs';
+
+const memCache = { v: null }; // lokaal testen
+const priceStore = () => process.env.DEV_MEMORY ? null : getStore({ name: 'prices' });
+
+function nlHour(t) { return Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Amsterdam', hour: '2-digit', hour12: false }).format(new Date(t))); }
+function dayStartNL(t) {
+  const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit' });
+  const day = fmt.format(new Date(t)); let s = Date.parse(day + 'T00:00:00Z') - 3 * 3600e3;
+  while (fmt.format(new Date(s)) !== day) s += 900e3;
+  return s;
+}
+// Heeft de data al (bijna) alle kwartieren van morgen?
+function hasTomorrow(d, now) { const tm = dayStartNL(now) + 36 * 3600e3, s = dayStartNL(tm); return d.quarters.filter(q => q.t >= s && q.t < s + 25 * 3600e3).length >= 92; }
+
+// Snelle weg voor bezoekers: bewaarde prijzen, alleen vernieuwen als het nodig is.
+export async function getPrices(now = Date.now()) {
+  const st = priceStore();
+  let cached = st ? await st.get('latest', { type: 'json' }).catch(() => null) : memCache.v;
+  const age = cached ? now - cached.updated : Infinity;
+  // Na 13:00 vaker kijken tot de prijzen van morgen binnen zijn
+  const maxAge = (nlHour(now) >= 13 && cached && !hasTomorrow(cached, now)) ? 5 * 60e3 : 20 * 60e3;
+  if (cached && age < maxAge && cached.quarters?.length) return cached;
+  try { return await refreshPrices(now); }
+  catch (e) { if (cached) return cached; throw e; }
+}
+
+export async function refreshPrices(now = Date.now()) {
+  const d = await loadPrices(now);
+  const from = dayStartNL(now);
+  const slim = { ...d, quarters: d.quarters.filter(q => q.t >= from) }; // alleen vandaag en later
+  const st = priceStore();
+  if (st) await st.setJSON('latest', slim).catch(e => console.error('blob', e.message)); else memCache.v = slim;
+  return slim;
+}
+
 export async function loadPrices(now = Date.now()) {
   // Beide bronnen tegelijk ophalen: Energy-Charts (kwartieren) en EnergyZero (uren, vaak eerder bekend voor morgen)
   const [ec, ez, gasDays] = await Promise.all([

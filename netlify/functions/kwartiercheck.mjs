@@ -1,7 +1,7 @@
 // Draait elk kwartier: stuurt meldingen en schakelt apparaten van alle gebruikers.
 import webpush from 'web-push';
 import { store } from '../lib/store.mjs';
-import { loadPrices } from '../lib/data.mjs';
+import { refreshPrices } from '../lib/data.mjs';
 import { switchDevice } from '../lib/devices.mjs';
 import { alertsDue, deviceWants, batteryMode, price, current, fmtCt, nlTime, DEFAULT_SETTINGS } from '../../public/js/engine.js';
 
@@ -9,7 +9,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 export default async () => {
   const now = Date.now() + 20e3; // net na de kwartierwissel: tel als het nieuwe kwartier
-  const { quarters } = await loadPrices(now);
+  const { quarters } = await refreshPrices(now); // ververst meteen de bewaarde prijzen voor bezoekers
   const s = store();
   const vapidOk = process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY;
   if (vapidOk) webpush.setVapidDetails('mailto:djbeltman35@gmail.com', process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);

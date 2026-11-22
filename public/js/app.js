@@ -50,7 +50,9 @@ function applyServer(j) {
 }
 
 // ---------- Prijzen ----------
+let lastLoad = 0;
 async function load() {
+  lastLoad = Date.now();
   try {
     const r = await fetch('/api/prices', { cache: 'no-store' });
     if (!r.ok) throw 0;
@@ -78,6 +80,7 @@ function render() {
     $('stripL').textContent = { goedkoop: '🟢 goedkoop', normaal: '⚪ gewone prijs', duur: '🔴 duur' }[l];
     $('nowLevel').textContent = { goedkoop: '🟢 Goedkoop: goed moment', normaal: '⚪ Gewone prijs', duur: '🔴 Duur: liever wachten' }[l];
     $('nowUntil').textContent = `Deze prijs geldt tot ${nlTime(cur.t + Q)}`;
+    $('updated').textContent = `Prijzen bijgewerkt om ${nlTime(data.updated)}`;
     document.title = `${ct(p)} ct – Stroomprijs nu | Stroomwekker`;
     const nx = current(qs, cur.t + Q);
     $('nextP').textContent = nx ? ct(P(nx.spot)) + ' cent' : '–';
@@ -141,9 +144,17 @@ function tick() {
   if (data && left < 1100 && wissel !== qs) { wissel = qs; setTimeout(() => { render(); localAlerts(); }, 1300); }
 }
 setInterval(tick, 1000);
-setInterval(load, 5 * 60e3);
+// Alleen nieuwe prijzen halen als het nodig is: elke 15 min, en na 13:00 elke 5 min tot morgen er is.
+function needsLoad() {
+  if (!data) return true;
+  const age = Date.now() - lastLoad, h = +nlTime(Date.now()).slice(0, 2);
+  const tom = nlDayBounds(nlDayBounds(Date.now()).end + 60e3);
+  const hasTom = inRange(data.quarters, tom.start, tom.end).length >= 92;
+  return age > 15 * 60e3 || (h >= 13 && !hasTom && age > 5 * 60e3);
+}
+setInterval(() => { if (!document.hidden && needsLoad()) load(); }, 60e3);
 let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(render, 200); });
-document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { render(); if (needsLoad()) load(); } });
 
 // ---------- Grafiek ----------
 function niceStep(raw) { const p = Math.pow(10, Math.floor(Math.log10(raw))); for (const m of [1, 2, 2.5, 5, 10]) if (m * p >= raw) return m * p; return 10 * p; }

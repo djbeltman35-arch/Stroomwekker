@@ -1,5 +1,5 @@
 // Stroomwekker service worker: snelle start, offline laatste prijzen, pushmeldingen.
-const V = 'sw-v2';
+const V = 'sw-v3';
 const SHELL = ['/', '/js/engine.js', '/js/app.js', '/icons/icon.svg', '/manifest.webmanifest',
   '/fonts/atkinson-hyperlegible-latin-400-normal.woff2', '/fonts/atkinson-hyperlegible-latin-700-normal.woff2',
   '/fonts/barlow-condensed-latin-700-normal.woff2'];
