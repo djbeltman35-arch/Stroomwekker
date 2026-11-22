@@ -1,8 +1,8 @@
 // Stroomwekker service worker: snelle start, offline laatste prijzen, pushmeldingen.
-const V = 'sw-v3';
+const V = 'sw-v4';
 const SHELL = ['/', '/js/engine.js', '/js/app.js', '/icons/icon.svg', '/manifest.webmanifest',
-  '/fonts/atkinson-hyperlegible-latin-400-normal.woff2', '/fonts/atkinson-hyperlegible-latin-700-normal.woff2',
-  '/fonts/barlow-condensed-latin-700-normal.woff2'];
+  '/fonts/ibm-plex-sans-latin-400-normal.woff2', '/fonts/ibm-plex-sans-latin-600-normal.woff2',
+  '/fonts/ibm-plex-sans-latin-500-normal.woff2'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim()));

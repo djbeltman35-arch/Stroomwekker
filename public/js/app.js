@@ -77,10 +77,11 @@ function render() {
     const l = levelOf(cur.spot, lv);
     $('nowLevel').className = 'pill ' + l;
     $('licht').dataset.l = l;
-    $('lichtT').textContent = { goedkoop: 'Nu goedkoop: goed moment', normaal: 'Nu een gewone prijs', duur: 'Nu duur: liever even wachten' }[l];
-    $('lichtS').textContent = `Tot ${nlTime(cur.t + Q)} · tik voor alle prijzen`;
-    $('lichtP').textContent = ct(p) + ' ct';
-    $('nowLevel').textContent = { goedkoop: '🟢 Goedkoop: goed moment', normaal: '⚪ Gewone prijs', duur: '🔴 Duur: liever wachten' }[l];
+    $('lichtT').textContent = { goedkoop: 'Goedkoop', normaal: 'Gemiddeld', duur: 'Duur' }[l];
+    $('lichtS').textContent = `Per kWh, inclusief belasting. Geldt tot ${nlTime(cur.t + Q)}.`;
+    $('lichtP').innerHTML = `${ct(p)}<small>ct/kWh</small>`;
+    $('strip').innerHTML = tq.map(q => `<i class="${{ goedkoop: 'g', normaal: 'n', duur: 'd' }[levelOf(q.spot, lv)]}${q.t === cur.t ? ' nu' : ''}" style="height:${Math.max(6, Math.round((P(q.spot) - Math.min(...tq.map(x => P(x.spot)))) / ((Math.max(...tq.map(x => P(x.spot))) - Math.min(...tq.map(x => P(x.spot)))) || 1) * 100))}%"></i>`).join('');
+    $('nowLevel').textContent = { goedkoop: 'Goedkoop: goed moment', normaal: 'Gewone prijs', duur: 'Duur: liever wachten' }[l];
     $('nowUntil').textContent = `Deze prijs geldt tot ${nlTime(cur.t + Q)}`;
     $('updated').textContent = `Prijzen bijgewerkt om ${nlTime(data.updated)}`;
     document.title = `${ct(p)} ct – Stroomprijs nu | Stroomwekker`;
@@ -115,15 +116,15 @@ function render() {
   const curNeg = cur && cur.spot < 0;
   const wtxt = ws => ws.map(w => `${nlTime(w.start)}–${nlTime(w.end)}`).join(', ');
   $('zonStatus').innerHTML = (curNeg
-      ? `<p class="notice" style="background:var(--deal-soft);margin:0">🔴 <b>Terugleveren kost nu geld.</b> Zet je panelen uit, of gebruik nu veel stroom.</p>`
-      : `<p class="notice" style="background:var(--green-soft);margin:0">🟢 <b>Alles goed.</b> Je zonnepanelen mogen aan blijven.</p>`)
+      ? `<p class="notice" style="background:var(--deal-soft);border-color:var(--deal);margin:0"><b>Terugleveren kost nu geld.</b> Zet je panelen uit, of gebruik nu veel stroom.</p>`
+      : `<p class="notice" style="background:var(--green-soft);border-color:var(--green);margin:0"><b>Alles goed.</b> Je zonnepanelen mogen aan blijven.</p>`)
     + `<p class="small" style="margin:8px 0 0"><b>Panelen uit vandaag:</b> ${wsT.length ? wtxt(wsT) : 'niet nodig'}<br><b>Panelen uit morgen:</b> ${mq.length ? (wsM.length ? wtxt(wsM) : 'niet nodig') : 'dit weet je na 13:00 uur'}</p>`;
 
   // Thuisbatterij
   const bh = +$('batHours').value;
   const planTxt = (pl, label) => !pl ? '' : `<div class="b"><div class="k">${label}</div>`
-    + `<p style="margin:4px 0">🔌 <b>Laden:</b> ${nlTime(pl.charge.start)}–${nlTime(pl.charge.end)} <span class="muted">(${ct(pl.buy)} cent)</span><br>`
-    + `⚡ <b>Batterij gebruiken:</b> ${nlTime(pl.discharge.start)}–${nlTime(pl.discharge.end)} <span class="muted">(${ct(pl.sell)} cent)</span></p>`
+    + `<p style="margin:4px 0"><b>Laden:</b> ${nlTime(pl.charge.start)}–${nlTime(pl.charge.end)} <span class="muted">(${ct(pl.buy)} cent)</span><br>`
+    + `<b>Batterij gebruiken:</b> ${nlTime(pl.discharge.start)}–${nlTime(pl.discharge.end)} <span class="muted">(${ct(pl.sell)} cent)</span></p>`
     + (pl.worth ? `<span class="pill goedkoop">✓ Loont: ongeveer ${ct(pl.gain)} cent winst per kWh</span>` : `<span class="pill normaal">Loont niet: het verschil is te klein</span><p class="small muted" style="margin:6px 0 0">Laden en weer gebruiken kost ongeveer 15% stroom. Daarvoor is het verschil nu te klein. Laat de batterij dan rusten.</p>`) + '</div>';
   $('batPlan').innerHTML = '<div class="best">' + planTxt(batteryPlan(qs, today.start, today.end, bh, settings), 'Vandaag')
     + (mq.length ? planTxt(batteryPlan(qs, tom.start, tom.end, bh, settings), 'Morgen') : '<div class="b"><div class="k">Morgen</div><p class="small muted" style="margin:4px 0">Dit zie je na 13:00 uur.</p></div>') + '</div>';
@@ -206,7 +207,7 @@ document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click
 
 // ---------- Meldingen ----------
 const alertText = a => a.type === 'below' ? `Stroom goedkoper dan ${ct(a.value)} cent` : a.type === 'above' ? `Stroom duurder dan ${ct(a.value)} cent`
-  : a.type === 'cheapest' ? `De goedkoopste ${a.hours} uur beginnen` : a.type === 'negative' ? '☀️ Zonnepanelen beter uit' : a.type === 'battery' ? '🔋 Thuisbatterij laden of gebruiken' : 'De prijzen van morgen zijn er';
+  : a.type === 'cheapest' ? `De goedkoopste ${a.hours} uur beginnen` : a.type === 'negative' ? 'Zonnepanelen beter uit' : a.type === 'battery' ? 'Thuisbatterij laden of gebruiken' : 'De prijzen van morgen zijn er';
 function renderAlerts() {
   if (typeof renderMijn === 'function') setTimeout(renderMijn);
   $('alertList').innerHTML = alerts.map(a => `<li class="item"><div class="txt"><b>${alertText(a)}</b></div><button class="x" data-del="${a.id}" aria-label="Verwijderen">×</button></li>`).join('');
@@ -225,11 +226,11 @@ function renderPushNotice() {
   const n = $('pushNotice');
   const perm = 'Notification' in window ? Notification.permission : 'unsupported';
   const ios = /iPhone|iPad/.test(navigator.userAgent) && !matchMedia('(display-mode: standalone)').matches;
-  if (hasPush && perm === 'granted') { n.innerHTML = '✅ Berichten staan aan op dit apparaat.'; return; }
-  if (ios) { n.innerHTML = '📱 Heb je een iPhone? Zet Stroomwekker dan eerst op je beginscherm. Tik onderin op <b>Deel</b> en kies <b>Zet op beginscherm</b>. Open de app daarna via je beginscherm.'; return; }
-  if (perm === 'denied') { n.innerHTML = '🔕 Berichten staan uit in je browser. Tik op het slotje naast het webadres en zet berichten aan.'; return; }
+  if (hasPush && perm === 'granted') { n.innerHTML = 'Berichten staan aan op dit apparaat.'; return; }
+  if (ios) { n.innerHTML = 'Heb je een iPhone? Zet Stroomwekker dan eerst op je beginscherm. Tik onderin op <b>Deel</b> en kies <b>Zet op beginscherm</b>. Open de app daarna via je beginscherm.'; return; }
+  if (perm === 'denied') { n.innerHTML = 'Berichten staan uit in je browser. Tik op het slotje naast het webadres en zet berichten aan.'; return; }
   if (perm === 'unsupported') { n.textContent = 'Deze browser kan geen berichten sturen. Probeer Chrome of Safari.'; return; }
-  n.innerHTML = '<button class="btn btn-sm" id="pushBtn" type="button">🔔 Berichten aanzetten</button> <span class="small">Kies daarna hieronder wanneer.</span>';
+  n.innerHTML = '<button class="btn btn-sm" id="pushBtn" type="button">Berichten aanzetten</button> <span class="small">Kies daarna hieronder wanneer.</span>';
   $('pushBtn').onclick = () => enablePush().then(() => sync().catch(() => {}));
 }
 function b64u(s) { const p = '='.repeat((4 - s.length % 4) % 4), b = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(b, c => c.charCodeAt(0)); }
@@ -317,12 +318,12 @@ $('batAlert').onclick = async () => {
   alerts = alerts.filter(a => a.type !== 'battery');
   alerts.push({ id: crypto.randomUUID(), type: 'battery', value: 0, hours: +$('batHours').value });
   renderAlerts(); await enablePush(); sync().catch(() => {});
-  $('batAlert').textContent = '✓ Je krijgt een bericht';
+  $('batAlert').textContent = 'Bericht staat aan';
 };
 $('zonAlert').onclick = async () => {
   if (!alerts.some(a => a.type === 'negative')) alerts.push({ id: crypto.randomUUID(), type: 'negative', value: 0, hours: 1 });
   renderAlerts(); await enablePush(); sync().catch(() => {});
-  $('zonAlert').textContent = '✓ Je krijgt een bericht';
+  $('zonAlert').textContent = 'Bericht staat aan';
 };
 $('dCancel').onclick = () => { $('devForm').hidden = true; $('devAdd').hidden = false; };
 function formDevice() {
@@ -395,6 +396,33 @@ data = LS.get('sw-lastdata', null); render();
 load();
 api({ action: 'get' }).then(j => { if (j.devices?.length || j.alerts?.length || j.hasPush) applyServer(j); }).catch(() => {});
 
+
+// ---- Lijniconen (geen emoji: zakelijke stijl) ----
+const IC = {
+  plug: '<path d="M9 2v6M15 2v6M6 8h12v3a6 6 0 0 1-12 0zM12 17v5"/>',
+  battery: '<rect x="3" y="7" width="16" height="10" rx="2"/><path d="M21 11v2M7 10v4M11 10v4"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
+  drop: '<path d="M12 2.7 6.3 9.2a7.5 7.5 0 1 0 11.4 0z"/>',
+  wash: '<rect x="3" y="2" width="18" height="20" rx="2"/><circle cx="12" cy="13" r="5"/><path d="M7 6h.01M10 6h4"/>',
+  car: '<path d="M5 17h14M3 17v-4l2-5h14l2 5v4M7 17v2M17 17v2"/><circle cx="7.5" cy="13.5" r="1"/><circle cx="16.5" cy="13.5" r="1"/>',
+  dots: '<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>',
+  sliders: '<path d="M4 6h10M18 6h2M4 18h4M12 18h8M4 12h16"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="18" r="2"/>',
+  shop: '<path d="M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2"/>',
+  phone: '<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>',
+  chip: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/>',
+  help: '<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>',
+  check: '<path d="m5 12 5 5L20 7"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  home: '<path d="M3 10 12 3l9 7v11H3z"/>',
+  off: '<path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/>',
+};
+const svg = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k] || IC.dots}</svg>`;
+document.querySelectorAll('[data-ic]').forEach(e => e.innerHTML = svg(e.dataset.ic));
+const EMO = { '🔌': 'plug', '🔋': 'battery', '☀️': 'sun', '🔔': 'bell', '🚿': 'drop', '👕': 'wash', '🚗': 'car', '⚙️': 'sliders', '🛒': 'shop', '📱': 'phone', '🔵': 'chip', '❓': 'help', '✅': 'check', '⏱️': 'clock', '👍': 'check', '🏠': 'home', '🟢': 'clock', '📅': 'calendar' };
+const ico = e => svg(EMO[e] || 'dots');
+
 // ================= Stappenplan (één vraag per scherm) =================
 const W = { stack: [], d: {} };
 const wiz = $('wiz');
@@ -413,7 +441,7 @@ function show() {
   const v = fn();
   $('wizT').textContent = v.t;
   $('wizB').innerHTML = (v.p ? `<p>${v.p}</p>` : '') + (v.html || '') + (v.opts ? '<div class="opts">' + v.opts.map((o, i) =>
-    `<button class="opt" type="button" data-i="${i}"><span>${o.i || ''}</span><div><b>${o.l}</b>${o.s ? `<small>${o.s}</small>` : ''}</div></button>`).join('') + '</div>' : '');
+    `<button class="opt" type="button" data-i="${i}"><span>${ico(o.i)}</span><div><b>${o.l}</b>${o.s ? `<small>${o.s}</small>` : ''}</div></button>`).join('') + '</div>' : '');
   if (v.opts) $('wizB').querySelectorAll('.opt').forEach(b => b.onclick = () => v.opts[+b.dataset.i].go());
   const total = v.of || 4, step = Math.min(W.stack.length, total);
   $('wizDots').innerHTML = Array.from({ length: total }, (_, i) => `<i class="${i < step ? 'on' : ''}"></i>`).join('');
@@ -475,7 +503,7 @@ const sShelly = () => ({ t: 'Koppel je Shelly', of: 4,
   after: wireTest });
 const sKlaarApparaat = () => {
   const p = PRESETS[W.d.preset || 'anders'];
-  return { t: 'Klaar! 🎉', of: 4, html: `<p class="bigok">${p.icon}</p><p>Je ${W.d.rule?.type === 'battery' ? 'batterij laadt' : p.name.toLowerCase() + ' gaat'} vanaf nu vanzelf aan <b>${W.d.rule?.type === 'battery' ? 'als stroom het goedkoopst is' : p.uitleg}</b>. Je hoeft niets meer te doen.</p>`,
+  return { t: 'Klaar! 🎉', of: 4, html: `<div class="bigok">${svg("check")}</div><p>Je ${W.d.rule?.type === 'battery' ? 'batterij laadt' : p.name.toLowerCase() + ' gaat'} vanaf nu vanzelf aan <b>${W.d.rule?.type === 'battery' ? 'als stroom het goedkoopst is' : p.uitleg}</b>. Je hoeft niets meer te doen.</p>`,
     opts: [{ i: '🔔', l: 'Stuur mij een bericht als hij aan of uit gaat', go: async () => { await enablePush(); sync().catch(() => {}); wizClose(); } },
       { i: '✅', l: 'Nee, klaar', go: wizClose }] };
 };
@@ -486,7 +514,7 @@ const sBatterij = () => ({ t: 'Heeft je batterij een eigen app?', p: 'Kijk in di
   { i: '🔌', l: 'Nee, ik laad hem met een stekker', s: 'Wij zetten de stekker aan als laden goedkoop is', go: () => go(sBatUren) },
   { i: '❓', l: 'Weet ik niet', go: () => go(sBatUren) },
 ] });
-const sBatEigen = () => ({ t: 'Zet die stand aan', of: 3, html: '<p class="bigok">🔋</p><p>Zet in de app van je batterij de stand <b>dynamisch tarief</b> of <b>slim laden</b> aan. Dan laadt je batterij vanzelf als stroom goedkoop is. Je hoeft verder niets te doen.</p>',
+const sBatEigen = () => ({ t: 'Zet die stand aan', of: 3, html: '<div class="bigok">'+svg('battery')+'</div><p>Zet in de app van je batterij de stand <b>dynamisch tarief</b> of <b>slim laden</b> aan. Dan laadt je batterij vanzelf als stroom goedkoop is. Je hoeft verder niets te doen.</p>',
   opts: [{ i: '🔔', l: 'Stuur mij ook een bericht met de beste tijden', go: async () => { addAlert({ type: 'battery', hours: 3 }); await enablePush(); go(sKlaarBericht); } }, { i: '✅', l: 'Klaar', go: wizClose }] });
 const sBatUren = () => ({ t: 'Hoe lang duurt het om je batterij vol te laden?', p: 'Weet je het niet? Kies dan 3 uur.', opts: [1, 2, 3, 4, 6].map(h => ({ i: '⏱️', l: h + (h === 1 ? ' uur' : ' uur'), go: () => {
   W.d.preset = 'anders'; W.d.rule = { type: 'battery', hours: h }; W.d.name = 'Thuisbatterij'; go(sBatHoe); } })) });
@@ -509,8 +537,8 @@ const BERICHT = [
   ['battery', '🔋', 'Als ik mijn batterij moet laden', { hours: 3 }],
 ];
 const sBerichtKies = () => ({ t: 'Wanneer wil je een bericht?', p: 'Tik aan wat je wilt. Je kunt er meer kiezen.',
-  html: '<div class="opts">' + BERICHT.map(([k, i, l]) => `<button class="opt${alerts.some(a => a.type === k) ? ' sel' : ''}" type="button" data-k="${k}"><span>${i}</span><div><b>${l}</b></div></button>`).join('') + '</div>'
-    + '<button class="btn big" type="button" id="wBer" style="margin-top:16px">🔔 Berichten aanzetten</button>',
+  html: '<div class="opts">' + BERICHT.map(([k, i, l]) => `<button class="opt${alerts.some(a => a.type === k) ? ' sel' : ''}" type="button" data-k="${k}"><span>${ico(i)}</span><div><b>${l}</b></div></button>`).join('') + '</div>'
+    + '<button class="btn big" type="button" id="wBer" style="margin-top:16px">Berichten aanzetten</button>',
   after: () => {
     $('wizB').querySelectorAll('[data-k]').forEach(b => b.onclick = () => b.classList.toggle('sel'));
     $('wBer').onclick = async () => {
@@ -523,10 +551,10 @@ const sBerichtKies = () => ({ t: 'Wanneer wil je een bericht?', p: 'Tik aan wat 
 const sKlaarBericht = () => {
   const perm = 'Notification' in window ? Notification.permission : 'unsupported';
   const ios = /iPhone|iPad/.test(navigator.userAgent) && !matchMedia('(display-mode: standalone)').matches;
-  const html = ios ? '<p>📱 <b>Nog één ding:</b> op een iPhone moet je Stroomwekker eerst op je beginscherm zetten. Tik onderin op <b>Deel</b> en kies <b>Zet op beginscherm</b>. Open de app daarna via je beginscherm en zet berichten aan.</p>'
-    : perm === 'granted' ? '<p class="bigok">🔔</p><p>Je krijgt vanaf nu een bericht op dit apparaat. Ook als de site dicht is.</p>'
-    : '<p>🔕 Je browser staat berichten nog niet toe. Tik op het slotje naast het webadres en zet <b>Meldingen</b> aan. Probeer het daarna opnieuw.</p>';
-  return { t: perm === 'granted' && !ios ? 'Klaar! 🎉' : 'Bijna klaar', of: 3, html, opts: [{ i: '✅', l: 'Sluiten', go: wizClose }] };
+  const html = ios ? '<p><b>Nog één ding:</b> op een iPhone moet je Stroomwekker eerst op je beginscherm zetten. Tik onderin op <b>Deel</b> en kies <b>Zet op beginscherm</b>. Open de app daarna via je beginscherm en zet berichten aan.</p>'
+    : perm === 'granted' ? '<div class="bigok">'+svg('bell')+'</div><p>Je krijgt vanaf nu een bericht op dit apparaat. Ook als de site dicht is.</p>'
+    : '<p>Je browser staat berichten nog niet toe. Tik op het slotje naast het webadres en zet <b>Meldingen</b> aan. Probeer het daarna opnieuw.</p>';
+  return { t: perm === 'granted' && !ios ? 'Klaar' : 'Bijna klaar', of: 3, html, opts: [{ i: '✅', l: 'Sluiten', go: wizClose }] };
 };
 function addAlert(a, quiet) {
   if (!alerts.some(x => x.type === a.type)) alerts.push({ id: crypto.randomUUID(), value: 0, hours: 1, ...a });
@@ -544,8 +572,8 @@ $('mijnMeer').onclick = () => scrollTo({ top: 0, behavior: 'smooth' });
 // ---- "Wat staat er aan" ----
 function renderMijn() {
   const items = [
-    ...devices.map(d => `<li class="item"><div class="txt"><b>${{ battery: '🔋', solar: '☀️' }[d.rule?.type] || '🔌'} ${esc(d.name)}</b><span>${ruleText(d.rule)}</span><br>${d.status ? (d.status.ok ? `<span class="status ok">● Nu ${d.status.on === 'supply' ? 'aan het leveren' : d.status.on ? 'aan' : 'uit'}</span>` : `<span class="status err">⚠ ${esc(d.status.msg || 'Het lukte niet')}</span>`) : '<span class="status muted">Begint bij het volgende kwartier</span>'}</div><button class="x" data-mdev="${d.id}" aria-label="Weghalen">×</button></li>`),
-    ...alerts.map(a => `<li class="item"><div class="txt"><b>🔔 ${alertText(a)}</b></div><button class="x" data-malert="${a.id}" aria-label="Weghalen">×</button></li>`),
+    ...devices.map(d => `<li class="item"><div class="txt"><b>${esc(d.name)}</b><span>${ruleText(d.rule)}</span><br>${d.status ? (d.status.ok ? `<span class="status ok">● Nu ${d.status.on === 'supply' ? 'aan het leveren' : d.status.on ? 'aan' : 'uit'}</span>` : `<span class="status err">⚠ ${esc(d.status.msg || 'Het lukte niet')}</span>`) : '<span class="status muted">Begint bij het volgende kwartier</span>'}</div><button class="x" data-mdev="${d.id}" aria-label="Weghalen">×</button></li>`),
+    ...alerts.map(a => `<li class="item"><div class="txt"><b>Bericht: ${alertText(a)}</b></div><button class="x" data-malert="${a.id}" aria-label="Weghalen">×</button></li>`),
   ];
   $('mijn').hidden = !items.length;
   $('mijnList').innerHTML = items.join('');

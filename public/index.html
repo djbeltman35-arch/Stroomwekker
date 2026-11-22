@@ -6,259 +6,233 @@
 <title>Apparaten automatisch aan bij goedkope stroom | Stroomwekker</title>
 <meta name="description" content="Heb je een dynamisch energiecontract? Stroomwekker zet je slimme stekker (Action, Shelly, Smart Life) vanzelf aan als stroom goedkoop is. Gratis, met live stroomprijs per kwartier.">
 <link rel="canonical" href="https://stroomwekker.netlify.app/">
-<meta name="theme-color" content="#0e7c4a">
+<meta name="theme-color" content="#0F2340">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 <meta property="og:title" content="Stroomwekker – live stroomprijs per kwartier">
 <meta property="og:description" content="Dynamische stroomprijs live, meldingen bij goedkope stroom en apparaten automatisch aan of uit.">
 <meta property="og:image" content="https://stroomwekker.netlify.app/icons/icon-512.png">
-<link rel="preload" href="/fonts/atkinson-hyperlegible-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/fonts/barlow-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/ibm-plex-sans-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebApplication","name":"Stroomwekker","url":"https://stroomwekker.netlify.app/","applicationCategory":"UtilitiesApplication","operatingSystem":"Alle","inLanguage":"nl","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"author":{"@type":"Person","name":"Erik Beltman"}}
 </script>
 <style>
-@font-face{font-family:"Atkinson Hyperlegible";font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/atkinson-hyperlegible-latin-400-normal.woff2) format("woff2")}
-@font-face{font-family:"Atkinson Hyperlegible";font-style:normal;font-weight:700;font-display:swap;src:url(/fonts/atkinson-hyperlegible-latin-700-normal.woff2) format("woff2")}
-@font-face{font-family:"Barlow Condensed";font-style:normal;font-weight:600;font-display:swap;src:url(/fonts/barlow-condensed-latin-600-normal.woff2) format("woff2")}
-@font-face{font-family:"Barlow Condensed";font-style:normal;font-weight:700;font-display:swap;src:url(/fonts/barlow-condensed-latin-700-normal.woff2) format("woff2")}
-/* Zelfde huisstijl als Boodschappenvergelijk.nl: fris groen, geel prijskaartje, tomatenrood voor duur. */
+@font-face{font-family:"Plex";font-weight:400;font-display:swap;src:url(/fonts/ibm-plex-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Plex";font-weight:500;font-display:swap;src:url(/fonts/ibm-plex-sans-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:"Plex";font-weight:600;font-display:swap;src:url(/fonts/ibm-plex-sans-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Plex";font-weight:700;font-display:swap;src:url(/fonts/ibm-plex-sans-latin-700-normal.woff2) format("woff2")}
+/* Stroomwekker: zakelijk donkerblauw en wit. Kleur alleen voor status (goedkoop/normaal/duur). */
 :root{
-  --page:#f4f7f1;--surface:#fff;--ink:#1e2a22;--muted:#5d6a61;--line:#e1e7dc;--soft:#eef3ea;
-  --green:#0e7c4a;--green-dark:#0a6239;--green-soft:#e2f2e8;--on-green:#fff;
-  --tag:#ffd43b;--tag-ink:#1e2a22;--tag-soft:#fff6cc;
-  --deal:#c4381f;--deal-soft:#fde9e5;--mid:#aab6ad;
-  --text:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --num:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;--r:14px;color-scheme:light}
-@media (prefers-color-scheme:dark){:root{
-  --page:#121813;--surface:#1a221c;--ink:#e9efe8;--muted:#a3b0a6;--line:#2b362e;--soft:#202a23;
-  --green:#3fbf7f;--green-dark:#5ad093;--green-soft:#1d3326;--on-green:#0f1a13;
-  --tag-soft:#3a3315;--deal:#ff7058;--deal-soft:#3d221d;--mid:#5f6d63;color-scheme:dark}}
+  --navy:#0F2340;--navy-2:#1B3358;--navy-3:#2A4A78;--blue:#1F5FD6;--blue-soft:#E8EFFB;
+  --page:#F3F5F8;--surface:#fff;--ink:#14213A;--muted:#5B6677;--line:#DCE2EA;--soft:#F0F3F7;
+  --green:#12805C;--green-dark:#0D6649;--green-soft:#E3F3EC;--on-green:#fff;
+  --amber:#B97800;--amber-soft:#FBF1DC;--deal:#C2412D;--deal-soft:#FBE9E6;--mid:#B8C2CF;
+  --tag:#F5B700;--tag-ink:#14213A;--tag-soft:#FBF1DC;
+  --text:"Plex",system-ui,-apple-system,"Segoe UI",sans-serif;--num:var(--text);--r:8px;
+  --sh-1:0 1px 2px rgba(15,35,64,.06);--sh-2:0 1px 3px rgba(15,35,64,.08);--sh-3:0 2px 6px rgba(15,35,64,.12);color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--page:#0B1626;--surface:#122139;--ink:#E6ECF5;--muted:#9AA8BC;--line:#22344F;--soft:#17294A;--blue:#6E9BF0;--blue-soft:#1B2F52;--green:#3DBE8B;--green-dark:#5AD3A0;--green-soft:#123528;--amber:#E5A72A;--amber-soft:#3A2E12;--deal:#F07A64;--deal-soft:#3C1F1B;--mid:#41536E;--tag-soft:#3A2E12;color-scheme:dark}}
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--page);color:var(--ink);font:17px/1.5 var(--text)}
+body{margin:0;background:var(--page);color:var(--ink);font:16.5px/1.55 var(--text);font-feature-settings:"tnum" 0}
 [hidden]{display:none!important}
-a{color:inherit;text-underline-offset:3px}
-a:hover{color:var(--green)}
-:focus-visible{outline:3px solid var(--green);outline-offset:2px;border-radius:6px}
+a{color:var(--blue);text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:4px}
 button,select,input{font:inherit;color:inherit}
-button{font-weight:700;font-size:16px;cursor:pointer;border-radius:12px;border:2px solid transparent;padding:10px 16px;background:none}
-.btn{background:var(--green);color:var(--on-green)}
-.btn:hover{background:var(--green-dark)}
-.btn-line{background:var(--surface);border-color:var(--line)}
-.btn-line:hover{border-color:var(--green);color:var(--green)}
-.btn-sm{font-size:14px;padding:6px 11px;border-radius:10px}
-.wrap{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
-.muted{color:var(--muted)}
-.small{font-size:14px}
-.tag{display:inline-flex;align-items:baseline;gap:2px;background:var(--tag);color:var(--tag-ink);font:700 22px/1 var(--num);padding:5px 9px 4px;border-radius:5px;white-space:nowrap;font-variant-numeric:tabular-nums;box-shadow:inset 0 -3px 0 rgba(0,0,0,.08)}
-.tag .e{font-size:.62em;margin-right:2px}
-.tag .u{font-size:.5em;font-weight:600;margin-left:4px}
-.tag.huge{font-size:64px;padding:10px 16px 8px;border-radius:9px}
-.pill{display:inline-block;font:700 14px var(--text);padding:3px 10px;border-radius:999px}
-.pill.goedkoop{background:var(--green-soft);color:var(--green-dark)}
-.pill.normaal{background:var(--soft);color:var(--muted)}
-.pill.duur{background:var(--deal-soft);color:var(--deal)}
+button{font-weight:600;font-size:15.5px;cursor:pointer;border-radius:6px;border:1px solid transparent;padding:10px 16px;background:none}
+.btn{background:var(--navy);color:#fff}
+.btn:hover{background:var(--navy-2)}
+.btn-line{background:var(--surface);border-color:var(--line);color:var(--ink)}
+.btn-line:hover{border-color:var(--navy-3)}
+.btn-sm{font-size:14px;padding:7px 12px}
+.btn.big{font-size:17px;padding:14px 22px;width:100%;max-width:420px}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
+.muted{color:var(--muted)}.small{font-size:14px}
+h1{font:600 clamp(28px,4.4vw,42px)/1.14 var(--text);letter-spacing:-.02em;margin:0 0 12px}
+h2{font:600 21px/1.3 var(--text);letter-spacing:-.01em;margin:0 0 12px}
+h3{font:600 17px/1.3 var(--text);margin:0 0 4px}
+.tag{display:inline-flex;align-items:baseline;gap:2px;font:600 22px/1 var(--text);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag .e{font-size:.6em;margin-right:3px;color:var(--muted)}.tag .u{font-size:.45em;font-weight:500;margin-left:6px;color:var(--muted)}
+.tag.huge{font-size:56px;letter-spacing:-.02em}
+.pill{display:inline-block;font:600 13.5px var(--text);padding:3px 10px;border-radius:4px}
+.pill.goedkoop{background:var(--green-soft);color:var(--green-dark)}.pill.normaal{background:var(--soft);color:var(--muted)}.pill.duur{background:var(--deal-soft);color:var(--deal)}
 
-.top{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
-.bar{display:flex;align-items:center;gap:10px;padding-block:10px}
-.brand{display:flex;align-items:center;gap:9px;text-decoration:none;font-weight:700;font-size:19px}
-.brand img{width:34px;height:34px}
-.nav{margin-left:auto;display:flex;gap:2px}
-.nav a{text-decoration:none;font-weight:700;font-size:15px;padding:8px 10px;border-radius:10px;white-space:nowrap}
-.nav a:hover{background:var(--green-soft);color:var(--green-dark)}
-@media (max-width:520px){.brand span{display:none}.nav a{font-size:14px;padding:7px 8px}}
+/* Kopbalk */
+.top{background:var(--navy);color:#fff;position:sticky;top:0;z-index:5}
+.bar{display:flex;align-items:center;gap:12px;height:62px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;font-weight:600;font-size:19px;letter-spacing:-.01em}
+.brand img{width:30px;height:30px}
+.nav{margin-left:auto;display:flex;gap:4px}
+.nav a{text-decoration:none;color:#C9D4E5;font-weight:500;font-size:15px;padding:8px 12px;border-radius:6px}
+.nav a:hover{color:#fff;background:var(--navy-2)}
 
-.hero{padding-block:16px 14px;text-align:center}
-h1{font:700 clamp(26px,6vw,40px)/1.12 var(--text);letter-spacing:-.015em;margin:0 0 4px}
-.promise{margin:0 0 12px;font-size:14px;color:var(--muted)}
-h2{font:700 22px/1.25 var(--text);margin:0 0 10px}
-h3{font:700 17px/1.3 var(--text);margin:0 0 4px}
+/* Hero: blauw vlak met prijspaneel */
+.hero{background:var(--navy);color:#fff;padding:36px 0 44px;margin-bottom:28px}
+.hero .wrap{display:grid;grid-template-columns:1.1fr 1fr;gap:40px;align-items:start}
+.hero h1{color:#fff;max-width:16ch}
+.promise{color:#C9D4E5;font-size:17px;margin:0 0 24px;max-width:46ch}
+.vraag{font:600 15px var(--text);color:#C9D4E5;margin:0 0 10px}
+.keuzes{display:grid;gap:0;border:1px solid var(--navy-3);border-radius:var(--r);overflow:hidden;background:var(--navy-2)}
+.keuzes button{display:grid;grid-template-columns:36px 1fr 16px;align-items:center;column-gap:14px;text-align:left;color:#fff;background:transparent;border:0;border-radius:0;padding:14px 16px;border-top:1px solid var(--navy-3)}
+.keuzes button:first-child{border-top:0}
+.keuzes button:hover{background:var(--navy-3)}
+.keuzes button::after{content:"";width:9px;height:9px;border-right:2px solid #8FA3C2;border-top:2px solid #8FA3C2;transform:rotate(45deg);grid-column:3;grid-row:1/3}
+.keuzes .ico{grid-row:1/3;width:36px;height:36px;border-radius:6px;background:var(--navy);display:grid;place-items:center;color:var(--tag)}
+.keuzes .ico svg{width:20px;height:20px}
+.keuzes b{font-weight:600;font-size:16px}
+.keuzes small{color:#A9B8CF;font-size:14px;font-weight:400}
 
-.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 14px}
-.tiles a{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px;background:var(--surface);border:2px solid #a9d6bb;border-radius:14px;text-decoration:none;box-shadow:0 2px 0 #cfe6d8;text-align:left}
-.tiles a:hover{border-color:var(--green);color:inherit}
-.tiles .i{font-size:22px;line-height:1}
-.tiles b{font-size:14.5px;line-height:1.2}
-.tiles small{font-size:12.5px;color:var(--muted);line-height:1.25}
-.partnerlabel{font-size:11.5px;color:var(--muted);margin:-8px 0 12px;text-align:center}
-@media (max-width:640px){.tiles{grid-template-columns:1fr 1fr;gap:6px}.tiles a{flex-direction:row;align-items:center;gap:8px;padding:9px 10px}.tiles small{display:none}.tiles b{font-size:14px}.tiles .i{font-size:20px}}
-@media (prefers-color-scheme:dark){.tiles a{border-color:#2f5a41;box-shadow:none}}
+.licht{display:block;text-decoration:none;color:var(--ink);background:var(--surface);border-radius:var(--r);padding:22px 22px 18px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+.licht .kop{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--muted);font-weight:500}
+.licht .stand{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px}
+.licht .bol{width:12px;height:12px;border-radius:50%;background:var(--mid)}
+.licht[data-l=goedkoop] .bol{background:var(--green)}.licht[data-l=normaal] .bol{background:var(--amber)}.licht[data-l=duur] .bol{background:var(--deal)}
+.licht[data-l=goedkoop] .stand{color:var(--green-dark)}.licht[data-l=normaal] .stand{color:var(--amber)}.licht[data-l=duur] .stand{color:var(--deal)}
+.licht .lp{display:block;font:600 64px/1.05 var(--text);letter-spacing:-.03em;font-variant-numeric:tabular-nums;margin:10px 0 2px}
+.licht .lp small{font-size:20px;font-weight:500;color:var(--muted);letter-spacing:0;margin-left:6px}
+.licht .lt{display:block;font-size:15px}
+.licht .lt b{font-weight:600}
+.licht .lt small{display:block;color:var(--muted);font-size:14px;margin-top:2px}
+.strip{display:grid;grid-template-columns:repeat(96,1fr);gap:1px;align-items:end;height:44px;margin:16px 0 4px}
+.strip i{display:block;background:var(--mid);border-radius:1px 1px 0 0;min-height:3px}
+.strip i.g{background:var(--green)}.strip i.d{background:var(--deal)}.strip i.n{background:var(--mid)}
+.strip i.nu{outline:2px solid var(--ink);outline-offset:0}
+.stripas{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+@media (max-width:820px){.hero{padding:24px 0 28px}.hero .wrap{grid-template-columns:1fr;gap:22px}.licht{order:-1}.licht .lp{font-size:52px}}
 
-.steps{list-style:none;padding:0;margin:4px 0 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:left}
-.steps li{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:grid;gap:2px}
-.steps span{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--green);color:var(--on-green);font-weight:700}
-.steps b{font-size:15.5px;line-height:1.25}
-.steps small{font-size:13.5px;color:var(--muted);line-height:1.3}
-@media (max-width:640px){.steps{grid-template-columns:1fr}.steps li{grid-template-columns:28px 1fr;column-gap:10px;align-items:center}.steps span{grid-row:span 2}}
-.btn.big{font-size:18px;padding:14px 22px;border-radius:14px;width:100%;max-width:420px}
-.nowstrip{display:inline-flex;gap:6px;align-items:center;margin:12px 0 4px;text-decoration:none;font-size:15px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 14px}
-.nowstrip b{background:var(--tag);color:var(--tag-ink);padding:1px 7px;border-radius:4px;font-family:var(--num);font-size:18px}
-#vergelijken .tiles{margin-bottom:10px}
-#batPlan .best{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
-
-.vraag{font-size:22px;margin:18px 0 10px}
-.licht{display:flex;align-items:center;gap:14px;text-align:left;text-decoration:none;background:var(--surface);border-radius:18px;padding:14px 16px;box-shadow:var(--sh-2);margin:6px auto 0;max-width:520px}
-.licht .bol{flex:none;width:54px;height:54px;border-radius:50%;background:var(--mid);box-shadow:inset 0 -4px 0 rgba(0,0,0,.12),0 0 0 6px var(--soft)}
-.licht[data-l=goedkoop] .bol{background:#1fa463;box-shadow:inset 0 -4px 0 rgba(0,0,0,.12),0 0 0 6px var(--green-soft),0 0 22px rgba(31,164,99,.55)}
-.licht[data-l=normaal] .bol{background:#f2a20c;box-shadow:inset 0 -4px 0 rgba(0,0,0,.12),0 0 0 6px var(--tag-soft)}
-.licht[data-l=duur] .bol{background:var(--deal);box-shadow:inset 0 -4px 0 rgba(0,0,0,.12),0 0 0 6px var(--deal-soft),0 0 22px rgba(196,56,31,.45)}
-.licht .lt{flex:1;display:grid}
-.licht .lt b{font-size:19px;line-height:1.2}
-.licht .lt small{font-size:14.5px;color:var(--muted)}
-.licht .lp{font:700 26px var(--num);background:var(--tag);color:var(--tag-ink);border-radius:6px;padding:2px 8px;white-space:nowrap}
-.keuzes{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:640px;margin:0 auto}
-.keuzes button{display:grid;justify-items:start;text-align:left;gap:2px;background:var(--surface);border:0;border-radius:18px;padding:14px;box-shadow:var(--sh-2);transition:transform .15s,box-shadow .15s}
-.keuzes button:hover{transform:translateY(-2px);box-shadow:var(--sh-3)}
-.keuzes span{font-size:30px;line-height:1.1}
-.keuzes b{font-size:16.5px;line-height:1.2}
-.keuzes small{font-size:13.5px;color:var(--muted);font-weight:400}
-details.meer{margin:0 0 14px}
-details.meer>summary{cursor:pointer;list-style:none;background:var(--surface);border-radius:var(--r);padding:16px;font-weight:700;font-size:17px;box-shadow:var(--sh-2);margin-bottom:14px}
-details.meer>summary::after{content:" ▾";color:var(--muted)}
-details.meer[open]>summary::after{content:" ▴"}
-.wiz{position:fixed;inset:0;z-index:30;background:var(--page);overflow:auto;-webkit-overflow-scrolling:touch}
-.wiztop{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--surface);box-shadow:var(--sh-1);padding:10px max(12px,env(safe-area-inset-left))}
-.wiztop button{font-size:16px;padding:8px 10px}
-.dots{display:flex;gap:6px}
-.dots i{width:9px;height:9px;border-radius:50%;background:var(--line)}
-.dots i.on{background:var(--green)}
-.wizbody{padding-block:22px 60px;max-width:620px}
-.wizbody h2{font-size:26px;line-height:1.2;margin:0 0 8px}
-.wizbody p{font-size:17px}
-.opts{display:grid;gap:10px;margin-top:14px}
-.opt{display:flex;align-items:center;gap:14px;text-align:left;background:var(--surface);border:2px solid transparent;border-radius:16px;padding:14px 16px;box-shadow:var(--sh-2);font-size:17px;min-height:68px}
-.opt:hover{border-color:var(--green)}
-.opt>span{font-size:30px;flex:none;width:40px;text-align:center}
-.opt b{display:block}
-.opt small{display:block;font-weight:400;color:var(--muted);font-size:14.5px}
-.opt.sel{border-color:var(--green);background:var(--green-soft)}
-.wizbody .form{background:var(--surface);border:0;box-shadow:var(--sh-1)}
-.wizbody ol{padding-left:22px}
-.wizbody ol li{margin-bottom:8px}
-.bigok{font-size:64px;text-align:center;margin:10px 0 0}
-.link{background:none;border:0;padding:8px 0;color:var(--green-dark);text-decoration:underline;font-weight:700}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:0 0 14px}
-.now{text-align:center;padding:20px 16px 16px}
-.now .label{font-weight:700;color:var(--muted);font-size:15px;margin:0 0 8px}
+/* Panelen */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px;margin:0 0 16px}
+.card>h2{padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.now{padding:22px}
+.now .label{font-weight:500;color:var(--muted);font-size:14px;margin:0 0 6px}
 .now .meta{margin:10px 0 0;font-size:15px}
-.count{font:700 20px var(--num);font-variant-numeric:tabular-nums}
-.progress{height:6px;background:var(--soft);border-radius:6px;overflow:hidden;margin:10px auto 0;max-width:340px}
-.progress i{display:block;height:100%;background:var(--green);width:0;transition:width 1s linear}
-.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
-.mini{background:var(--soft);border-radius:12px;padding:9px 8px;text-align:center}
-.mini .k{font-size:13px;color:var(--muted);font-weight:700;display:block}
-.mini .v{font:700 22px/1.1 var(--num);font-variant-numeric:tabular-nums}
-.mini .s{font-size:12.5px;color:var(--muted);display:block}
-.mini .v{display:block}
-
-.best{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
-.best .b{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
-.best .b .k{font-size:13.5px;font-weight:700;color:var(--muted)}
-.best .b .t{font:700 22px/1.15 var(--num)}
-@media (max-width:520px){.tag.huge{font-size:56px}.best .b{padding:8px 10px}.best .b .k{font-size:12.5px}}
-.best .b .p{font-size:14px}
-
-.tabs{display:flex;gap:6px;margin:0 0 10px}
-.tabs button{border:2px solid var(--line);background:var(--surface);padding:6px 14px;font-size:15px}
-.tabs button[aria-selected=true]{background:var(--green);border-color:var(--green);color:var(--on-green)}
+.count{font-weight:600;font-variant-numeric:tabular-nums}
+.progress{height:4px;background:var(--soft);border-radius:2px;overflow:hidden;margin:12px 0 0;max-width:360px}
+.progress i{display:block;height:100%;background:var(--navy);width:0;transition:width 1s linear}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);margin-top:18px;border:1px solid var(--line);border-radius:6px}
+.mini{padding:12px 14px;border-left:1px solid var(--line)}.mini:first-child{border-left:0}
+.mini .k{font-size:13px;color:var(--muted);font-weight:500;display:block}
+.mini .v{font:600 22px/1.2 var(--text);font-variant-numeric:tabular-nums;display:block}
+.mini .s{font-size:13px;color:var(--muted);display:block}
+.best{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.best .b{padding:14px 16px;border-left:1px solid var(--line);margin-left:-1px;border-top:1px solid var(--line);margin-top:-1px;background:var(--surface)}
+.best .b .k{font-size:13.5px;font-weight:500;color:var(--muted)}
+.best .b .t{font:600 22px/1.25 var(--text);font-variant-numeric:tabular-nums}
+.best .b .p{font-size:14px;color:var(--muted)}
+#batPlan .best{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.tabs{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;margin:0 0 14px}
+.tabs button{border:0;border-radius:0;background:var(--surface);padding:7px 16px;font-size:14.5px;color:var(--muted)}
+.tabs button+button{border-left:1px solid var(--line)}
+.tabs button[aria-selected=true]{background:var(--navy);color:#fff}
 .chartbox{position:relative}
 .chartbox svg{display:block;width:100%;height:auto;touch-action:pan-y}
 .chartbox text{font:12px var(--text);fill:var(--muted)}
-.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--page);font-size:13.5px;padding:5px 9px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-110%);font-weight:700}
-.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13.5px;color:var(--muted);margin-top:6px}
-.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
-details.tbl summary{cursor:pointer;font-weight:700;font-size:14.5px;margin-top:8px;color:var(--green-dark)}
+.tip{position:absolute;pointer-events:none;background:var(--navy);color:#fff;font-size:13.5px;padding:5px 9px;border-radius:4px;white-space:nowrap;transform:translate(-50%,-110%);font-weight:600}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}
+details.tbl summary{cursor:pointer;font-weight:600;font-size:14.5px;margin-top:10px;color:var(--blue)}
 .qtable{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums;margin-top:6px}
-.qtable td{padding:3px 6px;border-bottom:1px solid var(--line)}
-.qtable td:last-child{text-align:right}
-
-.list{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:8px}
-.item{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
-.item .txt{flex:1;min-width:0}
-.item .txt b{display:block}
-.item .txt span{font-size:14px;color:var(--muted)}
-.status{font-size:13px;font-weight:700}
-.status.ok{color:var(--green-dark)}
-.status.err{color:var(--deal)}
+.qtable td{padding:4px 6px;border-bottom:1px solid var(--line)}.qtable td:last-child{text-align:right}
+.list{list-style:none;margin:0 0 12px;padding:0;border:1px solid var(--line);border-radius:6px}
+.list:empty{display:none}
+.item{display:flex;gap:10px;align-items:center;padding:12px 14px;border-top:1px solid var(--line)}
+.item:first-child{border-top:0}
+.item .txt{flex:1;min-width:0}.item .txt b{display:block;font-weight:600}.item .txt span{font-size:14px;color:var(--muted)}
+.status{font-size:13px;font-weight:600}.status.ok{color:var(--green-dark)}.status.err{color:var(--deal)}
 .x{border:0;background:none;font-size:20px;line-height:1;padding:6px;color:var(--muted)}
-.form{display:grid;gap:10px;border:1px dashed var(--line);border-radius:12px;padding:12px;background:var(--soft)}
-.form label{display:grid;gap:4px;font-weight:700;font-size:14.5px}
-.form input,.form select{padding:10px 12px;border:2px solid var(--line);border-radius:10px;background:var(--surface);width:100%}
-.form input:focus,.form select:focus{border-color:var(--green);outline:0}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form{display:grid;gap:12px;border:1px solid var(--line);border-radius:6px;padding:16px;background:var(--soft)}
+.form label{display:grid;gap:5px;font-weight:600;font-size:14.5px}
+.form input,.form select{padding:10px 12px;border:1px solid #C3CCD8;border-radius:6px;background:var(--surface);width:100%;font-weight:400}
+.form input:focus,.form select:focus{border-color:var(--blue);outline:2px solid var(--blue-soft)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .hint{font-size:13.5px;color:var(--muted);font-weight:400}
-.msg{font-size:14.5px;font-weight:700;margin:6px 0 0}
-.msg.err{color:var(--deal)}.msg.ok{color:var(--green-dark)}
-.chk{display:flex!important;align-items:center;gap:8px;font-weight:400!important}
-.chk input{width:auto!important}
-.notice{background:var(--tag-soft);border-radius:12px;padding:10px 12px;font-size:14.5px;margin:0 0 10px}
-
-.faq details{border-top:1px solid var(--line);padding:10px 0}
-.faq summary{cursor:pointer;font-weight:700}
-.faq p{margin:8px 0 0;font-size:15.5px}
-
-.foot{border-top:1px solid var(--line);background:var(--surface);margin-top:24px}
-.foot .wrap{padding-block:18px 90px;display:grid;gap:8px;font-size:14px;text-align:center}
-.foot nav{display:flex;flex-wrap:wrap;gap:4px 16px;justify-content:center}
-.foot nav a{font-weight:700;text-decoration:none;color:var(--green-dark)}
-
-.install{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--green);color:var(--on-green);padding:12px max(16px,env(safe-area-inset-left)) calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px;align-items:center;box-shadow:0 -4px 20px rgba(0,0,0,.18)}
-.install .t{flex:1;font-size:15px;line-height:1.3}
-.install .t b{display:block;font-size:16px}
-.install .go{background:var(--tag);color:var(--tag-ink);padding:10px 16px}
-.install .no{color:var(--on-green);padding:8px;font-size:22px;line-height:1}
+.msg{font-size:14.5px;font-weight:600;margin:6px 0 0}.msg.err{color:var(--deal)}.msg.ok{color:var(--green-dark)}
+.chk{display:flex!important;align-items:center;gap:8px;font-weight:400!important}.chk input{width:auto!important}
+.notice{background:var(--blue-soft);border-left:3px solid var(--blue);border-radius:0 6px 6px 0;padding:10px 14px;font-size:14.5px;margin:0 0 12px}
+details.meer{margin:0 0 16px}
+details.meer>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 22px;font-weight:600;font-size:17px;margin-bottom:16px}
+details.meer>summary::-webkit-details-marker{display:none}
+details.meer>summary::after{content:"";width:9px;height:9px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg) translateY(-3px)}
+details.meer[open]>summary::after{transform:rotate(-135deg)}
+#mijn{border-left:3px solid var(--green)}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:6px;overflow:hidden;margin:0 0 10px}
+.tiles a{display:grid;align-content:start;gap:3px;padding:14px 16px;text-decoration:none;color:var(--ink);border-left:1px solid var(--line)}
+.tiles a:first-child{border-left:0}.tiles a:hover{background:var(--soft)}
+.tiles .i{display:none}.tiles b{font-size:15px;font-weight:600;color:var(--blue)}.tiles small{font-size:13.5px;color:var(--muted)}
+.partnerlabel{font-size:12.5px;color:var(--muted);margin:0}
+@media (max-width:720px){.tiles{grid-template-columns:1fr 1fr}.tiles a:nth-child(3){border-left:0}.tiles a:nth-child(n+3){border-top:1px solid var(--line)}.row3{grid-template-columns:1fr}.mini{border-left:0;border-top:1px solid var(--line)}.mini:first-child{border-top:0}.two{grid-template-columns:1fr}}
+.faq details{border-top:1px solid var(--line);padding:12px 0}
+.faq summary{cursor:pointer;font-weight:600}
+.faq p{margin:8px 0 0;font-size:15.5px;max-width:70ch}
+.foot{background:var(--navy);color:#C9D4E5;margin-top:32px}
+.foot .wrap{padding-block:24px 96px;display:grid;gap:10px;font-size:14px}
+.foot nav{display:flex;flex-wrap:wrap;gap:4px 20px}
+.foot nav a{color:#fff;text-decoration:none;font-weight:500}
+.foot .muted{color:#8FA3C2!important}
+.install{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--navy);color:#fff;padding:12px max(16px,env(safe-area-inset-left)) calc(12px + env(safe-area-inset-bottom));display:flex;gap:12px;align-items:center;border-top:1px solid var(--navy-3)}
+.install .t{flex:1;font-size:14.5px;line-height:1.35;color:#C9D4E5}.install .t b{display:block;font-size:15.5px;color:#fff}
+.install .go{background:#fff;color:var(--navy)}.install .no{color:#fff;padding:8px;font-size:22px;line-height:1}
 .ios{font-size:14px;margin-top:4px}
-
-/* Schaduwen: zacht en gelaagd, zodat kaarten iets "zweven" */
-:root{--sh-1:0 2px 4px rgba(20,40,28,.08),0 4px 12px rgba(20,40,28,.10);--sh-2:0 4px 8px rgba(20,40,28,.08),0 14px 34px rgba(20,40,28,.16);--sh-3:0 6px 14px rgba(14,124,74,.30),0 18px 40px rgba(14,124,74,.32)}
-@media (prefers-color-scheme:dark){:root{--sh-1:0 1px 2px rgba(0,0,0,.4),0 2px 6px rgba(0,0,0,.3);--sh-2:0 2px 4px rgba(0,0,0,.4),0 10px 24px rgba(0,0,0,.45);--sh-3:0 4px 12px rgba(0,0,0,.5),0 12px 28px rgba(0,0,0,.45)}}
-.top{box-shadow:var(--sh-2);border-bottom-color:transparent}
-.card{box-shadow:var(--sh-2);border-color:transparent}
-.steps li{box-shadow:var(--sh-2);border-color:transparent}
-.nowstrip{box-shadow:var(--sh-2);border-color:transparent}
-.btn{box-shadow:var(--sh-1);transition:transform .15s,box-shadow .15s}
-.btn.big{box-shadow:var(--sh-3)}
-.btn:hover{transform:translateY(-1px)}
-.btn:active{transform:translateY(1px);box-shadow:var(--sh-1)}
-.btn-line{box-shadow:var(--sh-1)}
-.tag.huge{box-shadow:inset 0 -4px 0 rgba(0,0,0,.08),0 10px 26px rgba(200,160,0,.40)}
-.mini,.best .b,.item{box-shadow:var(--sh-1)}
-.best .b,.item{border-color:transparent;background:var(--surface)}
-.tiles a{box-shadow:var(--sh-2)}
-.install{box-shadow:0 -6px 24px rgba(0,0,0,.2)}
+/* Stappenplan */
+.wiz{position:fixed;inset:0;z-index:30;background:var(--page);overflow:auto}
+.wiztop{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--navy);color:#fff;padding:10px max(12px,env(safe-area-inset-left))}
+.wiztop button{font-size:15px;padding:8px 10px;color:#fff;font-weight:500}
+.dots{display:flex;gap:6px}.dots i{width:28px;height:3px;border-radius:2px;background:var(--navy-3)}.dots i.on{background:#fff}
+.wizbody{padding-block:28px 60px;max-width:640px}
+.wizbody h2{font-size:26px;line-height:1.2;margin:0 0 8px}
+.wizbody p{font-size:16.5px}
+.opts{display:grid;margin-top:16px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface)}
+.opt{display:grid;grid-template-columns:40px 1fr 14px;align-items:center;column-gap:14px;text-align:left;background:var(--surface);border:0;border-top:1px solid var(--line);border-radius:0;padding:14px 16px;font-size:16.5px;min-height:64px;font-weight:600}
+.opt:first-child{border-top:0}.opt:hover{background:var(--soft)}
+.opt::after{content:"";width:8px;height:8px;border-right:2px solid var(--muted);border-top:2px solid var(--muted);transform:rotate(45deg)}
+.opt>span{width:40px;height:40px;border-radius:6px;background:var(--blue-soft);color:var(--navy);display:grid;place-items:center}
+.opt>span svg{width:20px;height:20px}
+.opt small{display:block;font-weight:400;color:var(--muted);font-size:14px}
+.opt.sel{background:var(--blue-soft)}.opt.sel::after{width:12px;height:7px;border:0;border-left:2.5px solid var(--blue);border-bottom:2.5px solid var(--blue);transform:rotate(-45deg)}
+.wizbody .form{background:var(--surface)}
+.wizbody ol{padding-left:22px}.wizbody ol li{margin-bottom:8px}
+.bigok{width:56px;height:56px;border-radius:50%;background:var(--green-soft);color:var(--green-dark);display:grid;place-items:center;margin:6px 0 10px}
+.bigok svg{width:28px;height:28px}
+.link{background:none;border:0;padding:8px 0;color:var(--blue);text-decoration:underline;font-weight:600}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <header class="top">
   <div class="wrap bar">
-    <a class="brand" href="/" aria-label="Stroomwekker, naar de startpagina"><img src="/icons/icon.svg" alt="" width="34" height="34"><span>Stroomwekker</span></a>
-    <nav class="nav" aria-label="Menu"><a href="#" id="navStart">🔌 Begin hier</a><a href="#meer" id="navMeer">📊 Prijzen</a></nav>
+    <a class="brand" href="/" aria-label="Stroomwekker, naar de startpagina"><img src="/icons/icon.svg" alt="" width="30" height="30"><span>Stroomwekker</span></a>
+    <nav class="nav" aria-label="Menu"><a href="#" id="navStart">Regelen</a><a href="#meer" id="navMeer">Prijzen</a></nav>
   </div>
 </header>
 
 <main>
-<section class="wrap hero">
-  <h1>Bespaar op stroom zonder er iets voor te doen</h1>
-  <p class="promise">Voor iedereen met een dynamisch energiecontract.</p>
-  <a class="licht" id="licht" href="#meer" data-l="laden">
-    <span class="bol" aria-hidden="true"></span>
-    <span class="lt"><b id="lichtT">Prijs ophalen…</b><small id="lichtS">Even geduld</small></span>
-    <span class="lp" id="lichtP"></span>
-  </a>
-  <h2 class="vraag">Wat wil je doen?</h2>
-  <div class="keuzes">
-    <button type="button" data-flow="apparaat"><span>🔌</span><b>Apparaat vanzelf aan en uit</b><small>Boiler, wasmachine, auto</small></button>
-    <button type="button" data-flow="batterij"><span>🔋</span><b>Thuisbatterij slim laden</b><small>Laden als het goedkoop is</small></button>
-    <button type="button" data-flow="zon"><span>☀️</span><b>Zonnepanelen</b><small>Weten wanneer ze uit moeten</small></button>
-    <button type="button" data-flow="bericht"><span>🔔</span><b>Alleen een bericht</b><small>Als stroom goedkoop is</small></button>
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <h1>Gebruik stroom als het goedkoop is. Automatisch.</h1>
+      <p class="promise">Voor iedereen met een dynamisch energiecontract. Stroomwekker volgt de prijs per kwartier en zet je apparaten aan op de goedkoopste momenten.</p>
+      <p class="vraag">Wat wil je regelen?</p>
+      <div class="keuzes">
+        <button type="button" data-flow="apparaat"><span class="ico" data-ic="plug"></span><b>Apparaat automatisch aan en uit</b><small>Boiler, wasmachine of auto</small></button>
+        <button type="button" data-flow="batterij"><span class="ico" data-ic="battery"></span><b>Thuisbatterij slim laden</b><small>Laden als stroom goedkoop is</small></button>
+        <button type="button" data-flow="zon"><span class="ico" data-ic="sun"></span><b>Zonnepanelen</b><small>Weten wanneer terugleveren geld kost</small></button>
+        <button type="button" data-flow="bericht"><span class="ico" data-ic="bell"></span><b>Alleen een bericht</b><small>Als stroom goedkoop of duur is</small></button>
+      </div>
+    </div>
+    <a class="licht" id="licht" href="#meer" data-l="laden">
+      <span class="kop"><span>Stroomprijs nu</span><span class="stand"><span class="bol" aria-hidden="true"></span><span id="lichtT">Ophalen…</span></span></span>
+      <span class="lp" id="lichtP">–</span>
+      <span class="lt"><small id="lichtS">Prijs per kWh, inclusief belasting</small></span>
+      <span class="strip" id="strip" aria-hidden="true"></span>
+      <span class="stripas"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></span>
+    </a>
   </div>
 </section>
 
 <section class="wrap">
   <div class="card" id="mijn" hidden>
-    <h2>✅ Wat staat er aan</h2>
+    <h2>Wat staat er aan</h2>
     <ul class="list" id="mijnList"></ul>
     <button class="btn-line btn-sm" type="button" id="mijnMeer">+ Nog iets toevoegen</button>
   </div>
@@ -270,9 +244,9 @@ details.tbl summary{cursor:pointer;font-weight:700;font-size:14.5px;margin-top:8
   </div>
 
   <details class="meer" id="meer">
-    <summary>📊 Meer: alle prijzen, uitleg en instellingen</summary>
+    <summary>Alle prijzen, uitleg en instellingen</summary>
     <div class="card" id="apparaten">
-    <h2>🔌 Jouw apparaten</h2>
+    <h2>Jouw apparaten</h2>
     <p class="small muted" style="margin-top:-4px">Heb je een slimme stekker? Dan zetten wij je apparaat aan als stroom goedkoop is, en weer uit als het duur wordt. Bijvoorbeeld je boiler of laadpaal. Dit werkt ook als je niet thuis bent.</p>
     <ul class="list" id="devList"></ul>
     <button class="btn-line" id="devAdd" type="button">+ Apparaat toevoegen</button>
@@ -293,7 +267,7 @@ details.tbl summary{cursor:pointer;font-weight:700;font-size:14.5px;margin-top:8
         </div>
       </div>
  <div id="kTuya" class="form" style="padding:0;border:0;background:none" hidden>
-        <details class="notice" style="margin:0"><summary style="cursor:pointer;font-weight:700">📋 Stap voor stap (je doet dit maar één keer, ongeveer 15 minuten)</summary>
+        <details class="notice" style="margin:0"><summary style="cursor:pointer;font-weight:700">Stap voor stap (je doet dit maar één keer, ongeveer 15 minuten)</summary>
           <ol style="margin:8px 0 0;padding-left:20px;font-size:14.5px">
             <li><b>Gebruik de app Smart Life.</b> Met de app van de Action (LSC) lukt het niet. Haal de stekker weg uit de LSC-app. Download de gratis app <b>Smart Life</b>. Voeg de stekker daar opnieuw toe. Dat gaat net zo als in de LSC-app.</li>
             <li><b>Maak een gratis account</b> op de website <b>platform.tuya.com</b>. Klik op <b>Cloud</b>, dan <b>Development</b>, dan <b>Create Cloud Project</b>. Kies bij Data Center: <b>Central Europe</b>.</li>
@@ -329,7 +303,7 @@ details.tbl summary{cursor:pointer;font-weight:700;font-size:14.5px;margin-top:8
       </div>
       <div id="rSolar" hidden>
         <label>Uit als de prijs lager is dan (cent) <input id="dLimit" type="number" step="0.1" inputmode="decimal" value="0"><span class="hint">Laat op 0 staan als je het niet weet. Dan gaan je panelen uit zodra terugleveren geld kost. Daarna gaan ze vanzelf weer aan.</span></label>
-        <p class="notice" style="margin:8px 0 0">⚠️ Let op: zonnepanelen uitzetten met een gewone slimme stekker kan gevaarlijk zijn. Laat dit altijd door een installateur regelen. Geen installateur? Zet dan een bericht aan en zet de panelen zelf uit in de app van je omvormer.</p>
+        <p class="notice" style="margin:8px 0 0">Let op: zonnepanelen uitzetten met een gewone slimme stekker kan gevaarlijk zijn. Laat dit altijd door een installateur regelen. Geen installateur? Zet dan een bericht aan en zet de panelen zelf uit in de app van je omvormer.</p>
       </div>
       <div class="two" id="rBelow">
         <label>Aan als het minder kost dan (cent) <input id="dOnP" type="number" step="0.1" inputmode="decimal" value="20"></label>
@@ -369,30 +343,30 @@ details.tbl summary{cursor:pointer;font-weight:700;font-size:14.5px;margin-top:8
   </div>
 
   <div class="card" id="zon">
-    <h2>☀️ Zonnepanelen</h2>
+    <h2>Zonnepanelen</h2>
     <div id="zonStatus"></div>
     <p class="small muted" style="margin:8px 0 10px">Soms is er zoveel zonnestroom dat je moet betalen om stroom terug te leveren. Zet je panelen dan even uit. Of gebruik juist veel stroom: dan krijg je geld terug.</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-sm" type="button" id="zonAlert">🔔 Stuur mij een bericht</button>
-      <button class="btn-line btn-sm" type="button" id="zonDevice">⚙️ Panelen vanzelf uitzetten</button>
+      <button class="btn btn-sm" type="button" id="zonAlert">Stuur mij een bericht</button>
+      <button class="btn-line btn-sm" type="button" id="zonDevice">Panelen vanzelf uitzetten</button>
     </div>
   </div>
 
   <div class="card" id="batterij">
-    <h2>🔋 Thuisbatterij</h2>
+    <h2>Thuisbatterij</h2>
     <p class="small" style="margin:-4px 0 10px">Zo werkt het: <b>laad</b> je batterij als stroom goedkoop is. <b>Gebruik</b> de stroom uit je batterij als stroom duur is. Het verschil is jouw winst.</p>
     <div id="batPlan"></div>
     <label class="small" style="display:flex;gap:8px;align-items:center;margin:10px 0;font-weight:700">Hoeveel uur duurt het om je batterij vol te laden?
       <select id="batHours" style="padding:6px 8px;border:2px solid var(--line);border-radius:8px;background:var(--surface)"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></label>
-    <p class="notice" style="margin:0 0 10px">💡 <b>Het makkelijkst:</b> kijk in de app van je batterij of er een stand is zoals <b>"dynamisch tarief"</b> of <b>"slim laden"</b>. Zet die aan, dan doet je batterij dit helemaal zelf. Geen zo'n stand? Dan regelen wij het.</p>
+    <p class="notice" style="margin:0 0 10px"><b>Het makkelijkst:</b> kijk in de app van je batterij of er een stand is zoals <b>"dynamisch tarief"</b> of <b>"slim laden"</b>. Zet die aan, dan doet je batterij dit helemaal zelf. Geen zo'n stand? Dan regelen wij het.</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-sm" type="button" id="batAlert">🔔 Stuur mij een bericht</button>
-      <button class="btn-line btn-sm" type="button" id="batDevice">⚙️ Batterij vanzelf laten werken</button>
+      <button class="btn btn-sm" type="button" id="batAlert">Stuur mij een bericht</button>
+      <button class="btn-line btn-sm" type="button" id="batDevice">Batterij vanzelf laten werken</button>
     </div>
   </div>
 
   <div class="card" id="meldingen">
-    <h2>🔔 Berichten</h2>
+    <h2>Berichten</h2>
     <p class="small muted" style="margin-top:-4px">Krijg een bericht op je telefoon als stroom goedkoop of duur is. Ook als de app dicht is.</p>
     <div class="notice" id="pushNotice"></div>
     <ul class="list" id="alertList"></ul>
@@ -423,12 +397,12 @@ details.tbl summary{cursor:pointer;font-weight:700;font-size:14.5px;margin-top:8
     </div>
     <p class="small muted" id="chartNote" hidden></p>
     <div class="chartbox" id="chartbox"><div class="tip" id="tip" hidden></div></div>
-    <div class="legend"><span><i style="background:var(--green)"></i>Goedkoop</span><span><i style="background:var(--mid)"></i>Normaal</span><span><i style="background:var(--deal)"></i>Duur</span><span>▲ = nu</span></div>
+    <div class="legend"><span><i style="background:var(--green)"></i>Goedkoop</span><span><i style="background:var(--mid)"></i>Normaal</span><span><i style="background:var(--deal)"></i>Duur</span><span>Omlijnd = nu</span></div>
     <details class="tbl"><summary>Toon alle prijzen als lijst</summary><table class="qtable" id="qtable"></table></details>
   </div>
 
   <div class="card" id="instellingen">
-    <h2>⚙️ Instellingen</h2>
+    <h2>Instellingen</h2>
     <form class="form" id="setForm" style="background:none;border:0;padding:0">
       <label>Welke prijs wil je zien?
         <select id="sMode">
@@ -490,7 +464,7 @@ details.tbl summary{cursor:pointer;font-weight:700;font-size:14.5px;margin-top:8
 <footer class="foot">
   <div class="wrap">
     <p style="margin:0">Stroomwekker is gratis. Wij helpen je besparen op je energierekening.</p>
-    <nav aria-label="Over"><a href="/privacy/">Privacy</a><a href="/privacy/#contact">Contact</a><a href="https://boodschappenvergelijk.nl/" target="_blank" rel="noopener">Boodschappen vergelijken</a><a href="https://salderingscheck-nl.netlify.app/" target="_blank" rel="noopener">Salderingscheck</a><a href="#" id="installLink">📲 Installeer als app</a></nav>
+    <nav aria-label="Over"><a href="/privacy/">Privacy</a><a href="/privacy/#contact">Contact</a><a href="https://boodschappenvergelijk.nl/" target="_blank" rel="noopener">Boodschappen vergelijken</a><a href="https://salderingscheck-nl.netlify.app/" target="_blank" rel="noopener">Salderingscheck</a><a href="#" id="installLink">Installeer als app</a></nav>
     <p class="muted" style="margin:0;font-size:13px">© 2026 Stroomwekker – Erik Beltman. Alle rechten voorbehouden. Prijsdata: Energy-Charts (Fraunhofer ISE), EnergyZero. We doen ons best, maar kunnen fouten maken. De prijs van je energiebedrijf telt.</p>
   </div>
 </footer>
@@ -501,7 +475,7 @@ details.tbl summary{cursor:pointer;font-weight:700;font-size:14.5px;margin-top:8
   <div class="wizbody wrap"><h2 id="wizT"></h2><div id="wizB"></div></div>
 </div>
 <div class="install" id="install" hidden>
-  <div class="t"><b>📲 Zet Stroomwekker op je telefoon</b>Dan krijg je een bericht als stroom goedkoop is.<div class="ios" id="iosHint" hidden>Tik onderin op <b>Deel</b> ⬆️ en kies <b>Zet op beginscherm</b>.</div></div>
+  <div class="t"><b>Zet Stroomwekker op je telefoon</b>Dan krijg je een bericht als stroom goedkoop is.<div class="ios" id="iosHint" hidden>Tik onderin op <b>Deel</b> ⬆️ en kies <b>Zet op beginscherm</b>.</div></div>
   <button class="go" id="installGo">Installeren</button>
   <button class="no" id="installNo" aria-label="Sluiten">×</button>
 </div>
