@@ -19,7 +19,7 @@ function keepSecrets(d, old) {
 function cleanAlerts(list) {
   return (Array.isArray(list) ? list : []).slice(0, 12).map(a => ({
     id: String(a.id || crypto.randomUUID()).slice(0, 40),
-    type: ['below', 'above', 'cheapest', 'tomorrow', 'negative'].includes(a.type) ? a.type : 'below',
+    type: ['below', 'above', 'cheapest', 'tomorrow', 'negative', 'battery'].includes(a.type) ? a.type : 'below',
     value: Number(a.value) || 0, hours: Math.max(0.25, Math.min(12, Number(a.hours) || 1)),
   }));
 }
@@ -63,7 +63,7 @@ export default async (req) => {
         dev = validateDevice(d);
       }
       if (!dev) return Response.json({ error: 'Apparaat niet gevonden' }, { status: 404 });
-      await switchDevice(dev, !!body.on);
+      await switchDevice(dev, body.on === 'supply' ? 'supply' : !!body.on);
       return Response.json({ ok: true });
     }
   } catch (e) {

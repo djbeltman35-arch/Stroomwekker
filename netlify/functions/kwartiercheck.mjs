@@ -3,7 +3,7 @@ import webpush from 'web-push';
 import { store } from '../lib/store.mjs';
 import { loadPrices } from '../lib/data.mjs';
 import { switchDevice } from '../lib/devices.mjs';
-import { alertsDue, deviceWants, price, current, fmtCt, nlTime, DEFAULT_SETTINGS } from '../../public/js/engine.js';
+import { alertsDue, deviceWants, batteryMode, price, current, fmtCt, nlTime, DEFAULT_SETTINGS } from '../../public/js/engine.js';
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -29,14 +29,21 @@ export default async () => {
     for (const d of acc.devices || []) {
       if (d.enabled === false) continue;
       const ds = st.devices[d.id] || {};
-      const want = deviceWants(d, quarters, now, settings, ds.on);
+      let want = deviceWants(d, quarters, now, settings, ds.on);
+      // Batterij met eigen links: drie standen (laden / leveren / stoppen)
+      if (d.rule?.type === 'battery' && d.kind === 'webhook' && d.supplyUrl) {
+        const m = batteryMode(d.rule.hours, quarters, now, settings);
+        want = m === null ? null : m === 'charge' ? true : m === 'discharge' ? 'supply' : false;
+      }
       if (want === null) continue;
       if (want === ds.on && ds.ok) continue; // al goed
       try {
         await switchDevice(d, want);
         st.devices[d.id] = { on: want, ok: true, at: now, msg: '' };
         switched++;
-        if (d.notify !== false) msgs.push({ id: 'dev-' + d.id, title: d.rule?.type === 'solar' ? `☀️ ${d.name} ${want ? 'staan weer aan' : 'staan uit: terugleveren kost nu geld'}` : `${want ? '🔌' : '⏸️'} ${d.name} is ${want ? 'aangezet' : 'uitgezet'}`,
+        if (d.notify !== false) msgs.push(d.rule?.type === 'battery' ? { id: 'dev-' + d.id,
+          title: want === 'supply' ? `🔋 ${d.name} levert nu stroom` : want ? `🔋 ${d.name} laadt nu` : `🔋 ${d.name} staat stil`,
+          body: cur ? `Stroom kost nu ${fmtCt(price(cur.spot, settings))}.` : '' } : { id: 'dev-' + d.id, title: d.rule?.type === 'solar' ? `☀️ ${d.name} ${want ? 'staan weer aan' : 'staan uit: terugleveren kost nu geld'}` : `${want ? '🔌' : '⏸️'} ${d.name} is ${want ? 'aangezet' : 'uitgezet'}`,
           body: cur ? `Stroom kost nu ${fmtCt(price(cur.spot, settings))}.` : '' });
       } catch (e) {
         st.devices[d.id] = { on: want, ok: false, at: now, msg: String(e.message).slice(0, 140) };

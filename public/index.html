@@ -96,6 +96,7 @@ h3{font:700 17px/1.3 var(--text);margin:0 0 4px}
 .nowstrip{display:inline-flex;gap:6px;align-items:center;margin:12px 0 4px;text-decoration:none;font-size:15px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 14px}
 .nowstrip b{background:var(--tag);color:var(--tag-ink);padding:1px 7px;border-radius:4px;font-family:var(--num);font-size:18px}
 #vergelijken .tiles{margin-bottom:10px}
+#batPlan .best{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:0 0 14px}
 .now{text-align:center;padding:20px 16px 16px}
 .now .label{font-weight:700;color:var(--muted);font-size:15px;margin:0 0 8px}
@@ -182,7 +183,7 @@ details.tbl summary{cursor:pointer;font-weight:700;font-size:14.5px;margin-top:8
   <h1>Je apparaten vanzelf aan als stroom goedkoop is</h1>
   <p class="promise">Voor iedereen met een dynamisch energiecontract. Wij zetten je slimme stekker aan als stroom goedkoop is, en weer uit als het duur wordt. Jij hoeft niets te doen.</p>
   <ol class="steps">
-    <li><span>1</span><b>Koppel je slimme stekker</b><small>Van de Action, Shelly of Smart Life</small></li>
+    <li><span>1</span><b>Koppel je slimme stekker</b><small>Van de Action, Shelly of Smart Life. Ook voor je thuisbatterij of zonnepanelen.</small></li>
     <li><span>2</span><b>Kies wanneer</b><small>Bijvoorbeeld: aan als stroom minder dan 20 cent kost</small></li>
     <li><span>3</span><b>Wij doen de rest</b><small>Elk kwartier, ook als je niet thuis bent</small></li>
   </ol>
@@ -231,8 +232,9 @@ details.tbl summary{cursor:pointer;font-weight:700;font-size:14.5px;margin-top:8
         <label>Welk stopcontact? (alleen bij een stekkerdoos) <select id="dTCode"><option value="switch_1">1 / enkele stekker</option><option value="switch_2">2</option><option value="switch_3">3</option><option value="switch_4">4</option><option value="switch">Werkt 1 niet? Kies dan deze</option></select></label>
       </div>
       <div id="kHook" class="form" style="padding:0;border:0;background:none" hidden>
-        <label>Link om AAN te zetten <input id="dOn" type="url" placeholder="https://…"></label>
-        <label>Link om UIT te zetten <input id="dOff" type="url" placeholder="https://… (mag leeg)"></label>
+        <label><span id="lOn">Link om AAN te zetten</span> <input id="dOn" type="url" placeholder="https://…"></label>
+        <label id="supplyWrap" hidden>Link om te LEVEREN <input id="dSupply" type="url" placeholder="https://…"></label>
+        <label><span id="lOff">Link om UIT te zetten</span> <input id="dOff" type="url" placeholder="https://… (mag leeg)"></label>
         <label>Methode <select id="dMethod"><option>POST</option><option>GET</option></select><span class="hint">Weet je niet wat dit is? Kies dan hierboven een andere stekker.</span></label>
       </div>
       <label>Wanneer moet het apparaat aan?
@@ -240,7 +242,12 @@ details.tbl summary{cursor:pointer;font-weight:700;font-size:14.5px;margin-top:8
           <option value="below">Als stroom goedkoper is dan…</option>
           <option value="cheapest">In de goedkoopste uren van de dag</option>
           <option value="solar">Zonnepanelen: uit als terugleveren geld kost</option>
+          <option value="battery">Thuisbatterij: laden als het goedkoop is, leveren als het duur is</option>
         </select></label>
+      <div id="rBat" hidden>
+        <label>Hoeveel uur duurt het om de batterij vol te laden? <select id="dBatHrs"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></label>
+        <p class="hint" id="batPlugHint" style="margin:6px 0 0">De stekker gaat aan als de batterij moet laden, en uit als dat klaar is. Het leveren regelt je batterij dan zelf.</p>
+      </div>
       <div id="rSolar" hidden>
         <label>Uit als de prijs lager is dan (cent) <input id="dLimit" type="number" step="0.1" inputmode="decimal" value="0"><span class="hint">Laat op 0 staan als je het niet weet. Dan gaan je panelen uit zodra terugleveren geld kost. Daarna gaan ze vanzelf weer aan.</span></label>
         <p class="notice" style="margin:8px 0 0">⚠️ Let op: zonnepanelen uitzetten met een gewone slimme stekker kan gevaarlijk zijn. Laat dit altijd door een installateur regelen. Geen installateur? Zet dan een bericht aan en zet de panelen zelf uit in de app van je omvormer.</p>
@@ -260,6 +267,7 @@ details.tbl summary{cursor:pointer;font-weight:700;font-size:14.5px;margin-top:8
         <button class="btn" type="submit">Bewaren</button>
         <button class="btn-line" type="button" id="dTestOn">Test: aan</button>
         <button class="btn-line" type="button" id="dTestOff">Test: uit</button>
+        <button class="btn-line" type="button" id="dTestSupply" hidden>Test: leveren</button>
         <button class="btn-line" type="button" id="dCancel">Annuleren</button>
       </div>
       <p class="msg" id="dMsg" role="status"></p>
@@ -290,6 +298,19 @@ details.tbl summary{cursor:pointer;font-weight:700;font-size:14.5px;margin-top:8
     </div>
   </div>
 
+  <div class="card" id="batterij">
+    <h2>🔋 Thuisbatterij</h2>
+    <p class="small" style="margin:-4px 0 10px">Zo werkt het: <b>laad</b> je batterij als stroom goedkoop is. <b>Gebruik</b> de stroom uit je batterij als stroom duur is. Het verschil is jouw winst.</p>
+    <div id="batPlan"></div>
+    <label class="small" style="display:flex;gap:8px;align-items:center;margin:10px 0;font-weight:700">Hoeveel uur duurt het om je batterij vol te laden?
+      <select id="batHours" style="padding:6px 8px;border:2px solid var(--line);border-radius:8px;background:var(--surface)"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></label>
+    <p class="notice" style="margin:0 0 10px">💡 <b>Het makkelijkst:</b> kijk in de app van je batterij of er een stand is zoals <b>"dynamisch tarief"</b> of <b>"slim laden"</b>. Zet die aan, dan doet je batterij dit helemaal zelf. Geen zo'n stand? Dan regelen wij het.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-sm" type="button" id="batAlert">🔔 Stuur mij een bericht</button>
+      <button class="btn-line btn-sm" type="button" id="batDevice">⚙️ Batterij vanzelf laten werken</button>
+    </div>
+  </div>
+
   <div class="card" id="meldingen">
     <h2>🔔 Berichten</h2>
     <p class="small muted" style="margin-top:-4px">Krijg een bericht op je telefoon als stroom goedkoop of duur is. Ook als de app dicht is.</p>
@@ -303,6 +324,7 @@ details.tbl summary{cursor:pointer;font-weight:700;font-size:14.5px;margin-top:8
           <option value="cheapest">de goedkoopste uren van de dag beginnen</option>
           <option value="tomorrow">de prijzen van morgen er zijn</option>
           <option value="negative">ik voor terugleveren moet betalen (zonnepanelen uit)</option>
+          <option value="battery">ik mijn thuisbatterij moet laden of gebruiken</option>
         </select></label>
       <label id="aValWrap">Prijs in cent <input id="aVal" type="number" inputmode="decimal" step="0.1" value="20"></label>
       <label id="aHrsWrap" hidden>Hoeveel uur? <select id="aHrs"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>6</option></select></label>
@@ -378,6 +400,8 @@ details.tbl summary{cursor:pointer;font-weight:700;font-size:14.5px;margin-top:8
     <details><summary>Werken de slimme stekkers van de Action?</summary><p>Ja. Je moet de stekker wel eerst in de gratis app Smart Life zetten, in plaats van in de app van de Action. Dat doe je maar één keer. Daarna koppel je hem hier. Bij "Apparaat toevoegen" staat een stappenplan. Dit werkt ook voor stekkers van de Hema, Calex, Nedis, Woox en Hombli.</p></details>
     <details><summary>Waarom zou ik mijn zonnepanelen uitzetten?</summary><p>Op hele zonnige dagen is er soms te veel stroom. Dan wordt de prijs lager dan nul. Met een dynamisch contract betaal je dan geld als je stroom teruglevert. Zet je panelen dan even uit. Wij sturen je de dag ervoor al een bericht.</p></details>
     <details><summary>Hoe zet ik mijn zonnepanelen vanzelf uit?</summary><p>Dat gaat via het kastje van je zonnepanelen, de omvormer. Dit is lastig en kan gevaarlijk zijn als het fout gaat. Vraag het daarom aan een installateur. Wil je dat niet? Zet dan een bericht aan. Je kunt de panelen dan zelf uitzetten in de app van je omvormer.</p></details>
+    <details><summary>Wanneer moet ik mijn thuisbatterij laden?</summary><p>Laad je batterij als stroom het goedkoopst is. Vaak is dat 's nachts of op een zonnige middag. Gebruik de stroom uit je batterij als stroom het duurst is. Vaak is dat 's ochtends vroeg en tussen 17:00 en 21:00 uur. Bij het blok Thuisbatterij zie je elke dag de beste tijden. Is het verschil te klein, dan zeggen we dat ook: laden en ontladen kost namelijk altijd een beetje stroom (ongeveer 15%).</p></details>
+    <details><summary>Hoe laat ik mijn thuisbatterij vanzelf werken?</summary><p>Het makkelijkst: zet in de app van je batterij de stand "dynamisch tarief" of "slim laden" aan. Heeft je batterij dat niet? Zet de lader dan op een slimme stekker en kies bij "Apparaat toevoegen" voor Thuisbatterij. Wij zetten de stekker dan aan als laden het goedkoopst is. Heb je Homey of Home Assistant? Dan kun je ook een link voor laden, leveren en stoppen invullen.</p></details>
     <details><summary>Is het veilig om mijn gegevens in te vullen?</summary><p>Ja. Wij gebruiken je gegevens alleen om je apparaat aan en uit te zetten. We laten ze aan niemand zien. Haal je een apparaat weg, dan wissen we de gegevens meteen. Meer lees je bij Privacy.</p></details>
     <details><summary>Ik heb IFTTT, Homey of Home Assistant. Kan dat ook?</summary><p>Ja. Kies bij "Welke slimme stekker heb je?" voor "Iets anders". Maak in je eigen systeem een link (webhook) om aan te zetten en een link om uit te zetten. Plak die hier.</p></details>
     <details><summary>Waar komen de prijzen vandaan?</summary><p>Van de Europese stroombeurs. Wij halen ze op via Energy-Charts van Fraunhofer ISE. De gasprijs komt van EnergyZero.</p></details>

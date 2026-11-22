@@ -48,7 +48,9 @@ export function validateDevice(d) {
   if (!d || typeof d !== 'object') throw new Error('Geen apparaat');
   const name = String(d.name || '').slice(0, 40).trim() || 'Apparaat';
   const rule = d.rule || {};
-  const cleanRule = rule.type === 'solar'
+  const cleanRule = rule.type === 'battery'
+    ? { type: 'battery', hours: Math.max(0.25, Math.min(12, Number(rule.hours) || 3)) }
+    : rule.type === 'solar'
     ? { type: 'solar', limit: Math.max(-0.5, Math.min(0.2, Number(rule.limit) || 0)) }
     : rule.type === 'cheapest'
     ? { type: 'cheapest', hours: Math.max(0.25, Math.min(24, Number(rule.hours) || 1)), block: !!rule.block }
@@ -73,7 +75,8 @@ export function validateDevice(d) {
     return { ...base, kind: 'tuya', region, accessId, accessSecret, deviceId, code };
   }
   const onUrl = safeUrl(d.onUrl).href, offUrl = d.offUrl ? safeUrl(d.offUrl).href : '';
-  return { ...base, kind: 'webhook', onUrl, offUrl, method: d.method === 'GET' ? 'GET' : 'POST' };
+  const supplyUrl = cleanRule.type === 'battery' && d.supplyUrl ? safeUrl(d.supplyUrl).href : '';
+  return { ...base, kind: 'webhook', onUrl, offUrl, supplyUrl, method: d.method === 'GET' ? 'GET' : 'POST' };
 }
 
 export async function switchDevice(d, on) {
@@ -88,13 +91,14 @@ export async function switchDevice(d, on) {
     if (!r.ok) throw new Error(`Shelly antwoordde ${r.status}: ${txt.slice(0, 120)}`);
     return 'ok';
   }
-  const url = on ? d.onUrl : d.offUrl;
+  // on: true = aan/laden, false = uit/stoppen, 'supply' = batterij levert stroom
+  const url = on === 'supply' ? d.supplyUrl : on ? d.onUrl : d.offUrl;
   if (!url) return 'geen uit-link';
   safeUrl(url);
   const r = await fetch(url, {
     method: d.method || 'POST', redirect: 'manual', signal: AbortSignal.timeout(8000),
     headers: d.method === 'GET' ? {} : { 'Content-Type': 'application/json' },
-    body: d.method === 'GET' ? undefined : JSON.stringify({ state: on ? 'on' : 'off', source: 'stroomwekker' }),
+    body: d.method === 'GET' ? undefined : JSON.stringify({ state: on === 'supply' ? 'supply' : on ? 'on' : 'off', source: 'stroomwekker' }),
   });
   if (r.status >= 400) throw new Error(`Link antwoordde ${r.status}`);
   return 'ok';

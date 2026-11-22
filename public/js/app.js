@@ -1,4 +1,4 @@
-import { price, current, quarterStart, nlDayBounds, nlTime, inRange, cheapestBlock, levels, levelOf, alertsDue, negativeWindows, Q, DEFAULT_SETTINGS } from '/js/engine.js';
+import { price, current, quarterStart, nlDayBounds, nlTime, inRange, cheapestBlock, levels, levelOf, alertsDue, negativeWindows, batteryPlan, Q, DEFAULT_SETTINGS } from '/js/engine.js';
 
 const $ = id => document.getElementById(id);
 const LS = { get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
@@ -114,6 +114,15 @@ function render() {
       : `<p class="notice" style="background:var(--green-soft);margin:0">🟢 <b>Alles goed.</b> Je zonnepanelen mogen aan blijven.</p>`)
     + `<p class="small" style="margin:8px 0 0"><b>Panelen uit vandaag:</b> ${wsT.length ? wtxt(wsT) : 'niet nodig'}<br><b>Panelen uit morgen:</b> ${mq.length ? (wsM.length ? wtxt(wsM) : 'niet nodig') : 'dit weet je na 13:00 uur'}</p>`;
 
+  // Thuisbatterij
+  const bh = +$('batHours').value;
+  const planTxt = (pl, label) => !pl ? '' : `<div class="b"><div class="k">${label}</div>`
+    + `<p style="margin:4px 0">🔌 <b>Laden:</b> ${nlTime(pl.charge.start)}–${nlTime(pl.charge.end)} <span class="muted">(${ct(pl.buy)} cent)</span><br>`
+    + `⚡ <b>Batterij gebruiken:</b> ${nlTime(pl.discharge.start)}–${nlTime(pl.discharge.end)} <span class="muted">(${ct(pl.sell)} cent)</span></p>`
+    + (pl.worth ? `<span class="pill goedkoop">✓ Loont: ongeveer ${ct(pl.gain)} cent winst per kWh</span>` : `<span class="pill normaal">Loont niet: het verschil is te klein</span><p class="small muted" style="margin:6px 0 0">Laden en weer gebruiken kost ongeveer 15% stroom. Daarvoor is het verschil nu te klein. Laat de batterij dan rusten.</p>`) + '</div>';
+  $('batPlan').innerHTML = '<div class="best">' + planTxt(batteryPlan(qs, today.start, today.end, bh, settings), 'Vandaag')
+    + (mq.length ? planTxt(batteryPlan(qs, tom.start, tom.end, bh, settings), 'Morgen') : '<div class="b"><div class="k">Morgen</div><p class="small muted" style="margin:4px 0">Dit zie je na 13:00 uur.</p></div>') + '</div>';
+
   $('tabTomorrow').textContent = mq.length ? 'Morgen' : 'Morgen (na 13:00)';
   const showQ = day === 1 ? mq : tq;
   $('chartNote').hidden = !(day === 1 && !mq.length);
@@ -184,12 +193,12 @@ document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click
 
 // ---------- Meldingen ----------
 const alertText = a => a.type === 'below' ? `Stroom goedkoper dan ${ct(a.value)} cent` : a.type === 'above' ? `Stroom duurder dan ${ct(a.value)} cent`
-  : a.type === 'cheapest' ? `De goedkoopste ${a.hours} uur beginnen` : a.type === 'negative' ? '☀️ Zonnepanelen beter uit' : 'De prijzen van morgen zijn er';
+  : a.type === 'cheapest' ? `De goedkoopste ${a.hours} uur beginnen` : a.type === 'negative' ? '☀️ Zonnepanelen beter uit' : a.type === 'battery' ? '🔋 Thuisbatterij laden of gebruiken' : 'De prijzen van morgen zijn er';
 function renderAlerts() {
   $('alertList').innerHTML = alerts.map(a => `<li class="item"><div class="txt"><b>${alertText(a)}</b></div><button class="x" data-del="${a.id}" aria-label="Verwijderen">×</button></li>`).join('');
 }
 $('alertList').addEventListener('click', e => { const id = e.target.dataset.del; if (!id) return; alerts = alerts.filter(a => a.id !== id); renderAlerts(); sync().catch(() => {}); });
-$('aType').addEventListener('change', () => { const t = $('aType').value; $('aValWrap').hidden = !(t === 'below' || t === 'above'); $('aHrsWrap').hidden = t !== 'cheapest'; });
+$('aType').addEventListener('change', () => { const t = $('aType').value; $('aValWrap').hidden = !(t === 'below' || t === 'above'); $('aHrsWrap').hidden = !(t === 'cheapest' || t === 'battery'); });
 $('alertForm').addEventListener('submit', async e => {
   e.preventDefault();
   alerts.push({ id: crypto.randomUUID(), type: $('aType').value, value: (num('aVal') || 0) / 100, hours: +$('aHrs').value });
@@ -237,7 +246,7 @@ async function localAlerts() {
 setInterval(localAlerts, 60e3);
 
 // ---------- Apparaten ----------
-const ruleText = r => r.type === 'solar' ? 'Uit als terugleveren geld kost' : r.type === 'cheapest' ? `Aan in de goedkoopste ${r.hours} uur van de dag${r.block ? ' (achter elkaar)' : ''}` : `Aan onder ${ct(r.on)} cent, uit boven ${ct(r.off ?? r.on)} cent`;
+const ruleText = r => r.type === 'battery' ? `Thuisbatterij: laden als het goedkoop is (${r.hours} uur)` : r.type === 'solar' ? 'Uit als terugleveren geld kost' : r.type === 'cheapest' ? `Aan in de goedkoopste ${r.hours} uur van de dag${r.block ? ' (achter elkaar)' : ''}` : `Aan onder ${ct(r.on)} cent, uit boven ${ct(r.off ?? r.on)} cent`;
 function renderDevices() {
   $('devList').innerHTML = devices.map(d => {
     const s = d.status;
@@ -254,8 +263,15 @@ $('devList').addEventListener('click', e => {
   if (ed) openDev(devices.find(d => d.id === ed));
 });
 const kindUI = () => { const k = $('dKind').value; $('kShelly').hidden = k !== 'shelly'; $('kHook').hidden = k !== 'webhook'; $('kTuya').hidden = k !== 'tuya'; };
-const ruleUI = () => { const r = $('dRule').value; $('rBelow').hidden = r !== 'below'; $('rCheap').hidden = r !== 'cheapest'; $('rSolar').hidden = r !== 'solar'; };
-$('dKind').onchange = kindUI; $('dRule').onchange = ruleUI;
+const ruleUI = () => {
+  const r = $('dRule').value, k = $('dKind').value, bat = r === 'battery', hook = k === 'webhook';
+  $('rBelow').hidden = r !== 'below'; $('rCheap').hidden = r !== 'cheapest'; $('rSolar').hidden = r !== 'solar'; $('rBat').hidden = !bat;
+  $('supplyWrap').hidden = !(bat && hook); $('dTestSupply').hidden = !(bat && hook); $('batPlugHint').hidden = hook;
+  $('lOn').textContent = bat && hook ? 'Link om te LADEN' : 'Link om AAN te zetten';
+  $('lOff').textContent = bat && hook ? 'Link om te STOPPEN' : 'Link om UIT te zetten';
+  $('dTestOn').textContent = bat && hook ? 'Test: laden' : 'Test: aan'; $('dTestOff').textContent = bat && hook ? 'Test: stoppen' : 'Test: uit';
+};
+$('dKind').onchange = () => { kindUI(); ruleUI(); }; $('dRule').onchange = ruleUI;
 function openDev(d) {
   editing = d ? d.id : null;
   $('devForm').hidden = false; $('devAdd').hidden = true; $('dMsg').textContent = '';
@@ -266,6 +282,7 @@ function openDev(d) {
   const r = d?.rule || { type: 'below', on: 0.20, off: 0.22 };
   $('dRule').value = r.type; $('dOnP').value = r.on != null ? (r.on * 100).toFixed(1) : 20; $('dOffP').value = r.off != null ? (r.off * 100).toFixed(1) : 22;
   $('dLimit').value = ((r.limit || 0) * 100).toFixed(1);
+  $('dBatHrs').value = String(r.type === 'battery' ? r.hours : 3); $('dSupply').value = d?.supplyUrl || '';
   $('dHrs').value = String(r.hours || 3); $('dBlock').checked = !!r.block; $('dNotify').checked = d?.notify !== false;
   kindUI(); ruleUI(); $('dName').focus();
 }
@@ -274,6 +291,18 @@ $('heroStart').onclick = () => { openDev(null); $('apparaten').scrollIntoView({ 
 $('zonDevice').onclick = () => {
   openDev(null); $('dName').value = 'Zonnepanelen'; $('dKind').value = 'webhook'; $('dRule').value = 'solar'; kindUI(); ruleUI();
   $('apparaten').scrollIntoView({ behavior: 'smooth' });
+};
+$('batHours').value = String(LS.get('sw-bathours', 3));
+$('batHours').onchange = () => { LS.set('sw-bathours', +$('batHours').value); render(); };
+$('batDevice').onclick = () => {
+  openDev(null); $('dName').value = 'Thuisbatterij'; $('dRule').value = 'battery'; $('dBatHrs').value = $('batHours').value; kindUI(); ruleUI();
+  $('apparaten').scrollIntoView({ behavior: 'smooth' });
+};
+$('batAlert').onclick = async () => {
+  alerts = alerts.filter(a => a.type !== 'battery');
+  alerts.push({ id: crypto.randomUUID(), type: 'battery', value: 0, hours: +$('batHours').value });
+  renderAlerts(); await enablePush(); sync().catch(() => {});
+  $('batAlert').textContent = '✓ Je krijgt een bericht';
 };
 $('zonAlert').onclick = async () => {
   if (!alerts.some(a => a.type === 'negative')) alerts.push({ id: crypto.randomUUID(), type: 'negative', value: 0, hours: 1 });
@@ -288,15 +317,16 @@ function formDevice() {
     deviceId: $('dKind').value === 'tuya' ? $('dTDev').value.trim() : $('dDev').value.trim(),
     accessId: $('dTId').value.trim(), accessSecret: $('dTSecret').value.trim(), region: $('dTReg').value, code: $('dTCode').value,
     onUrl: $('dOn').value.trim(), offUrl: $('dOff').value.trim(), method: $('dMethod').value,
-    rule: rt === 'solar' ? { type: 'solar', limit: (num('dLimit') || 0) / 100 } : rt === 'cheapest' ? { type: 'cheapest', hours: +$('dHrs').value, block: $('dBlock').checked } : { type: 'below', on: num('dOnP') / 100, off: num('dOffP') / 100 } };
+    supplyUrl: $('dSupply').value.trim(),
+    rule: rt === 'battery' ? { type: 'battery', hours: +$('dBatHrs').value } : rt === 'solar' ? { type: 'solar', limit: (num('dLimit') || 0) / 100 } : rt === 'cheapest' ? { type: 'cheapest', hours: +$('dHrs').value, block: $('dBlock').checked } : { type: 'below', on: num('dOnP') / 100, off: num('dOffP') / 100 } };
 }
 const say = (t, ok) => { $('dMsg').textContent = t; $('dMsg').className = 'msg ' + (ok ? 'ok' : 'err'); };
 async function test(on) {
   say('Bezig…', true);
-  try { await api({ action: 'test', device: formDevice(), on }); say(on ? '✓ Verstuurd. Gaat je apparaat nu aan?' : '✓ Verstuurd. Gaat je apparaat nu uit?', true); }
+  try { await api({ action: 'test', device: formDevice(), on }); say(on === 'supply' ? '✓ Verstuurd. Levert je batterij nu stroom?' : on ? '✓ Verstuurd. Gaat je apparaat nu aan?' : '✓ Verstuurd. Gaat je apparaat nu uit?', true); }
   catch (e) { say(e.message); }
 }
-$('dTestOn').onclick = () => test(true); $('dTestOff').onclick = () => test(false);
+$('dTestOn').onclick = () => test(true); $('dTestOff').onclick = () => test(false); $('dTestSupply').onclick = () => test('supply');
 $('devForm').addEventListener('submit', async e => {
   e.preventDefault();
   const d = formDevice(), prev = devices;

@@ -98,6 +98,48 @@ export function negativeWindows(quarters, from, to, limit = 0) {
   return out;
 }
 
+// ---------- Thuisbatterij ----------
+// Rendement heen en terug (laden + ontladen). Onder dit verschil loont het niet.
+export const BAT_EFF = 0.85;
+
+// Duurste aaneengesloten blok van n kwartieren binnen [from, to).
+export function priciestBlock(quarters, from, to, n) {
+  const neg = quarters.map(q => ({ t: q.t, spot: -q.spot }));
+  const b = cheapestBlock(neg, from, to, n);
+  return b ? { ...b, avg: -b.avg } : null;
+}
+
+// Dagplan: eerst laden (goedkoopste blok), daarna leveren (duurste blok erna).
+// We proberen beide volgordes van zoeken en nemen het plan met de meeste winst.
+export function batteryPlan(quarters, from, to, hours, s = DEFAULT_SETTINGS) {
+  const n = Math.max(1, Math.min(48, Math.round(Number(hours || 3) * 4)));
+  const opts = [];
+  const c1 = cheapestBlock(quarters, from, to, n);
+  if (c1) { const d1 = priciestBlock(quarters, c1.end, to, n); if (d1) opts.push({ charge: c1, discharge: d1 }); }
+  const d2 = priciestBlock(quarters, from, to, n);
+  if (d2) { const c2 = cheapestBlock(quarters, from, d2.start, n); if (c2) opts.push({ charge: c2, discharge: d2 }); }
+  if (!opts.length) return null;
+  for (const o of opts) {
+    o.buy = price(o.charge.avg, s); o.sell = price(o.discharge.avg, s);
+    o.gain = o.sell * BAT_EFF - o.buy; // winst per kWh die je laadt
+  }
+  const best = opts.sort((a, b) => b.gain - a.gain)[0];
+  best.worth = best.gain > 0.01;
+  return best;
+}
+
+// 'charge' | 'discharge' | 'idle' voor het huidige kwartier (plan per kalenderdag).
+export function batteryMode(hours, quarters, t, s) {
+  const cur = current(quarters, t);
+  if (!cur) return null;
+  const { start, end } = nlDayBounds(t);
+  const p = batteryPlan(quarters, start, end, hours, s);
+  if (!p || !p.worth) return 'idle';
+  if (cur.t >= p.charge.start && cur.t < p.charge.end) return 'charge';
+  if (cur.t >= p.discharge.start && cur.t < p.discharge.end) return 'discharge';
+  return 'idle';
+}
+
 // ---------- Apparaten ----------
 // device.rule: { type: 'below', on: 0.25, off: 0.28 }  (prijzen in euro per kWh, in de modus van de gebruiker)
 //              { type: 'cheapest', hours: 3, block: false }
@@ -114,6 +156,11 @@ export function deviceWants(device, quarters, t, s, lastOn) {
       return !!b && cur.t >= b.start && cur.t < b.end;
     }
     return cheapestSet(quarters, start, end, n).has(cur.t);
+  }
+  if (r.type === 'battery') {
+    // Slimme stekker voor de lader: AAN tijdens het laden, anders UIT.
+    const m = batteryMode(r.hours, quarters, t, s);
+    return m === null ? null : m === 'charge';
   }
   if (r.type === 'solar') {
     // Zonnepanelen/omvormer: UIT zolang de beursprijs onder de grens ligt, anders AAN.
@@ -174,6 +221,16 @@ export function alertsDue(alerts, quarters, t, s, state = {}) {
         state[a.id] = { ...(state[a.id] || st), warned: tm.day };
       }
       state[a.id] = { ...(state[a.id] || st), active: neg };
+    } else if (a.type === 'battery') {
+      const m = batteryMode(a.hours, quarters, t, s);
+      if (m === null) continue;
+      if (m !== st.mode && m !== 'idle') {
+        const p = batteryPlan(quarters, start, end, a.hours, s);
+        out.push(m === 'charge'
+          ? { id: a.id, title: '🔋 Laad nu je thuisbatterij', body: `Stroom is nu goedkoop. Laad tot ${nlTime(p.charge.end)}.` }
+          : { id: a.id, title: '🔋 Gebruik nu je thuisbatterij', body: `Stroom is nu duur. Gebruik je batterij tot ${nlTime(p.discharge.end)}.` });
+      }
+      state[a.id] = { ...st, mode: m };
     } else if (a.type === 'tomorrow') {
       const tm = nlDayBounds(end + 60e3);
       const qs = inRange(quarters, tm.start, tm.end);
