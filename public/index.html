@@ -210,6 +210,17 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
 .install .go{background:#fff;color:var(--navy)}.install .no{color:#fff;padding:8px;font-size:22px;line-height:1}
 .ios{font-size:14px;margin-top:4px}
 /* Stappenplan */
+.wizbody ol.kstap{padding-left:0}.kstap li span{min-width:0}.kstap{list-style:none;counter-reset:k;padding:0;margin:14px 0 0;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+.kstap li{counter-increment:k;display:grid;grid-template-columns:28px 1fr;column-gap:12px;padding:14px 16px;border-top:1px solid var(--line);font-size:16px;margin:0}
+.kstap li:first-child{border-top:0}
+.kstap li::before{content:counter(k);width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:600;font-size:14px}
+.veld{display:grid;font-weight:600;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px;gap:6px!important;font-size:16px!important}
+.wizbody .form{background:none;border:0;padding:0;gap:12px}
+.veld .hint b{color:var(--ink)}
+.veld input{padding:11px 12px;border:1px solid #C3CCD8;border-radius:6px;background:var(--surface);font:400 16px var(--text)}.veld input:focus{border-color:var(--blue);outline:2px solid var(--blue-soft)}
+.vchk{font-size:14px;font-weight:600;min-height:1px}.vchk.ok{color:var(--green-dark)}.vchk.err{color:var(--deal)}
+.testrij{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+
 .wiz{position:fixed;inset:0;z-index:30;background:var(--page);overflow:auto}
 .wiztop{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--navy);color:#fff;padding:10px max(12px,env(safe-area-inset-left))}
 .wiztop button{font-size:15px;padding:8px 10px;color:#fff;font-weight:500}
@@ -239,7 +250,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
     <a class="brand" href="/" aria-label="Stroomwekker, naar de startpagina">
       <span class="woord"><span class="s">Stroom</span><span class="w">wekker<svg class="flits" viewBox="0 0 600 200" aria-hidden="true"><path d="M0 200 285 52 215 112 600 0 315 148 385 88Z"/></svg></span></span>
     </a>
-    <nav class="nav" aria-label="Menu"><a href="#" id="navStart">Regelen</a><a href="#meer" id="navMeer">Prijzen</a></nav>
+    <nav class="nav" aria-label="Menu"><a href="#" id="navStart">Regelen</a><a href="/hoe-werkt-het/">Hoe werkt het?</a><a href="#meer" id="navMeer">Prijzen</a></nav>
   </div>
 </header>
 
@@ -284,6 +295,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
       <li><b>Wij kiezen de goedkoopste uren</b><span>Je hoeft geen prijzen in te vullen. Wij weten elke dag de prijzen en kiezen de beste momenten.</span></li>
       <li><b>Je apparaat gaat vanzelf aan en uit</b><span>Elk kwartier kijken wij naar de prijs. Ook als je telefoon uit staat of je niet thuis bent.</span></li>
     </ol>
+    <p style="margin:14px 0 0"><a href="/hoe-werkt-het/" style="font-weight:600">Lees in gewone woorden hoe Stroomwekker je apparaten aan en uit zet</a></p>
     <div class="watis">
       <h3>Wat is een dynamisch energiecontract?</h3>
       <p>Bij een gewoon contract betaal je altijd dezelfde prijs voor stroom. Bij een dynamisch contract verandert de prijs elk kwartier. 's Nachts en op zonnige middagen is stroom vaak goedkoop. Tussen 17:00 en 21:00 uur is stroom vaak duur. Gebruik je stroom op goedkope momenten, dan betaal je minder.</p>
@@ -527,7 +539,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
     <div class="cols">
       <div><div class="fl"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="19" fill="none" stroke="#fff" stroke-width="3.6"/><path d="M27.4 9.5 16.4 26h7.2l-3.4 12.5 12-17.3h-7.6z" fill="#F5B700"/></svg>Stroomwekker</div>
         <p style="margin:0;max-width:40ch">Gratis hulp voor iedereen met een dynamisch energiecontract: de stroomprijs per kwartier, berichten en apparaten die vanzelf schakelen.</p></div>
-      <div><h3>Stroomwekker</h3><nav aria-label="Stroomwekker"><a href="#" id="installLink">Installeer als app</a><a href="#meer" id="footMeer">Alle prijzen</a><a href="/privacy/">Privacy</a><a href="/privacy/#contact">Contact</a></nav></div>
+      <div><h3>Stroomwekker</h3><nav aria-label="Stroomwekker"><a href="#" id="installLink">Installeer als app</a><a href="/hoe-werkt-het/">Hoe werkt het?</a><a href="#meer" id="footMeer">Alle prijzen</a><a href="/privacy/">Privacy</a><a href="/privacy/#contact">Contact</a></nav></div>
       <div><h3>Ook van de maker</h3><nav aria-label="Ook van de maker"><a href="https://bespaarvriend.nl/?bron=stroomwekker" target="_blank" rel="noopener">Bespaarvriend</a><a href="https://boodschappenvergelijk.nl/" target="_blank" rel="noopener">Boodschappenvergelijk</a><a href="https://salderingscheck-nl.netlify.app/" target="_blank" rel="noopener">Salderingscheck</a></nav></div>
     </div>
     <p class="muted" style="margin:0;font-size:13px">© 2026 Stroomwekker – Erik Beltman. Alle rechten voorbehouden. Prijsdata: Energy-Charts (Fraunhofer ISE, CC BY 4.0) en EnergyZero. We doen ons best, maar kunnen fouten maken. De prijs van je energiebedrijf is leidend.</p>

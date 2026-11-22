@@ -468,8 +468,22 @@ const sGeenStekker = () => ({ t: 'Je hebt een slimme stekker nodig', of: 4,
   html: '<p class="small muted">Let op: een slimme stekker kan meestal maximaal 3.680 watt aan. Voor een laadpaal of grote boiler heb je soms iets anders nodig.</p>',
   opts: [{ i: '🔔', l: 'Stuur me intussen een bericht als stroom goedkoop is', go: () => go(sBerichtKies) }, { i: '🏠', l: 'Terug naar het begin', go: wizClose }] });
 
-function fieldsHTML(f) { return '<div class="form">' + f.map(([id, label, hint, ph]) => `<label>${label}<input id="${id}" autocomplete="off" spellcheck="false" ${ph ? `placeholder="${ph}"` : ''}>${hint ? `<span class="hint">${hint}</span>` : ''}</label>`).join('') + '</div>'; }
-const testRow = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn-line" type="button" id="wTest">🔌 Test: zet aan</button><button class="btn" type="button" id="wNext">Klaar, verder →</button></div><p class="msg" id="wMsg" role="status"></p>';
+// Invulvakken met uitleg: wat het is, waar je het vindt, hoe het eruitziet, en direct controleren.
+function veldHTML(id, label, wat, waar, voorbeeld, patroon) {
+  return `<label class="veld">${label}<span class="hint">${wat}</span>
+    <input id="${id}" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${voorbeeld}" data-p="${patroon}">
+    <span class="hint"><b>Waar vind ik dit?</b> ${waar}</span><span class="vchk" id="${id}c" aria-live="polite"></span></label>`;
+}
+function wireVelden() {
+  $('wizB').querySelectorAll('input[data-p]').forEach(i => {
+    const c = $(i.id + 'c'), re = new RegExp(i.dataset.p);
+    const check = () => { const v = i.value.trim(); if (!v) { c.textContent = ''; c.className = 'vchk'; return; }
+      const ok = re.test(v); c.textContent = ok ? '✓ Dit ziet er goed uit' : 'Dit lijkt nog niet te kloppen. Kopieer de hele code, zonder spaties.'; c.className = 'vchk ' + (ok ? 'ok' : 'err'); };
+    i.addEventListener('input', check); i.addEventListener('blur', check);
+  });
+}
+const testRow = '<div class="testrij"><button class="btn-line" type="button" id="wTest">Test: zet aan</button><button class="btn" type="button" id="wNext">Klaar, verder</button></div><p class="msg" id="wMsg" role="status"></p>';
+const stap = (t, items, of, volgende) => ({ t, of, html: '<ol class="kstap">' + items.map(x => `<li><span>${x}</span></li>`).join('') + '</ol>', opts: [{ i: '✅', l: 'Gedaan, volgende stap', go: () => go(volgende) }] });
 function wDevice() {
   const p = PRESETS[W.d.preset || 'anders'];
   const v = id => ($(id) ? $(id).value.trim() : '');
@@ -489,21 +503,57 @@ function wireTest() {
     try { await sync(); go(sKlaarApparaat); } catch (e) { devices = prev; LS.set('sw-devices', prev); msg(e.message); }
   };
 }
-const sTuya = () => ({ t: W.d.lsc ? 'Koppel je stekker van de Action' : 'Koppel je Smart Life-stekker', of: 4,
-  html: `<ol>${W.d.lsc ? '<li><b>Zet de stekker in de app Smart Life.</b> Met de app van de Action lukt het niet. Haal de stekker weg uit de LSC-app, download de gratis app <b>Smart Life</b> en voeg de stekker daar toe.</li>' : ''}
-    <li>Ga op je computer naar <b>platform.tuya.com</b> en maak een gratis account.</li>
-    <li>Klik op <b>Cloud</b> → <b>Development</b> → <b>Create Cloud Project</b>. Kies Data Center: <b>Central Europe</b>.</li>
-    <li>Klik op <b>Devices</b> → <b>Link App Account</b>. Scan de QR-code met Smart Life (tab <b>Ik</b>, knopje rechtsboven).</li>
-    <li>Neem hieronder over: de <b>Access ID</b> en <b>Access Secret</b> (bij Overview) en het <b>Device ID</b> (bij Devices).</li></ol>`
-    + fieldsHTML([['wA', 'Access ID'], ['wS', 'Access Secret'], ['wD', 'Device ID']]) + testRow,
-  after: wireTest });
-const sShelly = () => ({ t: 'Koppel je Shelly', of: 4,
-  html: `<ol><li>Open de <b>Shelly-app</b>. Ga naar <b>Instellingen</b> → <b>Gebruikersinstellingen</b> → <b>Cloud-sleutel</b>.</li><li>Neem de <b>servernaam</b> en de <b>sleutel</b> over.</li><li>Tik in de app op je stekker → <b>Instellingen</b> → <b>Apparaatinformatie</b> en neem het <b>Device ID</b> over.</li></ol>`
-    + fieldsHTML([['wH', 'Servernaam', '', 'shelly-49-eu.shelly.cloud'], ['wK', 'Cloud-sleutel'], ['wD', 'Device ID']]) + testRow,
-  after: wireTest });
+// ---- Tuya / Action: kleine stappen, één ding per scherm ----
+const sTuya = () => W.d.lsc ? sTuya1() : sTuya2();
+const sTuya1 = () => stap('Stap 1: zet je stekker in de app Smart Life', [
+  'Met de app van de Action (LSC Smart Connect) lukt het niet. Smart Life is dezelfde techniek, maar werkt wel.',
+  'Open de app <b>LSC Smart Connect</b>. Tik op je stekker, dan rechtsboven op het potloodje, en kies <b>Apparaat verwijderen</b>.',
+  'Download de gratis app <b>Smart Life</b> in de App Store of Google Play en maak een account.',
+  'Tik in Smart Life op <b>+</b> en voeg je stekker toe, net zoals je in de LSC-app deed. Gaat het lampje van de stekker niet knipperen? Houd het knopje op de stekker 5 seconden ingedrukt.',
+], 7, () => sTuya2());
+const sTuya2 = () => stap(`Stap ${W.d.lsc ? 2 : 1}: maak een gratis Tuya-account`, [
+  'Dit doe je het makkelijkst op een <b>computer</b>. Tuya is het bedrijf achter Smart Life.',
+  'Ga naar <b>platform.tuya.com</b> en klik op <b>Sign Up</b> (aanmelden). Vul je e-mailadres in en kies een wachtwoord.',
+  'Vraagt de site wat voor account je wilt? Kies dan <b>Individual Developer</b> (privépersoon).',
+], 7, () => sTuya3());
+const sTuya3 = () => stap(`Stap ${W.d.lsc ? 3 : 2}: maak een project`, [
+  'Klik links in het menu op <b>Cloud</b> en dan op <b>Development</b>.',
+  'Klik op de blauwe knop <b>Create Cloud Project</b>.',
+  'Vul bij <b>Project Name</b> iets in, bijvoorbeeld <i>Stroomwekker</i>. Kies bij <b>Industry</b>: <i>Smart Home</i>. Kies bij <b>Development Method</b>: <i>Smart Home</i>.',
+  'Kies bij <b>Data Center</b>: <b>Central Europe Data Center</b>. Klik op <b>Create</b>.',
+  'Krijg je een lijst met diensten (API services)? Klik gewoon op <b>Authorize</b>.',
+], 7, () => sTuya4());
+const sTuya4 = () => stap(`Stap ${W.d.lsc ? 4 : 3}: koppel je Smart Life-app`, [
+  'Klik in je project bovenaan op het tabblad <b>Devices</b>, dan op <b>Link App Account</b> en op <b>Add App Account</b>. Er verschijnt een QR-code.',
+  'Open op je telefoon de app <b>Smart Life</b>. Tik onderin op <b>Ik</b> en dan rechtsboven op het <b>scan-knopje</b>.',
+  'Scan de QR-code op je computerscherm en tik op <b>Bevestigen</b>.',
+  'Je stekker staat nu in de lijst op de website. Zie je hem niet? Ververs de pagina.',
+], 7, () => sTuyaCodes());
+const sTuyaCodes = () => ({ t: `Stap ${W.d.lsc ? 5 : 4}: neem 3 codes over`, of: 7,
+  p: 'Kopieer de codes van de Tuya-website en plak ze hieronder. Dit zijn lange codes van letters en cijfers. Overtypen hoeft niet: kopiëren en plakken is het makkelijkst.',
+  html: veldHTML('wA', '1. Access ID', 'Het "gebruikersnummer" van je project.', 'Op de Tuya-website, in je project, tabblad <b>Overview</b>. Staat bij <i>Access ID/Client ID</i>.', 'bijv. k8xq3m7rw2c9vn5tyhpe', '^[a-zA-Z0-9]{16,32}$')
+    + veldHTML('wS', '2. Access Secret', 'Het "wachtwoord" van je project. Deel het met niemand anders.', 'Ook bij <b>Overview</b>, onder de Access ID, bij <i>Access Secret/Client Secret</i>. Klik op het oogje om hem te zien.', 'bijv. 4f9c2a7e…  (32 tekens)', '^[a-zA-Z0-9]{24,40}$')
+    + veldHTML('wD', '3. Device ID', 'Het nummer van je stekker.', 'Tabblad <b>Devices</b>, dan <b>All Devices</b>. Staat in de kolom <i>Device ID</i> naast je stekker.', 'bijv. bf3a1c9e8d7f6a5b4c', '^[a-zA-Z0-9]{10,32}$')
+    + '<p class="hint" style="margin-top:12px">Vul alles in en tik op <b>Test: zet aan</b>. Gaat je stekker aan? Dan klopt alles.</p>' + testRow,
+  after: () => { wireVelden(); wireTest(); } });
+
+// ---- Shelly ----
+const sShelly = () => stap('Stap 1: zoek je Shelly-gegevens op', [
+  'Open de <b>Shelly-app</b> (Shelly Smart Control) op je telefoon.',
+  'Tik onderin op <b>Instellingen</b> (het tandwieltje) en dan op <b>Gebruikersinstellingen</b>.',
+  'Tik op <b>Autorisatie cloud-sleutel</b> en dan op <b>Sleutel ophalen</b>. Je ziet nu een <b>servernaam</b> en een lange <b>sleutel</b>.',
+  'Houd deze app open. In de volgende stap neem je de gegevens over.',
+], 3, () => sShellyCodes());
+const sShellyCodes = () => ({ t: 'Stap 2: neem 3 gegevens over', of: 3,
+  p: 'Kopieer de gegevens uit de Shelly-app en plak ze hieronder.',
+  html: veldHTML('wH', '1. Servernaam', 'Het adres van de Shelly-server waar jouw account op staat.', 'In de Shelly-app bij <b>Autorisatie cloud-sleutel</b>. Begint met <i>shelly-</i> en eindigt op <i>shelly.cloud</i>.', 'bijv. shelly-49-eu.shelly.cloud', '^(https?://)?shelly-\\d{1,3}-[a-z]{2,4}\\.shelly\\.cloud/?$')
+    + veldHTML('wK', '2. Cloud-sleutel', 'De sleutel waarmee wij je Shelly mogen schakelen. Deel hem met niemand anders.', 'Op dezelfde plek, onder de servernaam. Een lange code van letters en cijfers.', 'bijv. MTc4ZjN1aWQ…', '^\\S{20,}$')
+    + veldHTML('wD', '3. Device ID', 'Het nummer van je Shelly-stekker.', 'Tik in de app op je stekker, dan op <b>Instellingen</b> en <b>Apparaatinformatie</b>. Staat bij <i>Apparaat-ID</i>.', 'bijv. b48a0a1cd978', '^[a-zA-Z0-9]{6,20}$')
+    + '<p class="hint" style="margin-top:12px">Vul alles in en tik op <b>Test: zet aan</b>. Gaat je stekker aan? Dan klopt alles.</p>' + testRow,
+  after: () => { wireVelden(); wireTest(); } });
 const sKlaarApparaat = () => {
   const p = PRESETS[W.d.preset || 'anders'];
-  return { t: 'Klaar! 🎉', of: 4, html: `<div class="bigok">${svg("check")}</div><p>Je ${W.d.rule?.type === 'battery' ? 'batterij laadt' : p.name.toLowerCase() + ' gaat'} vanaf nu vanzelf aan <b>${W.d.rule?.type === 'battery' ? 'als stroom het goedkoopst is' : p.uitleg}</b>. Je hoeft niets meer te doen.</p>`,
+  return { t: 'Klaar', of: 4, html: `<div class="bigok">${svg("check")}</div><p>Je ${W.d.rule?.type === 'battery' ? 'batterij laadt' : p.name.toLowerCase() + ' gaat'} vanaf nu vanzelf aan <b>${W.d.rule?.type === 'battery' ? 'als stroom het goedkoopst is' : p.uitleg}</b>. Je hoeft niets meer te doen.</p>`,
     opts: [{ i: '🔔', l: 'Stuur mij een bericht als hij aan of uit gaat', go: async () => { await enablePush(); sync().catch(() => {}); wizClose(); } },
       { i: '✅', l: 'Nee, klaar', go: wizClose }] };
 };
