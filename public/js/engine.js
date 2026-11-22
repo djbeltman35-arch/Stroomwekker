@@ -83,7 +83,7 @@ export function fmtEuro(v, digits = 3) {
   return '€ ' + v.toFixed(digits).replace('.', ',');
 }
 export function fmtCt(v) {
-  return (v * 100).toFixed(1).replace('.', ',') + ' ct';
+  return (v * 100).toFixed(1).replace('.', ',') + ' cent';
 }
 
 // Periodes waarin de kale beursprijs onder 'limit' ligt (standaard 0 = negatief): terugleveren kost dan geld.
@@ -143,7 +143,7 @@ export function alertsDue(alerts, quarters, t, s, state = {}) {
       const hit = a.type === 'below' ? p <= a.value : p >= a.value;
       if (hit && !st.active) {
         out.push({ id: a.id, title: a.type === 'below' ? '⚡ Stroom is nu goedkoop' : '⚠️ Stroom is nu duur',
-          body: `${fmtCt(p)} per kWh tot ${nlTime(cur.t + Q)}. Jouw grens: ${fmtCt(a.value)}.` });
+          body: a.type === 'below' ? `Nu ${fmtCt(p)}. Goed moment om de wasmachine of auto aan te zetten.` : `Nu ${fmtCt(p)}. Wacht liever even met grote apparaten.` });
       }
       state[a.id] = { ...st, active: hit };
     } else if (a.type === 'cheapest') {
@@ -151,8 +151,8 @@ export function alertsDue(alerts, quarters, t, s, state = {}) {
       const n = Math.max(1, Math.round(Number(a.hours || 1) * 4));
       const b = cheapestBlock(quarters, start, end, n);
       if (b && cur.t === b.start && st.day !== day) {
-        out.push({ id: a.id, title: '🟢 Goedkoopste moment begint nu',
-          body: `De goedkoopste ${a.hours} uur van vandaag: ${nlTime(b.start)}–${nlTime(b.end)}, gemiddeld ${fmtCt(price(b.avg, s))}.` });
+        out.push({ id: a.id, title: '🟢 Nu is stroom het goedkoopst',
+          body: `Van ${nlTime(b.start)} tot ${nlTime(b.end)} is stroom het goedkoopst van vandaag (${fmtCt(price(b.avg, s))}).` });
         state[a.id] = { ...st, day };
       }
     } else if (a.type === 'negative') {
@@ -162,15 +162,15 @@ export function alertsDue(alerts, quarters, t, s, state = {}) {
       if (neg && !st.active) {
         const w = negativeWindows(quarters, cur.t, cur.t + 24 * 3600e3, limit)[0];
         out.push({ id: a.id, title: '☀️ Zet je zonnepanelen uit',
-          body: `De stroomprijs is nu negatief (${fmtCt(cur.spot)}): terugleveren kost geld${w ? ` tot ${nlTime(w.end)}` : ''}. Stroom gebruiken levert juist op.` });
+          body: `Terugleveren kost nu geld${w ? `, tot ${nlTime(w.end)}` : ''}. Stroom gebruiken levert juist geld op.` });
       } else if (!neg && st.active) {
-        out.push({ id: a.id, title: '☀️ Zonnepanelen mogen weer aan', body: `De stroomprijs is weer positief (${fmtCt(cur.spot)}).` });
+        out.push({ id: a.id, title: '☀️ Zonnepanelen mogen weer aan', body: 'Terugleveren kost geen geld meer.' });
       }
       // Vooraankondiging zodra de prijzen van morgen bekend zijn
       const tm = nlDayBounds(end + 60e3), ws = negativeWindows(quarters, tm.start, tm.end, limit);
       if (ws.length && inRange(quarters, tm.start, tm.end).length >= 92 && st.warned !== tm.day) {
-        out.push({ id: a.id + '-m', title: '☀️ Morgen negatieve stroomprijs',
-          body: 'Terugleveren kost geld van ' + ws.map(w => `${nlTime(w.start)}–${nlTime(w.end)}`).join(', ') + '. Zet je zonnepanelen dan uit of gebruik veel stroom.' });
+        out.push({ id: a.id + '-m', title: '☀️ Morgen zonnepanelen even uit',
+          body: 'Morgen kost terugleveren geld van ' + ws.map(w => `${nlTime(w.start)} tot ${nlTime(w.end)}`).join(' en ') + '. Zet je panelen dan uit, of gebruik juist veel stroom.' });
         state[a.id] = { ...(state[a.id] || st), warned: tm.day };
       }
       state[a.id] = { ...(state[a.id] || st), active: neg };
@@ -179,8 +179,8 @@ export function alertsDue(alerts, quarters, t, s, state = {}) {
       const qs = inRange(quarters, tm.start, tm.end);
       if (qs.length >= 92 && st.day !== tm.day) {
         const min = qs.reduce((m, q) => q.spot < m.spot ? q : m), max = qs.reduce((m, q) => q.spot > m.spot ? q : m);
-        out.push({ id: a.id, title: '📅 Prijzen van morgen staan klaar',
-          body: `Laagst ${fmtCt(price(min.spot, s))} om ${nlTime(min.t)}, hoogst ${fmtCt(price(max.spot, s))} om ${nlTime(max.t)}.` });
+        out.push({ id: a.id, title: '📅 De prijzen van morgen zijn er',
+          body: `Het goedkoopst om ${nlTime(min.t)} (${fmtCt(price(min.spot, s))}). Het duurst om ${nlTime(max.t)} (${fmtCt(price(max.spot, s))}).` });
         state[a.id] = { ...st, day: tm.day };
       }
     }

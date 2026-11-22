@@ -36,8 +36,8 @@ export default async () => {
         await switchDevice(d, want);
         st.devices[d.id] = { on: want, ok: true, at: now, msg: '' };
         switched++;
-        if (d.notify !== false) msgs.push({ id: 'dev-' + d.id, title: d.rule?.type === 'solar' ? `☀️ ${d.name} ${want ? 'weer aan' : 'uit: negatieve stroomprijs'}` : `${want ? '🔌 Aan' : '⏸️ Uit'}: ${d.name}`,
-          body: cur ? `Stroom ${fmtCt(price(cur.spot, settings))} om ${nlTime(cur.t)}.` : '' });
+        if (d.notify !== false) msgs.push({ id: 'dev-' + d.id, title: d.rule?.type === 'solar' ? `☀️ ${d.name} ${want ? 'staan weer aan' : 'staan uit: terugleveren kost nu geld'}` : `${want ? '🔌' : '⏸️'} ${d.name} is ${want ? 'aangezet' : 'uitgezet'}`,
+          body: cur ? `Stroom kost nu ${fmtCt(price(cur.spot, settings))}.` : '' });
       } catch (e) {
         st.devices[d.id] = { on: want, ok: false, at: now, msg: String(e.message).slice(0, 140) };
       }

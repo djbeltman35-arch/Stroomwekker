@@ -163,49 +163,51 @@ details.tbl summary{cursor:pointer;font-weight:700;font-size:14.5px;margin-top:8
 <header class="top">
   <div class="wrap bar">
     <a class="brand" href="/" aria-label="Stroomwekker, naar de startpagina"><img src="/icons/icon.svg" alt="" width="34" height="34"><span>Stroomwekker</span></a>
-    <nav class="nav" aria-label="Menu"><a href="#grafiek">Grafiek</a><a href="#meldingen">🔔 Meldingen</a><a href="#apparaten">🔌 Apparaten</a></nav>
+    <nav class="nav" aria-label="Menu"><a href="#grafiek">Prijzen</a><a href="#meldingen">🔔 Berichten</a><a href="#apparaten">🔌 Apparaten</a></nav>
   </div>
 </header>
 
 <main>
 <section class="wrap hero">
   <h1>Stroomprijs nu</h1>
-  <p class="promise">Dynamische prijs per kwartier · live bijgewerkt</p>
+  <p class="promise">Voor iedereen met een dynamisch energiecontract. De prijs verandert elk kwartier.</p>
   <div class="tiles" id="tiles"></div>
-  <p class="partnerlabel">Partnerlinks: kies je via deze tegels, dan krijgt de site soms een kleine vergoeding. Jij betaalt niets extra.</p>
+  <p class="partnerlabel">Dit zijn advertenties. Kies je via een tegel een contract, dan krijgt deze site soms een klein bedrag. Jij betaalt niets extra.</p>
 </section>
 
 <section class="wrap">
   <div class="card now" aria-live="polite">
-    <p class="label" id="nowLabel">Stroom op dit moment</p>
+    <p class="label" id="nowLabel">Zoveel kost stroom nu</p>
     <div><span class="tag huge" id="nowPrice"><span class="e">€</span>–,––</span></div>
     <p class="meta"><span class="pill normaal" id="nowLevel">laden…</span></p>
     <p class="meta"><span id="nowUntil">Prijzen ophalen…</span> · nog <span class="count" id="countdown">–:––</span></p>
     <div class="progress" aria-hidden="true"><i id="prog"></i></div>
     <div class="row3">
-      <div class="mini"><span class="k">Volgend kwartier</span><span class="v" id="nextP">–</span><span class="s" id="nextT"></span></div>
-      <div class="mini"><span class="k">Gemiddeld vandaag</span><span class="v" id="avgP">–</span><span class="s">per kWh</span></div>
+      <div class="mini"><span class="k">Straks</span><span class="v" id="nextP">–</span><span class="s" id="nextT"></span></div>
+      <div class="mini"><span class="k">Normaal vandaag</span><span class="v" id="avgP">–</span><span class="s">per kWh</span></div>
       <div class="mini"><span class="k">Gas vandaag</span><span class="v" id="gasP">–</span><span class="s">per m³</span></div>
     </div>
   </div>
 
   <div class="card">
-    <h2>Goedkoopste momenten</h2>
+    <h2>Wanneer is stroom het goedkoopst?</h2>
+    <p class="small muted" style="margin:-4px 0 10px">Zet dan je wasmachine, droger, vaatwasser of auto aan.</p>
     <div class="best" id="best"></div>
   </div>
 
   <div class="card" id="zon">
-    <h2>☀️ Zonnepanelen: terugleveren of niet?</h2>
+    <h2>☀️ Zonnepanelen</h2>
     <div id="zonStatus"></div>
-    <p class="small muted" style="margin:8px 0 10px">Bij een negatieve stroomprijs kost terugleveren je geld bij een dynamisch contract. Zet je panelen dan uit, of gebruik juist veel stroom.</p>
+    <p class="small muted" style="margin:8px 0 10px">Soms is er zoveel zonnestroom dat je moet betalen om stroom terug te leveren. Zet je panelen dan even uit. Of gebruik juist veel stroom: dan krijg je geld terug.</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-sm" type="button" id="zonAlert">🔔 Waarschuw mij</button>
-      <button class="btn-line btn-sm" type="button" id="zonDevice">⚙️ Omvormer automatisch uitzetten</button>
+      <button class="btn btn-sm" type="button" id="zonAlert">🔔 Stuur mij een bericht</button>
+      <button class="btn-line btn-sm" type="button" id="zonDevice">⚙️ Panelen vanzelf uitzetten</button>
     </div>
   </div>
 
   <div class="card" id="grafiek">
-    <h2>Prijzen per kwartier</h2>
+    <h2>Alle prijzen van de dag</h2>
+    <p class="small muted" style="margin:-4px 0 10px">Elk streepje is een kwartier. Tik op een streepje om de prijs te zien.</p>
     <div class="tabs" role="tablist">
       <button role="tab" aria-selected="true" data-day="0">Vandaag</button>
       <button role="tab" aria-selected="false" data-day="1" id="tabTomorrow">Morgen</button>
@@ -213,59 +215,59 @@ details.tbl summary{cursor:pointer;font-weight:700;font-size:14.5px;margin-top:8
     <p class="small muted" id="chartNote" hidden></p>
     <div class="chartbox" id="chartbox"><div class="tip" id="tip" hidden></div></div>
     <div class="legend"><span><i style="background:var(--green)"></i>Goedkoop</span><span><i style="background:var(--mid)"></i>Normaal</span><span><i style="background:var(--deal)"></i>Duur</span><span>▲ = nu</span></div>
-    <details class="tbl"><summary>Toon alle prijzen als tabel</summary><table class="qtable" id="qtable"></table></details>
+    <details class="tbl"><summary>Toon alle prijzen als lijst</summary><table class="qtable" id="qtable"></table></details>
   </div>
 
   <div class="card" id="meldingen">
-    <h2>🔔 Meldingen</h2>
-    <p class="small muted" style="margin-top:-4px">Krijg een seintje op je telefoon of computer, ook als de app dicht is.</p>
+    <h2>🔔 Berichten</h2>
+    <p class="small muted" style="margin-top:-4px">Krijg een bericht op je telefoon als stroom goedkoop of duur is. Ook als de app dicht is.</p>
     <div class="notice" id="pushNotice"></div>
     <ul class="list" id="alertList"></ul>
     <form class="form" id="alertForm">
-      <label>Stuur een melding als…
+      <label>Stuur mij een bericht als…
         <select id="aType">
-          <option value="below">de stroom goedkoper wordt dan…</option>
-          <option value="above">de stroom duurder wordt dan…</option>
-          <option value="cheapest">het goedkoopste blok van de dag begint</option>
-          <option value="tomorrow">de prijzen van morgen bekend zijn</option>
-          <option value="negative">de stroomprijs negatief wordt (zonnepanelen uit)</option>
+          <option value="below">stroom goedkoper is dan…</option>
+          <option value="above">stroom duurder is dan…</option>
+          <option value="cheapest">de goedkoopste uren van de dag beginnen</option>
+          <option value="tomorrow">de prijzen van morgen er zijn</option>
+          <option value="negative">ik voor terugleveren moet betalen (zonnepanelen uit)</option>
         </select></label>
-      <label id="aValWrap">Prijs in cent per kWh <input id="aVal" type="number" inputmode="decimal" step="0.1" value="20"></label>
-      <label id="aHrsWrap" hidden>Hoeveel uur achter elkaar? <select id="aHrs"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>6</option></select></label>
-      <button class="btn" type="submit">Melding toevoegen</button>
+      <label id="aValWrap">Prijs in cent <input id="aVal" type="number" inputmode="decimal" step="0.1" value="20"></label>
+      <label id="aHrsWrap" hidden>Hoeveel uur? <select id="aHrs"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>6</option></select></label>
+      <button class="btn" type="submit">Bericht aanzetten</button>
     </form>
   </div>
 
   <div class="card" id="apparaten">
-    <h2>🔌 Apparaten automatisch aan en uit</h2>
-    <p class="small muted" style="margin-top:-4px">Laat je boiler, wasmachine, laadpaal of thuisbatterij zelf aangaan als stroom goedkoop is. Werkt via de cloud van je slimme stekker, ook als je niet thuis bent of de app dicht is.</p>
+    <h2>🔌 Apparaten vanzelf aan en uit</h2>
+    <p class="small muted" style="margin-top:-4px">Heb je een slimme stekker? Dan zetten wij je apparaat aan als stroom goedkoop is, en weer uit als het duur wordt. Bijvoorbeeld je boiler of laadpaal. Dit werkt ook als je niet thuis bent.</p>
     <ul class="list" id="devList"></ul>
     <button class="btn-line" id="devAdd" type="button">+ Apparaat toevoegen</button>
     <form class="form" id="devForm" hidden>
-      <label>Naam <input id="dName" maxlength="40" placeholder="Bijvoorbeeld: Boiler" required></label>
-      <label>Hoe schakel je het apparaat?
+      <label>Hoe heet het apparaat? <input id="dName" maxlength="40" placeholder="Bijvoorbeeld: Boiler" required></label>
+      <label>Welke slimme stekker heb je?
         <select id="dKind">
-          <option value="tuya">Action (LSC Smart Connect), Smart Life of Tuya</option>
-          <option value="shelly">Shelly stekker of relais (Shelly Cloud)</option>
-          <option value="webhook">Via een link (IFTTT, Homey, Home Assistant…)</option>
+          <option value="tuya">Van de Action (LSC), of een Smart Life- of Tuya-stekker</option>
+          <option value="shelly">Shelly</option>
+          <option value="webhook">Iets anders (voor gevorderden: IFTTT, Homey, Home Assistant)</option>
         </select></label>
       <div id="kShelly" class="form" style="padding:0;border:0;background:none">
-        <label>Servernaam <input id="dHost" placeholder="shelly-49-eu.shelly.cloud" autocomplete="off"><span class="hint">Shelly-app → Instellingen → Gebruikersinstellingen → Cloud-sleutel. Daar staan servernaam en sleutel.</span></label>
+        <label>Servernaam <input id="dHost" placeholder="shelly-49-eu.shelly.cloud" autocomplete="off"><span class="hint">Open de Shelly-app. Ga naar Instellingen, dan Gebruikersinstellingen, dan Cloud-sleutel. Daar vind je de servernaam en de sleutel.</span></label>
         <label>Cloud-sleutel <input id="dKey" autocomplete="off" spellcheck="false"></label>
         <div class="two">
-          <label>Device ID <input id="dDev" autocomplete="off" spellcheck="false" placeholder="b48a0a1cd978"><span class="hint">Apparaat → Instellingen → Apparaatinformatie</span></label>
+          <label>Device ID <input id="dDev" autocomplete="off" spellcheck="false" placeholder="b48a0a1cd978"><span class="hint">Tik in de app op je apparaat, dan Instellingen, dan Apparaatinformatie.</span></label>
           <label>Kanaal <select id="dCh"><option value="0">1 (standaard)</option><option value="1">2</option><option value="2">3</option><option value="3">4</option></select></label>
         </div>
       </div>
  <div id="kTuya" class="form" style="padding:0;border:0;background:none" hidden>
-        <details class="notice" style="margin:0"><summary style="cursor:pointer;font-weight:700">📋 Zo koppel je je Action-stekker (eenmalig, ±15 minuten)</summary>
+        <details class="notice" style="margin:0"><summary style="cursor:pointer;font-weight:700">📋 Stap voor stap (je doet dit maar één keer, ongeveer 15 minuten)</summary>
           <ol style="margin:8px 0 0;padding-left:20px;font-size:14.5px">
-            <li><b>Zet de stekker over naar de Smart Life-app.</b> De LSC-app laat geen andere apps toe. Verwijder de stekker in de LSC Smart Connect-app, installeer de gratis app <b>Smart Life</b> en voeg de stekker daar opnieuw toe. Het is dezelfde techniek (Tuya), dus het werkt gewoon.</li>
-            <li><b>Maak een gratis account</b> op <b>platform.tuya.com</b> en kies <b>Cloud → Development → Create Cloud Project</b>. Kies bij Data Center <b>Central Europe</b>.</li>
-            <li>Ga in je project naar <b>Devices → Link App Account</b> en scan de QR-code met de Smart Life-app (tabblad Ik → scan-icoon rechtsboven). Je stekker verschijnt nu in de lijst. Kopieer het <b>Device ID</b>.</li>
-            <li>Kopieer bij <b>Overview</b> de <b>Access ID</b> en <b>Access Secret</b> en vul alles hieronder in. Tik op <b>Test: aan</b>.</li>
+            <li><b>Gebruik de app Smart Life.</b> Met de app van de Action (LSC) lukt het niet. Haal de stekker weg uit de LSC-app. Download de gratis app <b>Smart Life</b>. Voeg de stekker daar opnieuw toe. Dat gaat net zo als in de LSC-app.</li>
+            <li><b>Maak een gratis account</b> op de website <b>platform.tuya.com</b>. Klik op <b>Cloud</b>, dan <b>Development</b>, dan <b>Create Cloud Project</b>. Kies bij Data Center: <b>Central Europe</b>.</li>
+            <li>Klik op <b>Devices</b> en dan <b>Link App Account</b>. Je ziet een QR-code. Open Smart Life op je telefoon, tik op <b>Ik</b> en dan rechtsboven op het scan-knopje. Scan de code. Nu zie je je stekker op de website. Kopieer het <b>Device ID</b>.</li>
+            <li>Klik op <b>Overview</b>. Kopieer de <b>Access ID</b> en de <b>Access Secret</b>. Vul alles hieronder in en tik op <b>Test: aan</b>. Gaat je stekker aan? Dan werkt het.</li>
           </ol>
-          <p class="hint" style="margin:6px 0 0">Tuya vraagt je soms om het gratis proefabonnement van de koppeling te verlengen (Cloud → Cloud Services → IoT Core). Werkt schakelen ineens niet meer, kijk dan daar.</p>
+          <p class="hint" style="margin:6px 0 0">Werkt het na een paar maanden ineens niet meer? Dan vraagt Tuya je om je gratis account te verlengen. Dat doe je op dezelfde website bij Cloud Services → IoT Core.</p>
         </details>
         <label>Access ID <input id="dTId" autocomplete="off" spellcheck="false"></label>
         <label>Access Secret <input id="dTSecret" autocomplete="off" spellcheck="false"></label>
@@ -273,90 +275,91 @@ details.tbl summary{cursor:pointer;font-weight:700;font-size:14.5px;margin-top:8
           <label>Device ID <input id="dTDev" autocomplete="off" spellcheck="false"></label>
           <label>Data center <select id="dTReg"><option value="eu">Central Europe</option><option value="weu">Western Europe</option><option value="us">America</option><option value="in">India</option><option value="cn">China</option></select></label>
         </div>
-        <label>Stopcontact (bij stekkerdoos) <select id="dTCode"><option value="switch_1">1 / enkele stekker</option><option value="switch_2">2</option><option value="switch_3">3</option><option value="switch_4">4</option><option value="switch">Werkt 1 niet? Probeer deze</option></select></label>
+        <label>Welk stopcontact? (alleen bij een stekkerdoos) <select id="dTCode"><option value="switch_1">1 / enkele stekker</option><option value="switch_2">2</option><option value="switch_3">3</option><option value="switch_4">4</option><option value="switch">Werkt 1 niet? Kies dan deze</option></select></label>
       </div>
       <div id="kHook" class="form" style="padding:0;border:0;background:none" hidden>
         <label>Link om AAN te zetten <input id="dOn" type="url" placeholder="https://…"></label>
         <label>Link om UIT te zetten <input id="dOff" type="url" placeholder="https://… (mag leeg)"></label>
-        <label>Methode <select id="dMethod"><option>POST</option><option>GET</option></select><span class="hint">Zie de uitleg onderaan bij "Kan het ook zonder Tuya-account?"</span></label>
+        <label>Methode <select id="dMethod"><option>POST</option><option>GET</option></select><span class="hint">Weet je niet wat dit is? Kies dan hierboven een andere stekker.</span></label>
       </div>
-      <label>Wanneer moet het schakelen?
+      <label>Wanneer moet het apparaat aan?
         <select id="dRule">
-          <option value="below">Als de stroomprijs lager is dan…</option>
-          <option value="cheapest">Tijdens de goedkoopste uren van de dag</option>
-          <option value="solar">Zonnepanelen: uit bij negatieve stroomprijs</option>
+          <option value="below">Als stroom goedkoper is dan…</option>
+          <option value="cheapest">In de goedkoopste uren van de dag</option>
+          <option value="solar">Zonnepanelen: uit als terugleveren geld kost</option>
         </select></label>
       <div id="rSolar" hidden>
-        <label>Uit als de beursprijs lager is dan (ct/kWh) <input id="dLimit" type="number" step="0.1" inputmode="decimal" value="0"><span class="hint">0 = uit zodra de prijs negatief is. Betaal je terugleverkosten, vul die dan in, bijvoorbeeld 1,5. Het apparaat gaat vanzelf weer aan als de prijs hoger is.</span></label>
-        <p class="notice" style="margin:8px 0 0">⚠️ Schakel je omvormer bij voorkeur via de koppeling van het merk zelf (Home Assistant of Homey, met een exportlimiet). Een Shelly-relais alleen aan de 230V-kant en door een installateur laten plaatsen. Nooit de gelijkstroom (DC) van de panelen schakelen.</p>
+        <label>Uit als de prijs lager is dan (cent) <input id="dLimit" type="number" step="0.1" inputmode="decimal" value="0"><span class="hint">Laat op 0 staan als je het niet weet. Dan gaan je panelen uit zodra terugleveren geld kost. Daarna gaan ze vanzelf weer aan.</span></label>
+        <p class="notice" style="margin:8px 0 0">⚠️ Let op: zonnepanelen uitzetten met een gewone slimme stekker kan gevaarlijk zijn. Laat dit altijd door een installateur regelen. Geen installateur? Zet dan een bericht aan en zet de panelen zelf uit in de app van je omvormer.</p>
       </div>
       <div class="two" id="rBelow">
-        <label>Aan onder (ct/kWh) <input id="dOnP" type="number" step="0.1" inputmode="decimal" value="20"></label>
-        <label>Weer uit boven (ct/kWh) <input id="dOffP" type="number" step="0.1" inputmode="decimal" value="22"><span class="hint">Iets hoger voorkomt steeds aan/uit.</span></label>
+        <label>Aan als het minder kost dan (cent) <input id="dOnP" type="number" step="0.1" inputmode="decimal" value="20"></label>
+        <label>Weer uit als het meer kost dan (cent) <input id="dOffP" type="number" step="0.1" inputmode="decimal" value="22"><span class="hint">Kies dit iets hoger. Dan gaat het apparaat niet steeds aan en uit.</span></label>
       </div>
       <div id="rCheap" hidden>
         <div class="two">
-          <label>Aantal uur per dag <select id="dHrs"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option><option>8</option><option>10</option><option>12</option></select></label>
-          <label class="chk" style="align-self:end"><input type="checkbox" id="dBlock"> Uren aaneengesloten <span class="hint">(handig voor wasmachine)</span></label>
+          <label>Hoeveel uur per dag? <select id="dHrs"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option><option>8</option><option>10</option><option>12</option></select></label>
+          <label class="chk" style="align-self:end"><input type="checkbox" id="dBlock"> Uren achter elkaar <span class="hint">(handig voor de wasmachine)</span></label>
         </div>
       </div>
-      <label class="chk"><input type="checkbox" id="dNotify" checked> Stuur een melding als het apparaat schakelt</label>
+      <label class="chk"><input type="checkbox" id="dNotify" checked> Stuur mij een bericht als het apparaat aan of uit gaat</label>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn" type="submit">Opslaan</button>
+        <button class="btn" type="submit">Bewaren</button>
         <button class="btn-line" type="button" id="dTestOn">Test: aan</button>
         <button class="btn-line" type="button" id="dTestOff">Test: uit</button>
         <button class="btn-line" type="button" id="dCancel">Annuleren</button>
       </div>
       <p class="msg" id="dMsg" role="status"></p>
     </form>
-    <p class="small muted" style="margin:10px 0 0">De server kijkt elk kwartier en schakelt alleen als het nodig is. Gebruik dit niet voor apparaten die altijd moeten blijven werken (koelkast, vriezer, medische apparatuur).</p>
+    <p class="small muted" style="margin:10px 0 0">Wij kijken elk kwartier naar de prijs. Gebruik dit niet voor apparaten die altijd aan moeten staan, zoals je koelkast, vriezer of medische apparaten.</p>
   </div>
 
   <div class="card" id="instellingen">
-    <h2>⚙️ Welke prijs wil je zien?</h2>
+    <h2>⚙️ Instellingen</h2>
     <form class="form" id="setForm" style="background:none;border:0;padding:0">
-      <label>Prijs tonen als
+      <label>Welke prijs wil je zien?
         <select id="sMode">
-          <option value="allin">Wat je ongeveer betaalt (incl. belasting en btw)</option>
-          <option value="kaal">Kale beursprijs (excl. btw)</option>
+          <option value="allin">Wat ik ongeveer betaal (met belasting)</option>
+          <option value="kaal">Alleen de beursprijs (zonder belasting)</option>
         </select></label>
-      <label id="sOpslagWrap">Opslag van je leverancier (cent per kWh, incl. btw)
+      <label id="sOpslagWrap">Wat rekent je energiebedrijf extra? (in cent)
         <input id="sOpslag" type="number" step="0.01" inputmode="decimal" value="2.00">
-        <span class="hint">Staat op je contract als inkoopvergoeding of opslag. Meestal 1,5 tot 3 cent.</span></label>
+        <span class="hint">Dit staat op je contract. Het heet vaak "inkoopvergoeding" of "opslag". Meestal is het 1,5 tot 3 cent. Weet je het niet? Laat dan 2 staan.</span></label>
     </form>
-    <details style="margin-top:12px"><summary class="small" style="cursor:pointer;font-weight:700">Op een ander apparaat gebruiken</summary>
-      <p class="small">Dit is je persoonlijke code. Plak hem op je andere telefoon of computer om dezelfde meldingen en apparaten te zien. Deel hem met niemand.</p>
+    <details style="margin-top:12px"><summary class="small" style="cursor:pointer;font-weight:700">Ook op een andere telefoon of computer gebruiken</summary>
+      <p class="small">Dit is je eigen code. Plak deze code op je andere telefoon of computer. Dan zie je daar dezelfde berichten en apparaten. Geef deze code aan niemand.</p>
       <input id="myCode" readonly style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px">
       <div style="display:flex;gap:8px;margin-top:8px"><input id="otherCode" placeholder="Plak hier een code" style="flex:1;padding:8px;border:1px solid var(--line);border-radius:8px"><button class="btn btn-sm" id="useCode" type="button">Gebruiken</button></div>
     </details>
   </div>
 
   <section class="card faq">
-    <h2>Veelgestelde vragen</h2>
-    <details><summary>Waarom per kwartier en niet per minuut?</summary><p>Sinds oktober 2025 wordt stroom op de Europese day-aheadmarkt per kwartier verhandeld: 96 prijzen per dag. Een prijs per minuut bestaat dus niet. Stroomwekker werkt elke minuut bij, telt af naar de volgende prijs en waarschuwt je precies op de wissel.</p></details>
-    <details><summary>Is dit precies mijn prijs?</summary><p>De beursprijs is voor iedereen gelijk. Daarbovenop komen btw, energiebelasting (2026: € 0,11085 per kWh incl. btw) en de opslag van je leverancier. Vul die opslag in bij "Welke prijs wil je zien?" voor een zo goed mogelijke schatting. Vaste kosten zoals netbeheer tellen hier niet mee. Rekent jouw leverancier per uur, dan betaal je het gemiddelde van de vier kwartieren.</p></details>
-    <details><summary>Wanneer staan de prijzen van morgen erop?</summary><p>De beurs maakt de prijzen voor morgen elke middag rond 13:00 bekend. Meestal staan ze hier tussen 13:00 en 14:00.</p></details>
-    <details><summary>Werken meldingen ook als de app dicht is?</summary><p>Ja. Zet meldingen aan en sta ze toe. Op een iPhone moet je Stroomwekker eerst op je beginscherm zetten (Deel → Zet op beginscherm) en daarna openen vanaf je beginscherm.</p></details>
-    <details><summary>Werken de slimme stekkers van de Action (LSC Smart Connect)?</summary><p>Ja. LSC-stekkers werken met dezelfde techniek als Smart Life en Tuya. Alleen de LSC-app zelf laat geen andere apps toe. Zet je stekker daarom eenmalig over naar de gratis Smart Life-app en koppel hem daarna in Stroomwekker via "Action (LSC Smart Connect), Smart Life of Tuya". Bij het toevoegen van een apparaat staat een stappenplan. Dit werkt ook voor andere Tuya-merken zoals Hema, Calex, Nedis, Woox en Hombli.</p></details>
-    <details><summary>Kan het ook zonder Tuya-account?</summary><p>Ja, via IFTTT (gratis voor 2 applets, genoeg voor aan en uit). Zet je stekker in de Smart Life-app en maak in IFTTT een applet met <b>Webhooks → Receive a web request</b> als "If" en <b>Smart Life → Turn on</b> als "Then". Kopieer de link van de webhook (https://maker.ifttt.com/trigger/…/with/key/…) en plak die hier als aan-link. Maak er nog één voor uit. Homey (Flow met webhook) en Home Assistant (webhook-automatisering via Nabu Casa) werken op dezelfde manier.</p></details>
-    <details><summary>Is het veilig om mijn Shelly-sleutel in te vullen?</summary><p>Je sleutel wordt alleen op onze server bewaard om je apparaat te schakelen en nooit getoond of gedeeld. Je kunt hem altijd intrekken door je Shelly-wachtwoord te wijzigen: dan werkt de oude sleutel niet meer. Verwijder je een apparaat hier, dan wissen we de sleutel direct.</p></details>
-    <details><summary>Waarom zonnepanelen uitzetten bij een negatieve prijs?</summary><p>Bij veel zon en weinig vraag kan de stroomprijs onder nul zakken. Met een dynamisch contract krijg je voor teruggeleverde stroom de beursprijs: is die negatief, dan betaal je om terug te leveren. Je panelen uitzetten (of je eigen stroom opmaken met wasmachine, boiler of auto) voorkomt dat. Stroomwekker waarschuwt je de dag ervoor al, zodra de prijzen van morgen bekend zijn.</p></details>
-    <details><summary>Hoe zet ik mijn omvormer automatisch uit?</summary><p>De veiligste manier is via de koppeling van je omvormer in Home Assistant of Homey (bijvoorbeeld SolarEdge, Growatt, Huawei, GoodWe, Enphase): maak daar een automatisering die de omvormer stopt of de exportlimiet op 0 zet, en start die met een webhook. Plak de webhook-links hier bij "Apparaat toevoegen" en kies "Zonnepanelen: uit bij negatieve stroomprijs". Sommige omvormers kun je ook in hun eigen app op een tijdschema uitzetten; gebruik daarvoor de melding van Stroomwekker.</p></details>
-    <details><summary>Waar komen de prijzen vandaan?</summary><p>Kwartierprijzen: officiële day-aheadprijzen (EPEX, biedzone Nederland) via Energy-Charts van Fraunhofer ISE (CC BY 4.0). Gas: dagprijs via EnergyZero, inclusief energiebelasting en btw, zonder opslag van je leverancier.</p></details>
+    <h2>Vragen</h2>
+    <details><summary>Wat is een dynamisch energiecontract?</summary><p>Bij een dynamisch contract betaal je niet elke dag dezelfde prijs. De prijs verandert elk kwartier. Soms is stroom heel goedkoop, soms duur. Gebruik je stroom op goedkope momenten? Dan bespaar je geld.</p></details>
+    <details><summary>Waarom per kwartier en niet per minuut?</summary><p>De prijs verandert elk kwartier. Dus 4 keer per uur, 96 keer per dag. Een prijs per minuut bestaat niet. Deze site telt af tot de volgende prijs en waarschuwt je precies op tijd.</p></details>
+    <details><summary>Is dit precies wat ik betaal?</summary><p>Bijna. Wij tellen de belasting en de btw erbij op. Ook tellen we op wat je energiebedrijf extra rekent. Dat kun je zelf invullen bij Instellingen. Vaste kosten, zoals de netbeheerkosten, staan er niet in.</p></details>
+    <details><summary>Wanneer zie ik de prijzen van morgen?</summary><p>Elke middag na 13:00 uur.</p></details>
+    <details><summary>Krijg ik ook berichten als de app dicht is?</summary><p>Ja. Tik op "Berichten aanzetten" en kies "Toestaan". Heb je een iPhone? Zet de site dan eerst op je beginscherm. Tik onderin op Deel en kies "Zet op beginscherm". Open de app daarna via je beginscherm.</p></details>
+    <details><summary>Werken de slimme stekkers van de Action?</summary><p>Ja. Je moet de stekker wel eerst in de gratis app Smart Life zetten, in plaats van in de app van de Action. Dat doe je maar één keer. Daarna koppel je hem hier. Bij "Apparaat toevoegen" staat een stappenplan. Dit werkt ook voor stekkers van de Hema, Calex, Nedis, Woox en Hombli.</p></details>
+    <details><summary>Waarom zou ik mijn zonnepanelen uitzetten?</summary><p>Op hele zonnige dagen is er soms te veel stroom. Dan wordt de prijs lager dan nul. Met een dynamisch contract betaal je dan geld als je stroom teruglevert. Zet je panelen dan even uit. Wij sturen je de dag ervoor al een bericht.</p></details>
+    <details><summary>Hoe zet ik mijn zonnepanelen vanzelf uit?</summary><p>Dat gaat via het kastje van je zonnepanelen, de omvormer. Dit is lastig en kan gevaarlijk zijn als het fout gaat. Vraag het daarom aan een installateur. Wil je dat niet? Zet dan een bericht aan. Je kunt de panelen dan zelf uitzetten in de app van je omvormer.</p></details>
+    <details><summary>Is het veilig om mijn gegevens in te vullen?</summary><p>Ja. Wij gebruiken je gegevens alleen om je apparaat aan en uit te zetten. We laten ze aan niemand zien. Haal je een apparaat weg, dan wissen we de gegevens meteen. Meer lees je bij Privacy.</p></details>
+    <details><summary>Ik heb IFTTT, Homey of Home Assistant. Kan dat ook?</summary><p>Ja. Kies bij "Welke slimme stekker heb je?" voor "Iets anders". Maak in je eigen systeem een link (webhook) om aan te zetten en een link om uit te zetten. Plak die hier.</p></details>
+    <details><summary>Waar komen de prijzen vandaan?</summary><p>Van de Europese stroombeurs. Wij halen ze op via Energy-Charts van Fraunhofer ISE. De gasprijs komt van EnergyZero.</p></details>
   </section>
 </section>
 </main>
 
 <footer class="foot">
   <div class="wrap">
-    <p style="margin:0">Stroomwekker is gratis en helpt je besparen op je energierekening.</p>
+    <p style="margin:0">Stroomwekker is gratis. Wij helpen je besparen op je energierekening.</p>
     <nav aria-label="Over"><a href="/privacy/">Privacy</a><a href="/privacy/#contact">Contact</a><a href="https://boodschappenvergelijk.nl/" target="_blank" rel="noopener">Boodschappen vergelijken</a><a href="https://salderingscheck-nl.netlify.app/" target="_blank" rel="noopener">Salderingscheck</a><a href="#" id="installLink">📲 Installeer als app</a></nav>
-    <p class="muted" style="margin:0;font-size:13px">© 2026 Stroomwekker – Erik Beltman. Alle rechten voorbehouden. Prijsdata: Energy-Charts (Fraunhofer ISE), EnergyZero. Geen garantie op juistheid; de prijs van je leverancier is leidend.</p>
+    <p class="muted" style="margin:0;font-size:13px">© 2026 Stroomwekker – Erik Beltman. Alle rechten voorbehouden. Prijsdata: Energy-Charts (Fraunhofer ISE), EnergyZero. We doen ons best, maar kunnen fouten maken. De prijs van je energiebedrijf telt.</p>
   </div>
 </footer>
 
 <div class="install" id="install" hidden>
-  <div class="t"><b>📲 Zet Stroomwekker op je telefoon</b>Dan krijg je meldingen bij goedkope stroom, ook als de app dicht is.<div class="ios" id="iosHint" hidden>Tik onderin op <b>Deel</b> ⬆️ en kies <b>Zet op beginscherm</b>.</div></div>
+  <div class="t"><b>📲 Zet Stroomwekker op je telefoon</b>Dan krijg je een bericht als stroom goedkoop is.<div class="ios" id="iosHint" hidden>Tik onderin op <b>Deel</b> ⬆️ en kies <b>Zet op beginscherm</b>.</div></div>
   <button class="go" id="installGo">Installeren</button>
   <button class="no" id="installNo" aria-label="Sluiten">×</button>
 </div>

@@ -68,22 +68,22 @@ function render() {
   const today = nlDayBounds(now), tom = nlDayBounds(today.end + 60e3);
   const tq = inRange(qs, today.start, today.end), mq = inRange(qs, tom.start, tom.end);
   const cur = current(qs, now), lv = levels(tq);
-  $('nowLabel').textContent = `Stroom op dit moment (${settings.mode === 'kaal' ? 'beursprijs excl. btw' : 'incl. belasting en btw'})`;
+  $('nowLabel').textContent = settings.mode === 'kaal' ? 'Beursprijs nu (zonder belasting)' : 'Zoveel kost stroom nu';
   if (cur) {
     const p = P(cur.spot), [a, b] = p.toFixed(3).split('.');
     $('nowPrice').innerHTML = `<span class="e">€</span>${a},${b}<span class="u">/kWh</span>`;
     const l = levelOf(cur.spot, lv);
     $('nowLevel').className = 'pill ' + l;
-    $('nowLevel').textContent = { goedkoop: '🟢 Goedkoop moment', normaal: '⚪ Gemiddeld', duur: '🔴 Duur moment' }[l];
-    $('nowUntil').textContent = `Geldt van ${nlTime(cur.t)} tot ${nlTime(cur.t + Q)}`;
+    $('nowLevel').textContent = { goedkoop: '🟢 Goedkoop: goed moment', normaal: '⚪ Gewone prijs', duur: '🔴 Duur: liever wachten' }[l];
+    $('nowUntil').textContent = `Deze prijs geldt tot ${nlTime(cur.t + Q)}`;
     document.title = `${ct(p)} ct – Stroomprijs nu | Stroomwekker`;
     const nx = current(qs, cur.t + Q);
-    $('nextP').textContent = nx ? ct(P(nx.spot)) + ' ct' : '–';
-    $('nextT').textContent = nx ? (nx.spot < cur.spot ? '▼ goedkoper' : nx.spot > cur.spot ? '▲ duurder' : '= gelijk') : '';
+    $('nextP').textContent = nx ? ct(P(nx.spot)) + ' cent' : '–';
+    $('nextT').textContent = nx ? (nx.spot < cur.spot ? '▼ goedkoper' : nx.spot > cur.spot ? '▲ duurder' : 'hetzelfde') : '';
   } else {
     $('nowUntil').textContent = 'Geen prijs voor dit kwartier gevonden';
   }
-  $('avgP').textContent = tq.length ? ct(P(tq.reduce((s, q) => s + q.spot, 0) / tq.length)) + ' ct' : '–';
+  $('avgP').textContent = tq.length ? ct(P(tq.reduce((s, q) => s + q.spot, 0) / tq.length)) + ' cent' : '–';
   const g = data.gas?.[today.day];
   $('gasP').textContent = g != null ? eur(g, 2) : '–';
 
@@ -92,30 +92,30 @@ function render() {
   const cells = [];
   if (rest.length) {
     const min = rest.reduce((m, q) => q.spot < m.spot ? q : m);
-    cells.push(['Goedkoopste kwartier', nlTime(min.t), `${ct(P(min.spot))} ct · ${dayName(min.t, now)}`]);
+    cells.push(['Goedkoopste moment', nlTime(min.t), `${ct(P(min.spot))} cent · ${dayName(min.t, now)}`]);
     for (const h of [1, 3]) {
       const bl = cheapestBlock(qs, from, to, h * 4);
-      if (bl) cells.push([`Goedkoopste ${h} uur`, `${nlTime(bl.start)}–${nlTime(bl.end)}`, `gem. ${ct(P(bl.avg))} ct · ${dayName(bl.start, now)}`]);
+      if (bl) cells.push([`Beste ${h} uur achter elkaar`, `${nlTime(bl.start)}–${nlTime(bl.end)}`, `${ct(P(bl.avg))} cent · ${dayName(bl.start, now)}`]);
     }
     const max = rest.reduce((m, q) => q.spot > m.spot ? q : m);
-    cells.push(['Duurste kwartier (vermijden)', nlTime(max.t), `${ct(P(max.spot))} ct · ${dayName(max.t, now)}`]);
+    cells.push(['Duurste moment (beter niet)', nlTime(max.t), `${ct(P(max.spot))} cent · ${dayName(max.t, now)}`]);
   }
   $('best').innerHTML = cells.map(([k, t, p]) => `<div class="b"><div class="k">${k}</div><div class="t">${t}</div><div class="p">${p}</div></div>`).join('')
-    + (mq.length ? '' : '<p class="small muted" style="grid-column:1/-1;margin:0">De prijzen van morgen komen rond 13:00.</p>');
+    + (mq.length ? '' : '<p class="small muted" style="grid-column:1/-1;margin:0">De prijzen van morgen zie je na 13:00 uur.</p>');
 
   // Zonnepanelen
   const wsT = negativeWindows(qs, from, today.end), wsM = negativeWindows(qs, tom.start, tom.end);
   const curNeg = cur && cur.spot < 0;
   const wtxt = ws => ws.map(w => `${nlTime(w.start)}–${nlTime(w.end)}`).join(', ');
   $('zonStatus').innerHTML = (curNeg
-      ? `<p class="notice" style="background:var(--deal-soft);margin:0">🔴 <b>Nu negatief (${ct(cur.spot)} ct).</b> Terugleveren kost geld. Zet je panelen uit of gebruik stroom.</p>`
-      : `<p class="notice" style="background:var(--green-soft);margin:0">🟢 <b>Nu terugleveren is prima.</b> De beursprijs is ${cur ? ct(cur.spot) + ' ct' : 'positief'}.</p>`)
-    + `<p class="small" style="margin:8px 0 0"><b>Negatief vandaag:</b> ${wsT.length ? wtxt(wsT) : 'geen'}<br><b>Negatief morgen:</b> ${mq.length ? (wsM.length ? wtxt(wsM) : 'geen') : 'bekend na 13:00'}</p>`;
+      ? `<p class="notice" style="background:var(--deal-soft);margin:0">🔴 <b>Terugleveren kost nu geld.</b> Zet je panelen uit, of gebruik nu veel stroom.</p>`
+      : `<p class="notice" style="background:var(--green-soft);margin:0">🟢 <b>Alles goed.</b> Je zonnepanelen mogen aan blijven.</p>`)
+    + `<p class="small" style="margin:8px 0 0"><b>Panelen uit vandaag:</b> ${wsT.length ? wtxt(wsT) : 'niet nodig'}<br><b>Panelen uit morgen:</b> ${mq.length ? (wsM.length ? wtxt(wsM) : 'niet nodig') : 'dit weet je na 13:00 uur'}</p>`;
 
   $('tabTomorrow').textContent = mq.length ? 'Morgen' : 'Morgen (na 13:00)';
   const showQ = day === 1 ? mq : tq;
   $('chartNote').hidden = !(day === 1 && !mq.length);
-  $('chartNote').textContent = 'De prijzen van morgen worden rond 13:00 bekendgemaakt.';
+  $('chartNote').textContent = 'De prijzen van morgen zie je na 13:00 uur.';
   chart(showQ, levels(showQ), cur);
   $('qtable').innerHTML = showQ.map(q => `<tr><td>${nlTime(q.t)}–${nlTime(q.t + Q)}</td><td>${ct(P(q.spot))} ct</td></tr>`).join('');
   tick();
@@ -150,7 +150,7 @@ function chart(qs, lv, cur) {
   let g = '';
   for (let v = Math.ceil(min / step) * step; v <= max + 1e-9; v += step)
     g += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${Math.round(v * 100)}</text>`;
-  g += `<text x="2" y="11">ct</text>`;
+  g += `<text x="2" y="11">cent</text>`;
   let bars = '';
   qs.forEach((q, i) => {
     const v = vals[i], l = levelOf(q.spot, lv);
@@ -169,7 +169,7 @@ function chart(qs, lv, cur) {
     const r = svg.getBoundingClientRect(), sx = (e.clientX - r.left) / r.width * W;
     const i = Math.max(0, Math.min(qs.length - 1, Math.floor((sx - L) / bw)));
     tip.hidden = false;
-    tip.textContent = `${nlTime(qs[i].t)}–${nlTime(qs[i].t + Q)} · ${ct(vals[i])} ct`;
+    tip.textContent = `${nlTime(qs[i].t)}–${nlTime(qs[i].t + Q)} · ${ct(vals[i])} cent`;
     tip.style.left = Math.max(80, Math.min(r.width - 80, (L + (i + .5) * bw) / W * r.width)) + 'px';
     tip.style.top = (y(Math.max(vals[i], 0)) / H * r.height) + 'px';
   };
@@ -181,8 +181,8 @@ document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click
 }));
 
 // ---------- Meldingen ----------
-const alertText = a => a.type === 'below' ? `Goedkoper dan ${ct(a.value)} ct per kWh` : a.type === 'above' ? `Duurder dan ${ct(a.value)} ct per kWh`
-  : a.type === 'cheapest' ? `Start goedkoopste ${a.hours} uur van de dag` : a.type === 'negative' ? '☀️ Negatieve stroomprijs (zonnepanelen uit)' : 'Prijzen van morgen bekend';
+const alertText = a => a.type === 'below' ? `Stroom goedkoper dan ${ct(a.value)} cent` : a.type === 'above' ? `Stroom duurder dan ${ct(a.value)} cent`
+  : a.type === 'cheapest' ? `De goedkoopste ${a.hours} uur beginnen` : a.type === 'negative' ? '☀️ Zonnepanelen beter uit' : 'De prijzen van morgen zijn er';
 function renderAlerts() {
   $('alertList').innerHTML = alerts.map(a => `<li class="item"><div class="txt"><b>${alertText(a)}</b></div><button class="x" data-del="${a.id}" aria-label="Verwijderen">×</button></li>`).join('');
 }
@@ -200,11 +200,11 @@ function renderPushNotice() {
   const n = $('pushNotice');
   const perm = 'Notification' in window ? Notification.permission : 'unsupported';
   const ios = /iPhone|iPad/.test(navigator.userAgent) && !matchMedia('(display-mode: standalone)').matches;
-  if (hasPush && perm === 'granted') { n.innerHTML = '✅ Meldingen staan aan op dit apparaat.'; return; }
-  if (ios) { n.innerHTML = '📱 Op een iPhone werken meldingen pas als je Stroomwekker op je beginscherm zet: tik op <b>Deel</b> en kies <b>Zet op beginscherm</b>. Open daarna de app vanaf je beginscherm.'; return; }
-  if (perm === 'denied') { n.innerHTML = '🔕 Meldingen zijn geblokkeerd in je browser. Zet ze aan via het slotje naast het adres.'; return; }
-  if (perm === 'unsupported') { n.textContent = 'Deze browser ondersteunt geen meldingen.'; return; }
-  n.innerHTML = '<button class="btn btn-sm" id="pushBtn" type="button">🔔 Meldingen aanzetten</button> <span class="small">Kies daarna hieronder wanneer.</span>';
+  if (hasPush && perm === 'granted') { n.innerHTML = '✅ Berichten staan aan op dit apparaat.'; return; }
+  if (ios) { n.innerHTML = '📱 Heb je een iPhone? Zet Stroomwekker dan eerst op je beginscherm. Tik onderin op <b>Deel</b> en kies <b>Zet op beginscherm</b>. Open de app daarna via je beginscherm.'; return; }
+  if (perm === 'denied') { n.innerHTML = '🔕 Berichten staan uit in je browser. Tik op het slotje naast het webadres en zet berichten aan.'; return; }
+  if (perm === 'unsupported') { n.textContent = 'Deze browser kan geen berichten sturen. Probeer Chrome of Safari.'; return; }
+  n.innerHTML = '<button class="btn btn-sm" id="pushBtn" type="button">🔔 Berichten aanzetten</button> <span class="small">Kies daarna hieronder wanneer.</span>';
   $('pushBtn').onclick = () => enablePush().then(() => sync().catch(() => {}));
 }
 function b64u(s) { const p = '='.repeat((4 - s.length % 4) % 4), b = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(b, c => c.charCodeAt(0)); }
@@ -235,14 +235,14 @@ async function localAlerts() {
 setInterval(localAlerts, 60e3);
 
 // ---------- Apparaten ----------
-const ruleText = r => r.type === 'solar' ? `Uit als de beursprijs onder ${ct(r.limit || 0)} ct komt, daarna weer aan` : r.type === 'cheapest' ? `Aan tijdens de goedkoopste ${r.hours} uur per dag${r.block ? ' (aaneengesloten)' : ''}` : `Aan onder ${ct(r.on)} ct, uit boven ${ct(r.off ?? r.on)} ct`;
+const ruleText = r => r.type === 'solar' ? 'Uit als terugleveren geld kost' : r.type === 'cheapest' ? `Aan in de goedkoopste ${r.hours} uur van de dag${r.block ? ' (achter elkaar)' : ''}` : `Aan onder ${ct(r.on)} cent, uit boven ${ct(r.off ?? r.on)} cent`;
 function renderDevices() {
   $('devList').innerHTML = devices.map(d => {
     const s = d.status;
-    const st = d.enabled === false ? '<span class="status muted">Gepauzeerd</span>'
-      : s ? (s.ok ? `<span class="status ok">● ${s.on ? 'Aan' : 'Uit'} sinds ${nlTime(s.at)}</span>` : `<span class="status err">⚠ ${esc(s.msg || 'Schakelen mislukt')}</span>`)
-      : '<span class="status muted">Schakelt vanaf het volgende kwartier</span>';
-    return `<li class="item"><div class="txt"><b>${esc(d.name)}</b><span>${ruleText(d.rule)} · ${{ shelly: 'Shelly', tuya: 'Action/Smart Life' }[d.kind] || 'via link'}</span><br>${st}</div>
+    const st = d.enabled === false ? '<span class="status muted">Staat op pauze</span>'
+      : s ? (s.ok ? `<span class="status ok">● ${s.on ? 'Aan' : 'Uit'} sinds ${nlTime(s.at)}</span>` : `<span class="status err">⚠ ${esc(s.msg || 'Het lukte niet')}</span>`)
+      : '<span class="status muted">Begint bij het volgende kwartier</span>';
+    return `<li class="item"><div class="txt"><b>${esc(d.name)}</b><span>${ruleText(d.rule)} · ${{ shelly: 'Shelly', tuya: 'Action / Smart Life' }[d.kind] || 'eigen link'}</span><br>${st}</div>
       <button class="btn-line btn-sm" data-edit="${d.id}">Wijzig</button><button class="x" data-deldev="${d.id}" aria-label="Verwijderen">×</button></li>`;
   }).join('');
 }
@@ -275,7 +275,7 @@ $('zonDevice').onclick = () => {
 $('zonAlert').onclick = async () => {
   if (!alerts.some(a => a.type === 'negative')) alerts.push({ id: crypto.randomUUID(), type: 'negative', value: 0, hours: 1 });
   renderAlerts(); await enablePush(); sync().catch(() => {});
-  $('zonAlert').textContent = '✓ Je krijgt een melding';
+  $('zonAlert').textContent = '✓ Je krijgt een bericht';
 };
 $('dCancel').onclick = () => { $('devForm').hidden = true; $('devAdd').hidden = false; };
 function formDevice() {
@@ -290,7 +290,7 @@ function formDevice() {
 const say = (t, ok) => { $('dMsg').textContent = t; $('dMsg').className = 'msg ' + (ok ? 'ok' : 'err'); };
 async function test(on) {
   say('Bezig…', true);
-  try { await api({ action: 'test', device: formDevice(), on }); say(on ? '✓ Aan-opdracht verstuurd. Gaat je apparaat aan?' : '✓ Uit-opdracht verstuurd.', true); }
+  try { await api({ action: 'test', device: formDevice(), on }); say(on ? '✓ Verstuurd. Gaat je apparaat nu aan?' : '✓ Verstuurd. Gaat je apparaat nu uit?', true); }
   catch (e) { say(e.message); }
 }
 $('dTestOn').onclick = () => test(true); $('dTestOff').onclick = () => test(false);
@@ -298,7 +298,7 @@ $('devForm').addEventListener('submit', async e => {
   e.preventDefault();
   const d = formDevice(), prev = devices;
   devices = editing ? devices.map(x => x.id === editing ? d : x) : [...devices, d];
-  say('Opslaan…', true);
+  say('Even geduld…', true);
   try { await sync(); $('devForm').hidden = true; $('devAdd').hidden = false; enablePush(); }
   catch (err) { devices = prev; LS.set('sw-devices', prev); say(err.message); }
 });
