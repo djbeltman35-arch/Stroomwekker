@@ -287,8 +287,11 @@ function renderDevices() {
       <button class="btn-line btn-sm" data-edit="${d.id}">Wijzig</button><button class="x" data-deldev="${d.id}" aria-label="Verwijderen">×</button>${verbruikHTML(d)}</li>`;
   }).join('');
 }
+document.addEventListener('click', e => {
+  const w = e.target.closest?.('[data-welke]'); if (!w) return;
+  e.preventDefault(); const m = document.querySelector('.meetuitleg'); if (m) { m.open = true; m.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+});
 $('devList').addEventListener('click', e => {
-  if (e.target.dataset.welke !== undefined) { e.preventDefault(); const m = document.querySelector('.meetuitleg'); if (m) { m.open = true; m.scrollIntoView({ behavior: 'smooth', block: 'start' }); } return; }
   const del = e.target.dataset.deldev, ed = e.target.dataset.edit;
   if (del) { devices = devices.filter(d => d.id !== del); renderDevices(); sync().catch(() => {}); }
   if (ed) openDev(devices.find(d => d.id === ed));
