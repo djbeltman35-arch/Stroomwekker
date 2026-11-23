@@ -505,12 +505,15 @@ const sApparaat = () => ({ t: 'Wat wil je vanzelf laten aangaan?', p: 'Kies wat 
 const sStekker = () => ({ t: 'Welke slimme stekker heb je?', p: 'Aan en uit zetten werkt met élke stekker hieronder, ook de goedkoopste. Alleen voor het verbruik zien heb je een stekker met energiemeter nodig.', opts: [
   { i: '🛒', l: 'Van de Action (LSC)', s: 'Aan en uit: altijd. Verbruik zien: alleen met energiemeter', go: () => { W.d.kind = 'tuya'; W.d.lsc = true; go(sTuya); } },
   { i: '📱', l: 'Smart Life of Tuya', s: 'Ook Hema, Calex, Nedis, Woox. Aan en uit: altijd. Verbruik zien: alleen met energiemeter', go: () => { W.d.kind = 'tuya'; go(sTuya); } },
-  { i: '🔵', l: 'Shelly', s: 'Aan en uit: altijd. Verbruik zien: Plug S, Plus Plug S en modellen met PM', go: () => { W.d.kind = 'shelly'; go(sShelly); } },
+  { i: '🔵', l: 'Shelly', s: 'Snelst te koppelen (3 minuten). Verbruik zien: Plug S, Plus Plug S en modellen met PM', go: () => { W.d.kind = 'shelly'; go(sShelly); } },
   { i: '❓', l: 'Ik heb nog geen slimme stekker', go: () => go(sGeenStekker) },
 ] });
+const BOLSHELLY = 'https://partner.bol.com/click/click?p=1&t=url&s=1558346&url=' + encodeURIComponent('https://www.bol.com/nl/nl/s/?searchtext=shelly+plug+s') + '&f=TXL&name=stroomwekker-shelly';
 const sGeenStekker = () => ({ t: 'Je hebt een slimme stekker nodig', of: 4,
-  p: 'Een slimme stekker zet je tussen het stopcontact en je apparaat. Wij kunnen hem dan aan en uit zetten. De goedkoopste koop je bij de Action, voor een paar euro. Zoek naar <b>LSC Smart Connect slimme stekker</b>.',
-  html: '<p class="small muted">Let op: een slimme stekker kan meestal maximaal 3.680 watt aan. Voor een laadpaal of grote boiler heb je soms iets anders nodig.</p>',
+  p: 'Een slimme stekker zet je tussen het stopcontact en je apparaat. Wij kunnen hem dan aan en uit zetten. Er zijn twee goede keuzes:',
+  html: `<a class="koopstekker" href="${BOLSHELLY}" target="_blank" rel="sponsored noopener"><span aria-hidden="true">⚡</span><span><b>Makkelijkst: Shelly Plug S</b><small>Rond de € 20 tot € 25. Meet ook het verbruik. Koppelen duurt 3 minuten, op je telefoon · advertentie</small></span></a>
+    <div class="koopstekker"><span aria-hidden="true">🛒</span><span><b>Goedkoopst: LSC Smart Connect van de Action</b><small>Een paar euro. Koppelen duurt ongeveer 20 minuten en gaat het best op een computer. Kies een stekker met energiemeter als je het verbruik wilt zien.</small></span></div>
+    <p class="small muted" style="margin-top:12px">Let op: een slimme stekker kan meestal maximaal 3.680 watt aan. Voor een laadpaal of grote boiler heb je soms iets anders nodig.</p>`,
   opts: [{ i: '🔔', l: 'Stuur me intussen een bericht als stroom goedkoop is', go: () => go(sBerichtKies) }, { i: '🏠', l: 'Terug naar het begin', go: wizClose }] });
 
 // Invulvakken met uitleg: wat het is, waar je het vindt, hoe het eruitziet, en direct controleren.
