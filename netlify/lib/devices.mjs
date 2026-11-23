@@ -19,10 +19,12 @@ async function tuyaRequest(d, method, path, body, token = '') {
   const j = await r.json().catch(() => ({}));
   if (!j.success) {
     const m = String(j.msg || '');
-    const nl = /clientId/i.test(m) ? 'De Access ID klopt niet' : /sign/i.test(m) ? 'De Access Secret klopt niet'
+    const verlopen = /expire|subscription|quota|trial/i.test(m) || j.code === 28841002 || j.code === 28841105;
+    const nl = verlopen ? 'De gratis Tuya-koppeling (IoT Core) is verlopen. Verleng hem op platform.tuya.com: Cloud, Cloud Services, IoT Core, View Details, Extend Trial Period (kies 6 maanden)'
+      : /clientId/i.test(m) ? 'De Access ID klopt niet' : /sign/i.test(m) ? 'De Access Secret klopt niet'
       : /offline/i.test(m) ? 'De stekker is offline. Staat hij aan en heeft hij wifi?'
       : /permission|not exist|no permissions/i.test(m) ? 'Deze stekker hoort niet bij je Tuya-project, of de gratis IoT Core-periode is verlopen'
-      : /expire/i.test(m) ? 'Je Tuya-proefperiode is verlopen. Verleng IoT Core op platform.tuya.com' : m || 'fout ' + (j.code || r.status);
+      : m || 'fout ' + (j.code || r.status);
     throw new Error('Tuya: ' + nl);
   }
   return j.result;

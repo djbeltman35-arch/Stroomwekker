@@ -250,6 +250,8 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
 .verbr.ja{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px 12px;color:var(--ink)}
 .verbr.ja div span{display:block;font-size:12.5px;color:var(--muted)}.verbr.ja div b{display:block;font-size:16px}
 .verbr.ja small,.verbr.ja .besp{grid-column:1/-1;margin:0}.verbr.ja small{color:var(--muted)}.verbr .besp{color:#13703A;font-size:14px}
+.devsom{background:#EAF6EE;border:1px solid #BFE3CB;border-radius:8px;padding:10px 12px;font-size:14.5px;margin:0 0 10px;color:#14213A}.devsom b{color:#13703A}
+.koopstekker{display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:12px 0 0;text-decoration:none;color:var(--ink);background:var(--surface)}.koopstekker>span:first-child{font-size:24px}.koopstekker b{display:block;font-size:15.5px}.koopstekker small{color:var(--muted);font-size:13.5px}
 .gidskort{margin:0;padding-left:20px;display:grid;gap:6px;font-size:16px}
 .foot{background:var(--navy);color:#C9D4E5;margin-top:32px}
 .foot .wrap{padding-block:24px 96px;display:grid;gap:10px;font-size:14px}
@@ -303,7 +305,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
     <a class="brand" href="/" aria-label="Stroomwekker, naar de startpagina">
       <span class="woord"><span class="s">Stroom</span><span class="w">wekker<svg class="flits" viewBox="0 0 600 200" aria-hidden="true"><path d="M0 200 285 52 215 112 600 0 315 148 385 88Z"/></svg></span></span>
     </a>
-    <nav class="sublinks" aria-label="Uitleg en contact"><a href="/hoe-werkt-het/">Hoe werkt het?</a><a href="/contact/">Contact</a></nav>
+    <nav class="sublinks" aria-label="Uitleg en contact"><a href="/hoe-werkt-het/">Hoe werkt het?</a><a href="/widget/">Widget voor je site</a><a href="/contact/">Contact</a></nav>
     <nav class="nav" aria-label="Menu"><a href="#" id="navStart">Regelen</a><a href="#meer" id="navMeer">Prijzen</a><a href="/gids/">Uitleg</a><a href="#" id="navInstall" class="navinst">Installeer app</a></nav>
   </div>
 </header>
@@ -384,6 +386,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
     <h2>Jouw apparaten</h2>
     <p class="small muted" style="margin-top:-4px">Heb je een slimme stekker? Dan zetten wij je apparaat aan als stroom goedkoop is, en weer uit als het duur wordt. Bijvoorbeeld je boiler of laadpaal. Dit werkt ook als je niet thuis bent.</p>
     <p class="notice" style="margin:0 0 10px">Stroomwekker kan bij elk apparaat laten zien wat het verbruikt, kost en bespaart. Dat werkt alleen met een stekker die een energiemeter heeft. Aan en uit zetten werkt met elke stekker, ook de goedkoopste. <a href="#welkemeet" data-welke>Welke stekkers meten het verbruik?</a></p>
+    <p class="devsom" id="devSom" hidden></p>
     <ul class="list" id="devList"></ul>
     <button class="btn-line" id="devAdd" type="button">+ Apparaat toevoegen</button>
     <details class="meetuitleg"><summary>Met welke stekkers zie je ook het verbruik?</summary>
@@ -402,6 +405,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
     </tbody>
   </table>
   <p class="mt-tip"><b>Zo zie je of jouw stekker een energiemeter heeft:</b> open de app van je stekker. Zie je daar hoeveel <b>watt</b> je apparaat nu gebruikt, of een kopje als <i>Elektriciteit</i> of <i>Verbruik</i>? Dan meet hij. Op de doos staat vaak <i>energiemeter</i>, <i>energiemonitor</i> of <i>verbruiksmeter</i>. Twijfel je? Koppel de stekker gewoon: bij de test zeggen wij meteen of hij het verbruik meet.</p>
+  <a class="koopstekker" href="https://partner.bol.com/click/click?p=1&amp;t=url&amp;s=1558346&amp;url=https%3A%2F%2Fwww.bol.com%2Fnl%2Fnl%2Fs%2F%3Fsearchtext%3Dslimme%2Bstekker%2Bmet%2Benergiemeter&amp;f=TXL&amp;name=stroomwekker-stekker" target="_blank" rel="sponsored noopener"><span aria-hidden="true">🔌</span><span><b>Slimme stekker met energiemeter</b><small>Werkt met Smart Life en meet wat je apparaat verbruikt · advertentie</small></span></a>
 </div>
     </details>
     <form class="form" id="devForm" hidden>
@@ -494,7 +498,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
       <div class="mini"><span class="k">Normaal vandaag</span><span class="v" id="avgP">–</span><span class="s">per kWh</span></div>
       <div class="mini"><span class="k">Gas vandaag</span><span class="v" id="gasP">–</span><span class="s">per m³</span></div>
     </div>
-    <p class="small" style="margin:12px 0 0"><a href="/stroomprijs-vandaag/">Alle stroomprijzen van vandaag per kwartier</a> · <a href="/stroomprijs-morgen/">Stroomprijs morgen</a></p>
+    <p class="small" style="margin:12px 0 0"><a href="/stroomprijs-vandaag/">Alle stroomprijzen van vandaag per kwartier</a> · <a href="/stroomprijs-morgen/">Stroomprijs morgen</a><a href="/stroomprijs/">Prijsarchief</a></p>
   </div>
 
   <div class="card" id="zon">
@@ -564,10 +568,21 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
           <option value="allin">Wat ik ongeveer betaal (met belasting)</option>
           <option value="kaal">Alleen de beursprijs (zonder belasting)</option>
         </select></label>
+      <label>Wie is je energiebedrijf?
+        <select id="sLever">
+          <option value="">Kies je energiebedrijf</option>
+          <option value="1.80">ANWB Energie (1,80 cent)</option>
+          <option value="1.82">Frank Energie (1,82 cent)</option>
+          <option value="1.80">Tibber (1,80 cent)</option>
+          <option value="2.00">Zonneplan (2,00 cent)</option>
+          <option value="2.00">Ander bedrijf of weet ik niet (2,00 cent)</option>
+        </select>
+        <span class="hint">Zo rekent Stroomwekker met de toeslag van jouw energiebedrijf. Bedragen van november 2026, inclusief btw. Staat er op je contract iets anders? Vul dat hieronder in.</span></label>
       <label id="sOpslagWrap">Wat rekent je energiebedrijf extra? (in cent)
         <input id="sOpslag" type="number" step="0.01" inputmode="decimal" value="2.00">
         <span class="hint">Dit staat op je contract. Het heet vaak "inkoopvergoeding" of "opslag". Meestal is het 1,5 tot 3 cent. Weet je het niet? Laat dan 2 staan.</span></label>
     </form>
+    <a class="koopstekker" id="vergelijkOpslag" href="#" target="_blank" rel="sponsored noopener"><span aria-hidden="true">⚡</span><span><b>Betaal je meer dan nodig?</b><small>Vergelijk dynamische contracten en hun toeslag per kWh · advertentie</small></span></a>
     <details style="margin-top:12px"><summary class="small" style="cursor:pointer;font-weight:700">Ook op een andere telefoon of computer gebruiken</summary>
       <p class="small">Dit is je eigen code. Plak deze code op je andere telefoon of computer. Dan zie je daar dezelfde berichten en apparaten. Geef deze code aan niemand.</p>
       <input id="myCode" readonly style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px">
@@ -634,7 +649,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
     <div class="cols">
       <div><div class="fl" aria-label="Stroomwekker"><span class="woord"><span class="s">Stroom</span><span class="w">wekker<svg class="flits" viewBox="0 0 600 200" aria-hidden="true"><path d="M0 200 285 52 215 112 600 0 315 148 385 88Z"/></svg></span></span></div>
         <p style="margin:0;max-width:40ch">Hulp voor iedereen met een dynamisch energiecontract: de stroomprijs per kwartier, automatische berichten en apparaten die vanzelf schakelen.</p></div>
-      <div><h3>Stroomwekker</h3><nav aria-label="Stroomwekker"><a href="/stroomprijs-vandaag/">Stroomprijs vandaag</a><a href="/stroomprijs-morgen/">Stroomprijs morgen</a><a href="/hoe-werkt-het/">Hoe werkt het?</a><a href="/gids/">Uitleg en tips</a><a href="/over/">Over Stroomwekker</a><a href="/contact/">Contact</a></nav></div>
+      <div><h3>Stroomwekker</h3><nav aria-label="Stroomwekker"><a href="/stroomprijs-vandaag/">Stroomprijs vandaag</a><a href="/stroomprijs-morgen/">Stroomprijs morgen</a><a href="/stroomprijs/">Prijsarchief</a><a href="/hoe-werkt-het/">Hoe werkt het?</a><a href="/gids/">Uitleg en tips</a><a href="/over/">Over Stroomwekker</a><a href="/contact/">Contact</a></nav></div>
       <div><h3>Ook van de maker</h3><nav class="twee" aria-label="Ook van de maker"><a href="https://bespaarvriend.nl/?bron=stroomwekker" target="_blank" rel="noopener">Bespaarvriend</a><a href="https://boodschappenvergelijk.nl/" target="_blank" rel="noopener">Boodschappenvergelijk</a><a href="https://goedkopertanken.netlify.app/" target="_blank" rel="noopener">Tankwijzer</a><a href="https://vluchtwijzer.netlify.app/" target="_blank" rel="noopener">Vluchtwijzer</a><a href="https://vakantietoppers.netlify.app/" target="_blank" rel="noopener">Vakantiewijzer</a><a href="https://salderingscheck-nl.netlify.app/" target="_blank" rel="noopener">Salderingscheck</a><a href="https://euroroadrules.eu/" target="_blank" rel="noopener">EuroRoadRules</a><a href="https://foutcodezoeker.nl/" target="_blank" rel="noopener">Foutcodezoeker</a><a href="https://bespaarvriend.nl/elektronica/" target="_blank" rel="noopener">Elektrovergelijk</a><a href="https://bonnenboek.netlify.app/" target="_blank" rel="noopener">Bonnenboek</a><a href="https://allesoporde.netlify.app/" target="_blank" rel="noopener">Alles op orde</a></nav></div>
     </div>
     <p class="muted" style="margin:0;font-size:13px">© 2026 Stroomwekker – Erik Beltman. Alle rechten voorbehouden. Overnemen of publiceren mag alleen met schriftelijke toestemming (<a href="/gebruiksvoorwaarden/" style="color:#C9D4E5">auteursrecht en gebruiksvoorwaarden</a>). <a href="/privacy/" style="color:#C9D4E5">Privacy</a>. <a href="/zo-rekenen-wij/" style="color:#C9D4E5">Zo berekenen wij de prijs</a>. Prijsdata: Energy-Charts (Fraunhofer ISE, CC BY 4.0) en EnergyZero. We doen ons best, maar kunnen fouten maken. De prijs van je energiebedrijf is leidend.</p>

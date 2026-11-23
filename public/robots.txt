@@ -39,3 +39,4 @@ Allow: /
 Disallow: /api/
 
 Sitemap: https://stroomwekker.eu/sitemap.xml
+Sitemap: https://stroomwekker.eu/sitemap-archief.xml

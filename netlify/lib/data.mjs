@@ -100,3 +100,76 @@ export async function loadPrices(now = Date.now()) {
     : 'EnergyZero (uurprijzen)';
   return { updated: now, source, quarters, gas: gasDays };
 }
+
+// ---------- Prijsarchief (voorbije dagen en maanden) ----------
+// Prijzen per kwartier van een periode uit Energy-Charts. Afgeronde periodes bewaren we, die veranderen niet meer.
+const archiefMem = new Map();
+const archiefStore = () => process.env.DEV_MEMORY ? null : getStore({ name: 'archief' });
+export const ARCHIEF_START = '2025-10-01'; // sinds 1 oktober 2025 prijzen per kwartier
+
+function plusDag(dag, n) { const d = new Date(dag + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+
+async function periode(van, tot) { // van/tot: 'YYYY-MM-DD' (beide NL-dagen, inclusief)
+  const d = await getJSON(`https://api.energy-charts.info/price?bzn=NL&start=${plusDag(van, -1)}&end=${plusDag(tot, 1)}`, 15000);
+  const s = dayStartNL(Date.parse(van + 'T12:00:00Z')), e = dayStartNL(Date.parse(plusDag(tot, 1) + 'T12:00:00Z'));
+  let out = [];
+  (d.unix_seconds || []).forEach((sec, i) => {
+    const v = d.price[i]; const t = sec * 1000;
+    if (v === null || v === undefined || Number.isNaN(v) || t < s || t >= e) return;
+    out.push({ t, spot: Math.round(v * 100) / 100000 });
+  });
+  const step = out.length > 1 ? out[1].t - out[0].t : 900e3;
+  if (step === 3600e3) out = out.flatMap(q => [0, 1, 2, 3].map(k => ({ t: q.t + k * 900e3, spot: q.spot })));
+  return out;
+}
+
+async function gasPeriode(van, tot) {
+  try {
+    const d = await getJSON(`https://api.energyzero.nl/v1/energyprices?fromDate=${van}T00:00:00.000Z&tillDate=${plusDag(tot, 1)}T00:00:00.000Z&interval=4&usageType=3&inclBtw=true`);
+    const days = {}; for (const p of d.Prices) days[ymd(Date.parse(p.readingDate))] = p.price; return days;
+  } catch { return {}; }
+}
+
+// Eén dag: { dag, quarters, gas }
+export async function dagArchief(dag, now = Date.now()) {
+  const st = archiefStore(), key = 'dag/' + dag;
+  const hit = st ? await st.get(key, { type: 'json' }).catch(() => null) : archiefMem.get(key);
+  if (hit) return hit;
+  let [quarters, g] = await Promise.all([periode(dag, dag).catch(() => []), gasPeriode(dag, dag)]);
+  let bron = 'Energy-Charts (Fraunhofer ISE), day-ahead EPEX Nederland';
+  if (quarters.length < 80) { // reserve: uurprijzen van EnergyZero
+    const s = dayStartNL(Date.parse(dag + 'T12:00:00Z'));
+    quarters = (await fromEnergyZero(s + 86400e3).catch(() => [])).filter(q => q.t >= s && q.t < s + 25 * 3600e3 && ymd(q.t) === dag);
+    bron = 'EnergyZero (uurprijzen)';
+  }
+  const res = { dag, quarters, gas: g[dag] ?? null, bron };
+  const klaar = dag < ymd(now) && quarters.length >= 92 && bron.startsWith('Energy-Charts');
+  if (klaar) { if (st) await st.setJSON(key, res).catch(() => {}); else archiefMem.set(key, res); }
+  return res;
+}
+
+// Eén maand: { maand, dagen: { 'YYYY-MM-DD': { gem, min, max, minT, maxT, n } }, gas }
+export async function maandArchief(maand, now = Date.now()) {
+  const st = archiefStore(), key = 'maand/' + maand;
+  const hit = st ? await st.get(key, { type: 'json' }).catch(() => null) : archiefMem.get(key);
+  if (hit) return hit;
+  const van = maand + '-01';
+  const d = new Date(van + 'T12:00:00Z'); d.setUTCMonth(d.getUTCMonth() + 1); d.setUTCDate(0);
+  let tot = d.toISOString().slice(0, 10);
+  const vandaag = ymd(now); if (tot >= vandaag) tot = plusDag(vandaag, -1);
+  if (tot < van) return { maand, dagen: {}, gas: {} };
+  const [qs, g] = await Promise.all([periode(van, tot), gasPeriode(van, tot)]);
+  const dagen = {};
+  for (const q of qs) {
+    const k = ymd(q.t); const x = (dagen[k] ||= { som: 0, n: 0, min: Infinity, max: -Infinity, minT: 0, maxT: 0 });
+    x.som += q.spot; x.n++;
+    if (q.spot < x.min) { x.min = q.spot; x.minT = q.t; }
+    if (q.spot > x.max) { x.max = q.spot; x.maxT = q.t; }
+  }
+  for (const k in dagen) { const x = dagen[k]; x.gem = x.som / x.n; delete x.som; }
+  const res = { maand, dagen, gas: g };
+  const maandKlaar = tot === d.toISOString().slice(0, 10);
+  if (maandKlaar) { if (st) await st.setJSON(key, res).catch(() => {}); else archiefMem.set(key, res); }
+  return res;
+}
+export { ymd, plusDag };

@@ -26,6 +26,7 @@ EXTRA_CSS = '''<style>
 .gidslijst a b{display:block;font-size:17px}.gidslijst a span{color:var(--muted);font-size:15px}
 .bronnen{font-size:14.5px;color:var(--muted)}
 .lees{border-top:1px solid var(--line);margin-top:16px;padding-top:12px;font-size:15.5px}
+.koopstekker{display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:12px 0 0;text-decoration:none;color:var(--ink);background:var(--surface)}.koopstekker>span:first-child{font-size:24px}.koopstekker b{display:block;font-size:15.5px}.koopstekker small{color:var(--muted);font-size:13.5px}
 </style>
 '''
 
@@ -297,14 +298,15 @@ stappen = [
     ('Maak een gratis Tuya-account', 'Tuya is het bedrijf achter Smart Life. Ga op een computer naar platform.tuya.com, klik op Sign Up en kies Individual Developer.'),
     ('Maak een project', 'Klik op Cloud en dan Development, en op Create Cloud Project. Kies bij Industry en Development Method: Smart Home. Kies bij Data Center: Central Europe Data Center.'),
     ('Koppel je Smart Life-app', 'Klik in je project op Devices, Link App Account en Add App Account. Scan de QR-code met de app Smart Life (tabblad Ik, scan-knopje rechtsboven).'),
+    ('Verleng de gratis periode naar 6 maanden', 'Tuya geeft eerst 1 maand gratis. Ga naar Cloud, Cloud Services, IoT Core, View Details en klik op Extend Trial Period. Kies 6 months en vul in dat het voor thuis is. Het blijft gratis. Na 6 maanden verleng je het opnieuw; Stroomwekker stuurt je dan een bericht.'),
     ('Neem 3 codes over in Stroomwekker', 'Kopieer de Access ID en Access Secret (tabblad Overview) en de Device ID van je stekker (tabblad Devices). Plak ze in Stroomwekker en tik op Test. Gaat je stekker aan? Dan werkt alles.'),
 ]
-howto = {'@type': 'HowTo', 'name': 'Slimme stekker van de Action koppelen aan Stroomwekker', 'inLanguage': 'nl-NL', 'totalTime': 'PT15M',
+howto = {'@type': 'HowTo', 'name': 'Slimme stekker van de Action koppelen aan Stroomwekker', 'inLanguage': 'nl-NL', 'totalTime': 'PT20M',
          'tool': [{'@type': 'HowToTool', 'name': 'Slimme stekker van de Action (LSC Smart Connect)'}, {'@type': 'HowToTool', 'name': 'App Smart Life'}, {'@type': 'HowToTool', 'name': 'Computer'}],
          'step': [{'@type': 'HowToStep', 'position': i + 1, 'name': n, 'text': t} for i, (n, t) in enumerate(stappen)]}
 fq = [('Werkt de slimme stekker van de Action met Stroomwekker?', 'Ja. Zet de stekker in de app Smart Life in plaats van in de app van de Action, en koppel hem daarna aan Stroomwekker. Dat doe je maar één keer.'),
       ('Zie ik ook hoeveel stroom mijn apparaat gebruikt?', 'Alleen als je stekker van de Action een energiemeter heeft. Dan zie je per apparaat het verbruik, wat het kost en wat je bespaart. De goedkoopste stekker zonder energiemeter meet niets, maar aan en uit zetten werkt daarmee gewoon.'),
-      ('Kost het koppelen geld?', 'Nee. De app Smart Life en het Tuya-account zijn gratis.'),
+      ('Kost het koppelen geld?', 'Nee. De app Smart Life en het Tuya-account zijn gratis. Je moet de gratis koppeling bij Tuya wel elke 6 maanden verlengen. Dat is een formuliertje van een minuut; Stroomwekker waarschuwt je als het nodig is.'),
       ('Werkt het ook als mijn telefoon uit staat?', 'Ja. Stroomwekker stuurt het seintje via internet naar je stekker. Je telefoon hoeft niet aan te staan.'),
       ('Welke apparaten kan ik op de stekker zetten?', 'Apparaten die vanzelf weer starten als de stroom terugkomt: een boiler, een elektrische kachel of een lader. Een wasmachine moet je vaak eerst op uitgesteld starten zetten. Let op het maximale vermogen van de stekker.')]
 maak('/gids/action-slimme-stekker-koppelen/', 'Slimme stekker Action (LSC) laten schakelen op de stroomprijs',
@@ -478,3 +480,28 @@ t = re.sub(r'<link rel="canonical"[^>]*>\n?', '', t)
 (PUB / '404.html').write_text(t)
 src.unlink(); src.parent.rmdir()
 print('gemaakt /404.html')
+
+# ---------------- Widget ----------------
+code_licht = '<iframe src="https://stroomwekker.eu/widget/stroomprijs" width="340" height="150" style="border:0;max-width:100%" title="Stroomprijs nu" loading="lazy"></iframe>\n<p style="font-size:13px"><a href="https://stroomwekker.eu/">Stroomprijs per kwartier van Stroomwekker</a></p>'
+code_donker = code_licht.replace('stroomprijs"', 'stroomprijs?stijl=donker"')
+maak('/widget/', 'Gratis stroomprijs-widget voor je website | Stroomwekker',
+     'Zet de actuele dynamische stroomprijs gratis op je eigen website of blog. Kopieer de code, plak hem in je pagina en klaar. Altijd actueel, inclusief belasting.',
+     'Gratis stroomprijs-widget', 'Laat de stroomprijs van nu op je eigen website zien. Gratis, zonder account.', f'''
+  <section class="card">
+    <h2>Zo ziet hij eruit</h2>
+    <iframe src="/widget/stroomprijs" width="340" height="150" style="border:0;max-width:100%" title="Stroomprijs nu" loading="lazy"></iframe>
+    <p class="small muted">De prijs wordt elke paar minuten bijgewerkt. Klikken opent Stroomwekker.</p>
+  </section>
+  <section class="card">
+    <h2>Zo zet je hem op je site</h2>
+    <ol>
+      <li>Kopieer de code hieronder.</li>
+      <li>Plak hem in je pagina, op de plek waar je de prijs wilt laten zien. In WordPress gebruik je daarvoor het blok <b>Aangepaste HTML</b>.</li>
+      <li>Klaar. De prijs blijft vanzelf actueel.</li>
+    </ol>
+    <h3>Lichte versie</h3>
+    <textarea readonly rows="4" style="width:100%;font:13px/1.4 ui-monospace,monospace;padding:10px;border:1px solid var(--line);border-radius:6px">{html.escape(code_licht)}</textarea>
+    <h3>Donkere versie</h3>
+    <textarea readonly rows="4" style="width:100%;font:13px/1.4 ui-monospace,monospace;padding:10px;border:1px solid var(--line);border-radius:6px">{html.escape(code_donker)}</textarea>
+    <p class="small muted">Gebruik de widget gerust, ook op zakelijke sites. Laat de link onder de widget staan, dan blijft hij gratis.</p>
+  </section>''', soort='WebPage', byline=False)

@@ -75,6 +75,7 @@ export default async () => {
       if (want === ds.on && ds.ok) continue; // al goed
       try {
         await switchDevice(d, want);
+        if (ds.ok === false && ds.failAt) msgs.push({ id: 'herstel-' + d.id, title: `✅ ${d.name} werkt weer`, body: 'Stroomwekker kan dit apparaat weer aan en uit zetten.' });
         st.devices[d.id] = { on: want, ok: true, at: now, msg: '' };
         switched++;
         if (d.notify !== false) msgs.push(d.rule?.type === 'battery' ? { id: 'dev-' + d.id,
@@ -82,7 +83,16 @@ export default async () => {
           body: cur ? `Stroom kost nu ${fmtCt(price(cur.spot, settings))}.` : '' } : { id: 'dev-' + d.id, title: d.rule?.type === 'solar' ? `☀️ ${d.name} ${want ? 'staan weer aan' : 'staan uit: terugleveren kost nu geld'}` : `${want ? '🔌' : '⏸️'} ${d.name} is ${want ? 'aangezet' : 'uitgezet'}`,
           body: cur ? `Stroom kost nu ${fmtCt(price(cur.spot, settings))}.` : '' });
       } catch (e) {
-        st.devices[d.id] = { on: want, ok: false, at: now, msg: String(e.message).slice(0, 140) };
+        const msg = String(e.message).slice(0, 240);
+        const failAt = ds.failAt || now, gemeld = ds.failPush || 0;
+        st.devices[d.id] = { on: ds.on, ok: false, at: now, msg, failAt, failPush: gemeld };
+        // Eén bericht als een apparaat twee keer achter elkaar niet reageert, daarna hooguit één keer per 12 uur
+        if (now - failAt >= 14 * 60e3 && now - gemeld > 12 * 3600e3) {
+          st.devices[d.id].failPush = now;
+          const tuyaOp = /IoT Core/.test(msg);
+          msgs.push({ id: 'fout-' + d.id, title: tuyaOp ? `⚠️ Tuya-koppeling verlopen: ${d.name}` : `⚠️ ${d.name} reageert niet`,
+            body: tuyaOp ? 'Verleng de gratis IoT Core op platform.tuya.com (6 maanden). Open Stroomwekker voor de stappen.' : msg.replace(/^Tuya: /, '') });
+        }
       }
       if (d.kind === 'shelly') await sleep(1100); // Shelly Cloud: max. 1 opdracht per seconde
     }
@@ -101,6 +111,25 @@ export default async () => {
       if (d.kind === 'shelly') await sleep(1100);
     }
     for (const id of Object.keys(st.meter)) if (!(acc.devices || []).some(d => d.id === id)) delete st.meter[id];
+
+    // Maandoverzicht: op de 1e van de maand na 9:00 uur één bericht over de vorige maand
+    const nlNu = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Amsterdam', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hour12: false }).formatToParts(new Date(now));
+    const deel = k => nlNu.find(p => p.type === k)?.value;
+    if (deel('day') === '01' && Number(deel('hour')) >= 9) {
+      const d0 = new Date(Date.UTC(Number(deel('year')), Number(deel('month')) - 2, 15));
+      const vorige = d0.toISOString().slice(0, 7);
+      if (st.maandGemeld !== vorige) {
+        st.maandGemeld = vorige;
+        let kwh = 0, kost = 0, ref = 0;
+        for (const m of Object.values(st.meter)) for (const [dag, x] of Object.entries(m.days || {})) if (dag.startsWith(vorige)) { kwh += x.kwh; kost += x.cost; ref += x.ref; }
+        if (kwh > 0.5) {
+          const e2 = v => '€ ' + v.toFixed(2).replace('.', ',');
+          const naam = new Intl.DateTimeFormat('nl-NL', { month: 'long' }).format(d0);
+          msgs.push({ id: 'maand-' + vorige, title: `📊 Je ${naam} met Stroomwekker`,
+            body: `Je apparaten gebruikten ${kwh.toFixed(1).replace('.', ',')} kWh voor ${e2(kost)}. ` + (ref - kost > 0.01 ? `Je bespaarde ${e2(ref - kost)} door op goedkope momenten stroom te gebruiken.` : 'Open Stroomwekker voor het overzicht.') });
+        }
+      }
+    }
 
     // Pushmeldingen
     if (vapidOk && acc.push && msgs.length) {

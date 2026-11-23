@@ -6,12 +6,14 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 
 // ---------- Partner-tegels (nooit de naam van de adverteerder tonen) ----------
 const aw = (u, ref) => `https://www.awin1.com/cread.php?awinmid=8520&awinaffid=3152283&clickref=stroomwekker-${ref}&ued=${encodeURIComponent(u)}`;
+const BOLSTEKKER = 'https://partner.bol.com/click/click?p=1&t=url&s=1558346&url=' + encodeURIComponent('https://www.bol.com/nl/nl/s/?searchtext=slimme+stekker+met+energiemeter') + '&f=TXL&name=stroomwekker-stekker';
 const TILES = [
   ['⚡', 'Dynamisch contract vergelijken', 'Alle tarieven per kwartier', aw('https://www.gaslicht.com/energievergelijken/dynamisch-energiecontract-vergelijken', 'dynamisch')],
   ['🔥', 'Stroom en gas vergelijken', 'Vast, variabel of dynamisch', aw('https://www.gaslicht.com/energievergelijken', 'energie')],
   ['🎁', 'Energie-aanbiedingen', 'Welkomstbonus bij overstappen', aw('https://www.gaslicht.com/energievergelijken/energie-aanbiedingen', 'aanbiedingen')],
   ['🔒', '3 jaar vaste prijs', 'Zekerheid in plaats van dynamisch', aw('https://www.gaslicht.com/energievergelijken/energiecontract-3-jaar-vast', '3jaarvast')],
 ];
+$('vergelijkOpslag').href = aw('https://www.gaslicht.com/energievergelijken/dynamisch-energiecontract-vergelijken', 'toeslag');
 $('tiles').innerHTML = TILES.map(([i, b, s, u]) => `<a href="${u}" target="_blank" rel="sponsored noopener"><span class="i" aria-hidden="true">${i}</span><b>${b}</b><small>${s}</small></a>`).join('');
 
 // ---------- Status ----------
@@ -269,7 +271,7 @@ const kwhTxt = v => v.toFixed(v < 10 ? 2 : 1).replace('.', ',') + ' kWh';
 function verbruikHTML(d) {
   const v = d.verbruik;
   if (!v) return '';
-  if (v.meet === false) return `<div class="verbr nee">Verbruik zien: ${v.reden === 'link' ? 'kan niet met een eigen link' : 'deze stekker meet geen verbruik'}. Aan en uit zetten werkt wel gewoon. <a href="#welkemeet" data-welke>Welke stekkers meten wel?</a></div>`;
+  if (v.meet === false) return `<div class="verbr nee">Verbruik zien: ${v.reden === 'link' ? 'kan niet met een eigen link' : 'deze stekker meet geen verbruik'}. Aan en uit zetten werkt wel gewoon. <a href="#welkemeet" data-welke>Welke stekkers meten wel?</a>${v.reden === 'stekker' ? ` · <a href="${BOLSTEKKER}" target="_blank" rel="sponsored noopener">Stekker met energiemeter bekijken</a> <small>(advertentie)</small>` : ''}</div>`;
   if (v.meet == null) return `<div class="verbr">Verbruik: we kijken bij het volgende kwartier of deze stekker het verbruik meet.</div>`;
   const bespaard = v.maand.ref - v.maand.cost;
   return `<div class="verbr ja"><div><span>Nu</span><b>${v.w != null ? Math.round(v.w).toLocaleString('nl-NL') + ' W' : '–'}</b></div>`
@@ -287,6 +289,10 @@ function proefHTML(d) {
 }
 function renderDevices() {
   if (typeof renderMijn === 'function') setTimeout(renderMijn);
+  { const m = devices.map(d => d.verbruik).filter(v => v && v.meet && v.maand);
+    const kwh = m.reduce((a, v) => a + v.maand.kwh, 0), kost = m.reduce((a, v) => a + v.maand.cost, 0), ref = m.reduce((a, v) => a + v.maand.ref, 0);
+    const el = $('devSom'); el.hidden = !(kwh > 0.05);
+    if (!el.hidden) el.innerHTML = `Deze maand samen: <strong>${kwhTxt(kwh)}</strong> voor <strong>${eur(kost, 2)}</strong>.` + (ref - kost > 0.005 ? ` Je bespaarde <b>${eur(ref - kost, 2)}</b> door op goedkope momenten stroom te gebruiken.` : ''); }
   $('devList').innerHTML = devices.map(d => {
     const s = d.status;
     const st = d.enabled === false ? '<span class="status muted">Staat op pauze</span>'
@@ -383,7 +389,9 @@ $('devForm').addEventListener('submit', async e => {
 $('sMode').value = settings.mode; $('sOpslag').value = (settings.opslag * 100).toFixed(2);
 $('sOpslagWrap').hidden = settings.mode === 'kaal';
 $('sMode').onchange = () => { settings.mode = $('sMode').value; $('sOpslagWrap').hidden = settings.mode === 'kaal'; render(); sync().catch(() => {}); };
-$('sOpslag').oninput = () => { const v = num('sOpslag'); if (Number.isFinite(v)) { settings.opslag = v / 100; render(); sync().catch(() => {}); } };
+{ const opt = [...$('sLever').options].find(o => o.value && Math.abs(Number(o.value) / 100 - settings.opslag) < 1e-6 && settings.lever === o.textContent); if (opt) opt.selected = true; }
+$('sLever').onchange = () => { const v = Number($('sLever').value); if (!v) return; settings.opslag = v / 100; settings.lever = $('sLever').selectedOptions[0].textContent; $('sOpslag').value = v.toFixed(2); render(); sync().catch(() => {}); };
+$('sOpslag').oninput = () => { settings.lever = ''; $('sLever').value = ''; const v = num('sOpslag'); if (Number.isFinite(v)) { settings.opslag = v / 100; render(); sync().catch(() => {}); } };
 $('myCode').value = token;
 $('useCode').onclick = async () => {
   const c = $('otherCode').value.trim();
@@ -548,26 +556,32 @@ const sTuya1 = () => stap('Stap 1: zet je stekker in de app Smart Life', [
   'Open de app <b>LSC Smart Connect</b>. Tik op je stekker, dan rechtsboven op het potloodje, en kies <b>Apparaat verwijderen</b>.',
   'Download de gratis app <b>Smart Life</b> in de App Store of Google Play en maak een account.',
   'Tik in Smart Life op <b>+</b> en voeg je stekker toe, net zoals je in de LSC-app deed. Gaat het lampje van de stekker niet knipperen? Houd het knopje op de stekker 5 seconden ingedrukt.',
-], 7, () => sTuya2());
+], W.d.lsc ? 8 : 7, () => sTuya2());
 const sTuya2 = () => stap(`Stap ${W.d.lsc ? 2 : 1}: maak een gratis Tuya-account`, [
   'Dit doe je het makkelijkst op een <b>computer</b>. Tuya is het bedrijf achter Smart Life.',
   'Ga naar <b>platform.tuya.com</b> en klik op <b>Sign Up</b> (aanmelden). Vul je e-mailadres in en kies een wachtwoord.',
   'Vraagt de site wat voor account je wilt? Kies dan <b>Individual Developer</b> (privépersoon).',
-], 7, () => sTuya3());
+], W.d.lsc ? 8 : 7, () => sTuya3());
 const sTuya3 = () => stap(`Stap ${W.d.lsc ? 3 : 2}: maak een project`, [
   'Klik links in het menu op <b>Cloud</b> en dan op <b>Development</b>.',
   'Klik op de blauwe knop <b>Create Cloud Project</b>.',
   'Vul bij <b>Project Name</b> iets in, bijvoorbeeld <i>Stroomwekker</i>. Kies bij <b>Industry</b>: <i>Smart Home</i>. Kies bij <b>Development Method</b>: <i>Smart Home</i>.',
   'Kies bij <b>Data Center</b>: <b>Central Europe Data Center</b>. Klik op <b>Create</b>.',
   'Krijg je een lijst met diensten (API services)? Klik gewoon op <b>Authorize</b>.',
-], 7, () => sTuya4());
+], W.d.lsc ? 8 : 7, () => sTuya4());
 const sTuya4 = () => stap(`Stap ${W.d.lsc ? 4 : 3}: koppel je Smart Life-app`, [
   'Klik in je project bovenaan op het tabblad <b>Devices</b>, dan op <b>Link App Account</b> en op <b>Add App Account</b>. Er verschijnt een QR-code.',
   'Open op je telefoon de app <b>Smart Life</b>. Tik onderin op <b>Ik</b> en dan rechtsboven op het <b>scan-knopje</b>.',
   'Scan de QR-code op je computerscherm en tik op <b>Bevestigen</b>.',
   'Je stekker staat nu in de lijst op de website. Zie je hem niet? Ververs de pagina.',
-], 7, () => sTuyaCodes());
-const sTuyaCodes = () => ({ t: `Stap ${W.d.lsc ? 5 : 4}: neem 3 codes over`, of: 7,
+], W.d.lsc ? 8 : 7, () => sTuyaVerleng());
+const sTuyaVerleng = () => stap(`Stap ${W.d.lsc ? 5 : 4}: verleng de gratis periode naar 6 maanden`, [
+  'Tuya geeft je eerst maar <b>1 maand</b> gratis. Verleng dat nu meteen, dan hoef je er lang niet aan te denken.',
+  'Klik links in het menu op <b>Cloud</b>, dan op <b>Cloud Services</b>. Zoek <b>IoT Core</b> en klik op <b>View Details</b>.',
+  'Klik op <b>Extend Trial Period</b>. Kies <b>6 months</b>, vul bij de vragen in dat je het voor thuis gebruikt (<i>personal smart home</i>, minder dan 50 apparaten) en verstuur.',
+  'Meestal is het binnen een dag goedgekeurd. Het blijft gratis. Is het over 6 maanden weer verlopen? Dan stuurt Stroomwekker je een bericht en verleng je het op dezelfde manier.',
+], W.d.lsc ? 8 : 7, () => sTuyaCodes());
+const sTuyaCodes = () => ({ t: `Stap ${W.d.lsc ? 6 : 5}: neem 3 codes over`, of: W.d.lsc ? 8 : 7,
   p: 'Kopieer de codes van de Tuya-website en plak ze hieronder. Dit zijn lange codes van letters en cijfers. Overtypen hoeft niet: kopiëren en plakken is het makkelijkst.',
   html: veldHTML('wA', '1. Access ID', 'Het "gebruikersnummer" van je project.', 'Op de Tuya-website, in je project, tabblad <b>Overview</b>. Staat bij <i>Access ID/Client ID</i>.', 'bijv. k8xq3m7rw2c9vn5tyhpe', '^[a-zA-Z0-9]{16,32}$')
     + veldHTML('wS', '2. Access Secret', 'Het "wachtwoord" van je project. Deel het met niemand anders.', 'Ook bij <b>Overview</b>, onder de Access ID, bij <i>Access Secret/Client Secret</i>. Klik op het oogje om hem te zien.', 'bijv. 4f9c2a7e…  (32 tekens)', '^[a-zA-Z0-9]{24,40}$')

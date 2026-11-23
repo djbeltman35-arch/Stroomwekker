@@ -56,7 +56,7 @@ export default async (req) => {
 
     if (body.action === 'save') {
       if (body.settings) acc.settings = { mode: body.settings.mode === 'kaal' ? 'kaal' : 'allin',
-        opslag: Math.max(0, Math.min(0.5, Number(body.settings.opslag) || 0)) };
+        opslag: Math.max(0, Math.min(0.5, Number(body.settings.opslag) || 0)), lever: String(body.settings.lever || '').slice(0, 60) };
       if ('alerts' in body) acc.alerts = cleanAlerts(body.alerts);
       if ('push' in body) acc.push = body.push && body.push.endpoint?.startsWith('https://') ? body.push : null;
       if ('devices' in body) {
