@@ -9,7 +9,7 @@ const aw = (u, ref) => `https://www.awin1.com/cread.php?awinmid=8520&awinaffid=3
 const BOLSTEKKER = 'https://partner.bol.com/click/click?p=1&t=url&s=1558346&url=' + encodeURIComponent('https://www.bol.com/nl/nl/s/?searchtext=slimme+stekker+met+energiemeter') + '&f=TXL&name=stroomwekker-stekker';
 const TILES = [
   ['⚡', 'Dynamisch contract vergelijken', 'Alle tarieven per kwartier', aw('https://www.gaslicht.com/energievergelijken/dynamisch-energiecontract-vergelijken', 'dynamisch')],
-  ['🔥', 'Stroom en gas vergelijken', 'Vast, variabel of dynamisch', aw('https://www.gaslicht.com/energievergelijken', 'energie')],
+  ['✅', 'Dynamisch contract afsluiten', 'Rechtstreeks overstappen, zonder vergelijken', 'https://lt45.net/c/?si=924&li=55221&wi=451249&ws=stroomwekker-tegel&dl=' + encodeURIComponent('energie/energiecontract/dynamisch')],
   ['🎁', 'Energie-aanbiedingen', 'Welkomstbonus bij overstappen', aw('https://www.gaslicht.com/energievergelijken/energie-aanbiedingen', 'aanbiedingen')],
   ['🔒', '3 jaar vaste prijs', 'Zekerheid in plaats van dynamisch', aw('https://www.gaslicht.com/energievergelijken/energiecontract-3-jaar-vast', '3jaarvast')],
 ];
