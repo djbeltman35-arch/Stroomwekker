@@ -38,5 +38,6 @@ User-agent: *
 Allow: /
 Disallow: /api/
 
+Sitemap: https://stroomwekker.eu/sitemap-index.xml
 Sitemap: https://stroomwekker.eu/sitemap.xml
 Sitemap: https://stroomwekker.eu/sitemap-archief.xml
