@@ -595,17 +595,20 @@ const sApparaat = () => ({ t: 'Wat wil je vanzelf laten aangaan?', p: 'Kies wat 
 const sStekker = () => ({ t: W.d.preset === 'auto' ? 'Hoe laad je je auto?' : 'Welke slimme stekker heb je?', p: W.d.preset === 'auto' ? 'Heb je een Easee-laadpaal? Die koppelen we rechtstreeks. Laad je met een gewone stekker, kies dan je slimme stekker.' : 'Aan en uit zetten werkt met élke stekker hieronder, ook de goedkoopste. Alleen voor het verbruik zien heb je een stekker met energiemeter nodig.', opts: [
   ...(W.d.preset === 'auto' ? [{ i: '🚗', l: 'Easee-laadpaal', s: 'Rechtstreeks gekoppeld, geen stekker nodig. Klaar in 2 minuten.', go: () => { W.d.kind = 'easee'; go(sEasee); } },
     { i: '❓', l: 'Andere laadpaal of Tesla', s: 'Zaptec, Wallbox, Alfen, Tesla en andere', go: () => go(sLaadAnders) }] : []),
+  { i: '🔵', l: 'Shelly · veruit het makkelijkst', s: 'Klaar in 3 minuten op je telefoon. Verbruik zien: Plug S, Plus Plug S en modellen met PM', go: () => { W.d.kind = 'shelly'; go(sShelly); } },
   { i: '🛒', l: 'Van de Action (LSC)', s: 'Makkelijk met een timer, of volledig automatisch', go: () => { W.d.kind = 'tuya'; W.d.lsc = true; go(sLscKeuze); } },
   { i: '📱', l: 'Smart Life of Tuya', s: 'Ook Hema, Calex, Nedis, Woox. Makkelijk met een timer, of volledig automatisch', go: () => { W.d.kind = 'tuya'; W.d.lsc = false; go(sLscKeuze); } },
-  { i: '🔵', l: 'Shelly', s: 'Snelst te koppelen (3 minuten). Verbruik zien: Plug S, Plus Plug S en modellen met PM', go: () => { W.d.kind = 'shelly'; go(sShelly); } },
   ...(ALEXA_AAN ? [{ i: '🗣️', l: 'Een andere stekker die met Alexa werkt', s: 'Bijvoorbeeld TP-Link, Meross of Philips Hue', go: () => { W.d.merkApp = ''; W.d.kind = 'webhook'; W.d.alexa = true; go(sAlexa1); } }] : []),
   { i: '❓', l: 'Ik heb nog geen slimme stekker', go: () => go(sGeenStekker) },
 ] });
-const BOLSHELLY = 'https://partner.bol.com/click/click?p=1&t=url&s=1558346&url=' + encodeURIComponent('https://www.bol.com/nl/nl/p/shelly-plug-s-gen3-matter-stopcontact-bluetooth-wifi/9300000191960174/') + '&f=TXL&name=stroomwekker-shelly';
+const BOLSHELLY = 'https://partner.bol.com/click/click?p=1&t=url&s=1558346&url=' + encodeURIComponent('https://www.bol.com/nl/nl/s/?searchtext=shelly+plug+s+gen3') + '&f=TXL&name=stroomwekker-shelly';
+const BOLTUYA = 'https://partner.bol.com/click/click?p=1&t=url&s=1558346&url=' + encodeURIComponent('https://www.bol.com/nl/nl/s/?searchtext=smart+life+slimme+stekker+energiemeter') + '&f=TXL&name=stroomwekker-tuya';
 const sGeenStekker = () => ({ t: 'Je hebt een slimme stekker nodig', of: 4,
-  p: 'Een slimme stekker zet je tussen het stopcontact en je apparaat. Wij kunnen hem dan aan en uit zetten. Er zijn twee goede keuzes:',
-  html: `<a class="koopstekker" href="${BOLSHELLY}" target="_blank" rel="sponsored noopener"><span aria-hidden="true">⚡</span><span><b>Makkelijkst: Shelly Plug S Gen3 (wit)</b><small>Rond de € 20. Meet ook het verbruik. Koppelen duurt 3 minuten, op je telefoon · advertentie</small></span></a>
-    <div class="koopstekker"><span aria-hidden="true">🛒</span><span><b>Goedkoopst: LSC Smart Connect van de Action</b><small>Een paar euro. Koppelen duurt ongeveer 20 minuten en gaat het best op een computer. Kies een stekker met energiemeter als je het verbruik wilt zien.</small></span></div>
+  p: 'Een slimme stekker zet je tussen het stopcontact en je apparaat. Wij kunnen hem dan aan en uit zetten. <b>Twijfel je? Neem een Shelly. Dat is veruit het makkelijkst.</b>',
+  html: `<a class="koopstekker top" href="${BOLSHELLY}" target="_blank" rel="sponsored noopener"><span class="aanr">👍 Onze aanrader · veruit het makkelijkst</span><span aria-hidden="true">⚡</span><span><b>Shelly Plug S Gen3</b><small><b class="ok">✓ Klaar in 3 minuten, gewoon op je telefoon</b>✓ Geen computer of codes nodig<br>✓ Meet precies wat je apparaat verbruikt</small><span class="knop">Bekijk de prijzen op bol →</span><small class="adv">advertentie</small></span></a>
+    <p class="small muted" style="margin:16px 0 0">Liever goedkoper? Dat kan ook, maar het koppelen is dan lastiger:</p>
+    <a class="koopstekker" href="${BOLTUYA}" target="_blank" rel="sponsored noopener"><span aria-hidden="true">💶</span><span><b>Smart Life-stekker met energiemeter</b><small>Vanaf ongeveer € 15. Koppelen duurt ongeveer 20 minuten en gaat het best op een computer · advertentie</small></span></a>
+    <div class="koopstekker"><span aria-hidden="true">🛒</span><span><b>LSC Smart Connect van de Action</b><small>Een paar euro. Koppelen duurt ongeveer 20 minuten en gaat het best op een computer. Kies een stekker met energiemeter als je het verbruik wilt zien.</small></span></div>
     <p class="small muted" style="margin-top:12px">Let op: een slimme stekker kan meestal maximaal 3.680 watt aan. Voor een laadpaal of grote boiler heb je soms iets anders nodig.</p>`,
   opts: [{ i: '🔔', l: 'Stuur me intussen een bericht als stroom goedkoop is', go: () => go(sBerichtKies) }, { i: '🏠', l: 'Terug naar het begin', go: wizClose }] });
 
