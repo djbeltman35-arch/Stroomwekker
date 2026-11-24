@@ -229,6 +229,7 @@ details.meer>summary::-webkit-details-marker{display:none}
 details.meer>summary::after{content:"";width:9px;height:9px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg) translateY(-3px)}
 details.meer[open]>summary::after{transform:rotate(-135deg)}
 #mijn{border-left:3px solid var(--green)}
+.verschil{margin:0 0 12px;font-size:15.5px}.verschil summary{cursor:pointer;font-weight:700;color:var(--blue,#2563EB)}.verschil ul{margin:8px 0 6px;padding-left:20px;display:grid;gap:6px}.verschil p{margin:0}
 .top3kop{font-size:18px;margin:18px 0 10px}
 .top3tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}.top3tabs button{font:inherit;font-size:15px;font-weight:600;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface,#fff);color:var(--ink);cursor:pointer}.top3tabs button[aria-selected="true"]{background:var(--navy,#0F2340);color:#fff;border-color:var(--navy,#0F2340)}
 .top3{list-style:none;padding:0;margin:0;display:grid;gap:8px;counter-reset:t}.top3 a{display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:10px;text-decoration:none;color:var(--ink);background:var(--surface,#fff)}.top3 a:hover{background:var(--soft)}
@@ -611,6 +612,14 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
   <div class="card" id="vergelijken">
     <h2>Nog geen dynamisch contract? Of wil je overstappen?</h2>
     <h3 class="top3kop">De 3 goedkoopste voor stroom en gas samen</h3>
+    <details class="verschil"><summary>Wat is het verschil?</summary>
+      <ul>
+        <li><b>Dynamisch:</b> de prijs verandert elk kwartier, net als op de beurs. 's Nachts en op zonnige middagen is stroom vaak goedkoop, 's avonds duur. Gas verandert één keer per dag. Wie stroom gebruikt als het goedkoop is, bespaart het meest. Daar helpt Stroomwekker bij.</li>
+        <li><b>Variabel:</b> de prijs is de hele dag hetzelfde, maar je energiebedrijf mag hem elke maand aanpassen. Je weet dus nooit precies wat je volgende maand betaalt.</li>
+        <li><b>1 of 3 jaar vast:</b> de prijs staat vast voor 1 of 3 jaar. Zeker, maar eerder opzeggen kost vaak een boete.</li>
+      </ul>
+      <p>Dynamisch en variabel kun je allebei op elk moment opzeggen.</p>
+    </details>
     <div class="top3tabs" role="tablist" id="top3tabs"></div>
     <ol class="top3" id="top3"></ol>
     <p class="small muted" id="top3uitleg"></p>

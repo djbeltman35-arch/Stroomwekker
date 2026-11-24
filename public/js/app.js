@@ -19,7 +19,7 @@ $('vergelijkOpslag').href = aw('https://www.gaslicht.com/energievergelijken/dyna
 // Elke maand bijwerken: de volgorde verandert met de tarieven.
 const GL = pad => aw('https://www.gaslicht.com' + pad, 'top3');
 const TOP3 = {
-  dynamisch: { l: 'Dynamisch', uitleg: 'Prijs per kwartier, past bij Stroomwekker', r: [
+  dynamisch: { l: 'Dynamisch', uitleg: 'Prijs per kwartier. Gebruik stroom als het goedkoop is en bespaar. Altijd opzegbaar', r: [
     ['Budget Thuis', 'Europese groene stroom en aardgas', 195, '/aanmelden/budgetthuis/5120/europese-groene-stroom-en-aardgas-dynamisch'],
     ['NextEnergy', 'Groene stroom en aardgas', 197, '/aanmelden/nextenergy/5082/groene-stroom-en-aardgas-dynamisch'],
     ['Vandebron', 'NL groene stroom en aardgas', 197, '/aanmelden/vandebron/5232/nl-groene-stroom-en-aardgas-met-investering-in-lokale-natuur-dynamisch'],
@@ -34,7 +34,7 @@ const TOP3 = {
     ['Energiedirect', 'Groene stroom en aardgas 3 jaar', 204, '/aanmelden/energiedirect/5018/groene-stroom-en-aardgas-3-jaar-vast'],
     ['Vandebron', 'Groene stroom en gas 3 jaar', 206, '/aanmelden/vandebron/4992/100-procent-groene-stroom-en-co2-gecompenseerd-gas-3-jaar-vast'],
   ] },
-  variabel: { l: 'Variabel', uitleg: 'Prijs kan elke maand veranderen, altijd opzegbaar', r: [
+  variabel: { l: 'Variabel', uitleg: 'Elke dag dezelfde prijs, maar die kan elke maand veranderen. Altijd opzegbaar', r: [
     ['Frank Energie', 'Groene stroom en aardgas variabel', 245, '/energie-vergelijken/frank-energie/nederlandse-groene-stroom-en-aardgas-variabel-4892'],
     ['Greenchoice', 'Windstroom en aardgas variabel', 252, '/energie-vergelijken/greenchoice/windstroom-uit-nederland-en-co2-gecompenseerd-gas-variabel-5051'],
     ['Mega', 'EU groene stroom en aardgas variabel', 255, '/energie-vergelijken/mega/eu-groene-stroom-en-aardgas-variabel-4816'],
