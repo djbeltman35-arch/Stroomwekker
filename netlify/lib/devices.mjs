@@ -34,6 +34,30 @@ async function tuyaSwitch(d, on) {
   await tuyaRequest(d, 'POST', `/v1.0/iot-03/devices/${d.deviceId}/commands`, { commands: [{ code: d.code || 'switch_1', value: !!on }] }, tok.access_token);
 }
 
+// ---------- Easee-laadpaal (rechtstreeks via de Easee-cloud) ----------
+// We bewaren nooit het wachtwoord, alleen de sleutels (tokens) die Easee teruggeeft. Een refresh-token werkt één keer:
+// na elke verversing bewaren we de nieuwe (het apparaat-object wordt aangepast en daarna opgeslagen).
+const EASEE = 'https://api.easee.com/api';
+async function easeeJSON(pad, opt = {}) {
+  const r = await fetch(EASEE + pad, { ...opt, headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...(opt.headers || {}) }, signal: AbortSignal.timeout(10000) });
+  const t = await r.text(); let j = {}; try { j = t ? JSON.parse(t) : {}; } catch { /* geen JSON */ }
+  if (!r.ok) throw new Error(r.status === 401 || r.status === 400 ? 'Easee: inloggen lukt niet (klopt je e-mailadres en wachtwoord?)' : `Easee antwoordde ${r.status}`);
+  return j;
+}
+export async function easeeLogin(userName, password) {
+  const j = await easeeJSON('/accounts/login', { method: 'POST', body: JSON.stringify({ userName, password }) });
+  const tok = { eAccess: j.accessToken, eRefresh: j.refreshToken, eExp: Date.now() + (Number(j.expiresIn) || 3600) * 1000 };
+  const lijst = await easeeJSON('/chargers', { headers: { Authorization: 'Bearer ' + tok.eAccess } });
+  return { ...tok, chargers: (Array.isArray(lijst) ? lijst : []).map(c => ({ id: c.id, name: c.name || c.id })) };
+}
+async function easeeToken(d) {
+  if (d.eAccess && d.eExp > Date.now() + 120e3) return d.eAccess;
+  const j = await easeeJSON('/accounts/refresh_token', { method: 'POST', body: JSON.stringify({ accessToken: d.eAccess, refreshToken: d.eRefresh }) }).catch(() => {
+    throw new Error('Easee: de koppeling is verlopen. Koppel je laadpaal opnieuw in Stroomwekker.'); });
+  d.eAccess = j.accessToken; d.eRefresh = j.refreshToken; d.eExp = Date.now() + (Number(j.expiresIn) || 3600) * 1000;
+  return d.eAccess;
+}
+
 // ---------- Stekkers opzoeken bij een account (zodat niemand een apparaatnummer hoeft over te typen) ----------
 export async function listDevices(d) {
   if (d.kind === 'tuya') {
@@ -140,6 +164,12 @@ export function validateDevice(d) {
     if (!/^[a-zA-Z0-9]{6,20}$/.test(deviceId)) throw new Error('Device ID klopt niet');
     return { ...base, kind: 'shelly', host, key, deviceId, channel: Math.max(0, Math.min(3, parseInt(d.channel) || 0)) };
   }
+  if (d.kind === 'easee') {
+    const deviceId = String(d.deviceId || '').trim();
+    if (!/^[A-Za-z0-9]{4,20}$/.test(deviceId)) throw new Error('Kies je laadpaal');
+    if (!d.eRefresh || String(d.eRefresh).length < 10) throw new Error('Koppel eerst je Easee-account');
+    return { ...base, kind: 'easee', deviceId, eAccess: String(d.eAccess || ''), eRefresh: String(d.eRefresh), eExp: Number(d.eExp) || 0 };
+  }
   if (d.kind === 'tuya') {
     const region = TUYA_HOSTS[d.region] ? d.region : 'eu';
     const accessId = String(d.accessId || '').trim(), accessSecret = String(d.accessSecret || '').trim(), deviceId = String(d.deviceId || '').trim();
@@ -155,6 +185,11 @@ export function validateDevice(d) {
 }
 
 export async function switchDevice(d, on) {
+  if (d.kind === 'easee') {
+    const tok = await easeeToken(d);
+    await easeeJSON(`/chargers/${d.deviceId}/commands/${on ? 'resume_charging' : 'pause_charging'}`, { method: 'POST', headers: { Authorization: 'Bearer ' + tok } });
+    return 'ok';
+  }
   if (d.kind === 'tuya') { await tuyaSwitch(d, on); return 'ok'; }
   if (d.kind === 'shelly') {
     const r = await fetch(`https://${d.host}/v2/devices/api/set/switch?auth_key=${encodeURIComponent(d.key)}`, {

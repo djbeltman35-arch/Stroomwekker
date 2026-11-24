@@ -45,6 +45,14 @@ async function gas(now) {
   return days; // { 'YYYY-MM-DD': prijs per m3 }
 }
 
+// Buitentemperatuur (De Bilt, midden van Nederland) via Open-Meteo: voor het rendement van een warmtepomp.
+async function temperatuur() {
+  const d = await getJSON('https://api.open-meteo.com/v1/forecast?latitude=52.10&longitude=5.18&hourly=temperature_2m&past_days=1&forecast_days=2&timezone=UTC', 6000);
+  const out = {};
+  (d.hourly?.time || []).forEach((t, i) => { const v = d.hourly.temperature_2m[i]; if (Number.isFinite(v)) out[Date.parse(t + ':00Z')] = Math.round(v * 10) / 10; });
+  return out;
+}
+
 import { getStore } from '@netlify/blobs';
 
 const memCache = { v: null }; // lokaal testen
@@ -85,10 +93,11 @@ export async function refreshPrices(now = Date.now()) {
 
 export async function loadPrices(now = Date.now()) {
   // Beide bronnen tegelijk ophalen: Energy-Charts (kwartieren) en EnergyZero (uren, vaak eerder bekend voor morgen)
-  const [ec, ez, gasDays] = await Promise.all([
+  const [ec, ez, gasDays, temp] = await Promise.all([
     fromEnergyCharts(now).catch(e => { console.error('energy-charts', e.message); return []; }),
     fromEnergyZero(now).catch(e => { console.error('energyzero', e.message); return []; }),
     gas(now).catch(e => { console.error('gas', e.message); return {}; }),
+    temperatuur().catch(e => { console.error('temperatuur', e.message); return {}; }),
   ]);
   if (!ec.length && !ez.length) throw new Error('Geen prijsbron bereikbaar');
   const map = new Map(ez.map(q => [q.t, q]));      // eerst de uurprijzen
@@ -98,7 +107,7 @@ export async function loadPrices(now = Date.now()) {
   const source = ec.length
     ? 'Energy-Charts (Fraunhofer ISE), day-ahead EPEX Nederland' + (quarters.some(q => q.t > lastEc) ? '; morgen voorlopig via EnergyZero (uurprijzen)' : '')
     : 'EnergyZero (uurprijzen)';
-  return { updated: now, source, quarters, gas: gasDays };
+  return { updated: now, source, quarters, gas: gasDays, temp };
 }
 
 // ---------- Prijsarchief (voorbije dagen en maanden) ----------
@@ -172,4 +181,4 @@ export async function maandArchief(maand, now = Date.now()) {
   if (maandKlaar) { if (st) await st.setJSON(key, res).catch(() => {}); else archiefMem.set(key, res); }
   return res;
 }
-export { ymd, plusDag, gasPeriode };
+export { ymd, plusDag, gasPeriode, periode, archiefStore, archiefMem };

@@ -180,7 +180,7 @@ async function gasPagina(now) {
   let data = { quarters: [], gas: {} }, hist = {};
   const van = ymd(now - 30 * 86400e3), tot = ymd(now + 86400e3);
   try { [data, hist] = await Promise.all([getPrices(now), gasPeriode(van, tot)]); } catch { /* hieronder netjes melden */ }
-  const gas = { ...hist, ...(data.gas || {}) }, s = { ...S, gas };
+  const gas = { ...hist, ...(data.gas || {}) }, s = { ...S, gas, temp: data.temp || {} };
   const vandaagDag = gasDag(now), vd = gas[vandaagDag], morgenDag = plusDag(vandaagDag, 1), mg = gas[morgenDag];
   const opsl = S.gasOpslag, all = v => v + opsl;
   const dagen = Object.keys(gas).filter(d => d < vandaagDag).sort().slice(-30);
@@ -202,7 +202,7 @@ async function gasPagina(now) {
 <section class="card"><h2>Hybride warmtepomp: stook je nu beter met gas of stroom?</h2>
 ${w ? `<p><b>${w.beter === 'stroom' ? 'Nu is stoken met stroom goedkoper.' : 'Nu is stoken op gas goedkoper.'}</b> Warmte uit je warmtepomp kost nu ${ct(w.stroom)} cent per kWh, uit je cv-ketel ${ct(w.gas)} cent.</p>
 <p>Stroom is goedkoper zolang hij onder <b>${ct(w.grens)} cent per kWh</b> blijft. ${stukken.length ? 'Vandaag is gas goedkoper ' + stukken.map(b => `van ${nlTime(b.start)} tot ${nlTime(b.end)}`).join(', ') + '.' : 'Vandaag blijft stroom de rest van de dag goedkoper.'}</p>` : '<p>De prijzen zijn even niet bereikbaar. Probeer het straks opnieuw.</p>'}
-<p>Zo rekenen we: 1 m³ gas geeft met een HR-ketel ongeveer ${WARMTE_M3} kWh warmte. Een hybride warmtepomp maakt gemiddeld ${String(COP).replace('.', ',')} kWh warmte van 1 kWh stroom. Als het vriest is dat minder, als het zacht weer is meer. Dit is een schatting, geen advies: elke installatie is anders.</p>
+<p>Zo rekenen we: 1 m³ gas geeft met een HR-ketel ongeveer ${WARMTE_M3} kWh warmte. Een hybride warmtepomp maakt meer warmte als het zacht weer is, en minder als het vriest. ${w && w.temp != null ? `Buiten is het nu ${String(w.temp).replace('.', ',')} °C (De Bilt), dus we rekenen met ${String(w.cop).replace('.', ',')} kWh warmte uit 1 kWh stroom.` : `We rekenen met gemiddeld ${String(COP).replace('.', ',')} kWh warmte uit 1 kWh stroom.`} Dit is een schatting, geen advies: elke installatie is anders.</p>
 <div class="cta"><a class="btn" href="/?start=warmte">Krijg een bericht of schakel vanzelf</a></div></section>
 
 <section class="card"><h2>Gasprijs van de laatste 30 dagen</h2>

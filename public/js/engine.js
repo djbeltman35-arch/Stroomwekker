@@ -15,20 +15,27 @@ export const DEFAULT_SETTINGS = {
 // De gasprijs geldt per gasdag (06:00 tot 06:00). s.gas = { 'YYYY-MM-DD': prijs per m3 incl. energiebelasting en btw }.
 export const WARMTE_M3 = 9; // ongeveer 9 kWh warmte uit 1 m3 gas met een HR-ketel
 export const COP = 3.5;     // een hybride warmtepomp maakt gemiddeld 3,5 kWh warmte van 1 kWh stroom
+// Rendement (COP) van een warmtepomp hangt af van de buitentemperatuur: bij vorst lager, bij zacht weer hoger.
+export function tempVoor(t, s = DEFAULT_SETTINGS) { const m = s.temp || globalThis.__swTemp; return m ? m[Math.floor(t / 3600e3) * 3600e3] ?? null : null; }
+export function copVoor(t, s = DEFAULT_SETTINGS) {
+  const T = tempVoor(t, s);
+  return T == null ? COP : Math.round(Math.max(2, Math.min(4.8, 3 + 0.08 * T)) * 10) / 10;
+}
 export function gasDag(t) { return nlDayBounds(t - 6 * 3600e3).day; }
 export function gasPrijs(t, s = DEFAULT_SETTINGS) {
   const g = (s.gas || globalThis.__swGas)?.[gasDag(t)];
   return g == null ? null : g + Number(s.gasOpslag ?? DEFAULT_SETTINGS.gasOpslag);
 }
 // Wat kost 1 kWh warmte nu met gas en met de warmtepomp?
-export function warmte(q, s = DEFAULT_SETTINGS, cop = COP) {
+export function warmte(q, s = DEFAULT_SETTINGS, cop) {
   const g = q && gasPrijs(q.t, s);
   if (g == null) return null;
+  cop = cop || copVoor(q.t, s);
   const st = (q.spot * (1 + BTW) + Number(s.opslag ?? 0.02) + EB_STROOM) / cop, gs = g / WARMTE_M3;
-  return { stroom: st, gas: gs, beter: st <= gs ? 'stroom' : 'gas', grens: gs * cop };
+  return { stroom: st, gas: gs, beter: st <= gs ? 'stroom' : 'gas', grens: gs * cop, cop, temp: tempVoor(q.t, s) };
 }
 // Aaneengesloten stukken waarin stoken op gas goedkoper is
-export function gasUren(quarters, from, to, s = DEFAULT_SETTINGS, cop = COP) {
+export function gasUren(quarters, from, to, s = DEFAULT_SETTINGS, cop) {
   const out = [];
   for (const q of inRange(quarters, from, to)) {
     const w = warmte(q, s, cop); if (!w || w.beter !== 'gas') continue;
@@ -197,7 +204,7 @@ export function deviceWants(device, quarters, t, s, lastOn) {
   }
   if (r.type === 'warmte') {
     // Hybride warmtepomp: AAN (warmtepomp mag draaien) zolang stroom goedkoper verwarmt dan gas. 3% marge tegen heen-en-weer schakelen.
-    const w = warmte(cur, s, Number(r.cop) || COP);
+    const w = warmte(cur, s, r.cop && Number(r.cop) !== COP ? Number(r.cop) : undefined);
     if (!w) return null;
     if (w.stroom <= w.gas * 0.97) return true;
     if (w.stroom > w.gas * 1.03) return false;
@@ -274,11 +281,11 @@ export function alertsDue(alerts, quarters, t, s, state = {}) {
       state[a.id] = { ...st, mode: m };
     } else if (a.type === 'warmte') {
       // Hybride warmtepomp: bericht als gas goedkoper wordt, en als de warmtepomp weer goedkoper is
-      const w = cur && warmte(cur, s, Number(a.value) > 1 ? Number(a.value) : COP);
+      const w = cur && warmte(cur, s, Number(a.value) > 1 && Number(a.value) !== COP ? Number(a.value) : undefined);
       if (!w) continue;
       const nu = w.stroom > w.gas * 1.03 ? 'gas' : w.stroom <= w.gas * 0.97 ? 'stroom' : st.mode || 'stroom';
       if (st.mode && nu !== st.mode) {
-        const blok = gasUren(quarters, cur.t, cur.t + 24 * 3600e3, s, Number(a.value) > 1 ? Number(a.value) : COP)[0];
+        const blok = gasUren(quarters, cur.t, cur.t + 24 * 3600e3, s, Number(a.value) > 1 && Number(a.value) !== COP ? Number(a.value) : undefined)[0];
         out.push(nu === 'gas'
           ? { id: a.id, title: '🔥 Stook nu op gas', body: `Stroom is nu zo duur dat je cv-ketel goedkoper verwarmt dan je warmtepomp${blok ? `, tot ${nlTime(blok.end)}` : ''}.` }
           : { id: a.id, title: '♨️ Warmtepomp is weer goedkoper', body: 'Stroom verwarmt nu weer goedkoper dan gas. Zet je warmtepomp weer aan.' });

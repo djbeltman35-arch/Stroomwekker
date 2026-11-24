@@ -1,3 +1,4 @@
+import { TOP3, PEIL, topLink } from '/js/top3.js';
 import { gasPrijs, warmte, gasUren, COP, price, current, quarterStart, nlDayBounds, nlTime, inRange, cheapestBlock, levels, levelOf, alertsDue, negativeWindows, batteryPlan, Q, DEFAULT_SETTINGS } from '/js/engine.js';
 
 const $ = id => document.getElementById(id);
@@ -14,37 +15,13 @@ const TILES = [
   ['🔒', '3 jaar vaste prijs', 'Zekerheid in plaats van dynamisch', aw('https://www.gaslicht.com/energievergelijken/energiecontract-3-jaar-vast', '3jaarvast')],
 ];
 $('vergelijkOpslag').href = aw('https://www.gaslicht.com/energievergelijken/dynamisch-energiecontract-vergelijken', 'toeslag');
-// ---------- Top 3 goedkoopste contracten voor stroom en gas samen ----------
-// Bron: ranglijsten van de vergelijker (november 2026), bij 2.300 kWh stroom en 1.000 m³ gas per jaar, inclusief welkomstkorting.
-// Elke maand bijwerken: de volgorde verandert met de tarieven.
-const GL = pad => aw('https://www.gaslicht.com' + pad, 'top3');
-const TOP3 = {
-  dynamisch: { l: 'Dynamisch', uitleg: 'Prijs per kwartier. Gebruik stroom als het goedkoop is en bespaar. Altijd opzegbaar', r: [
-    ['Budget Thuis', 'Europese groene stroom en aardgas', 195, '/aanmelden/budgetthuis/5120/europese-groene-stroom-en-aardgas-dynamisch'],
-    ['NextEnergy', 'Groene stroom en aardgas', 197, '/aanmelden/nextenergy/5082/groene-stroom-en-aardgas-dynamisch'],
-    ['Vandebron', 'NL groene stroom en aardgas', 197, '/aanmelden/vandebron/5232/nl-groene-stroom-en-aardgas-met-investering-in-lokale-natuur-dynamisch'],
-  ] },
-  vast1: { l: '1 jaar vast', uitleg: 'Een jaar lang dezelfde prijs', r: [
-    ['Energiedirect', 'Groene stroom en aardgas 1 jaar', 227, '/energie-vergelijken/energiedirect/groene-stroom-en-aardgas-1-jr-vast-5017'],
-    ['Eneco', 'Hollandse wind en zon en aardgas 1 jaar', 231, '/energie-vergelijken/eneco/hollandse-wind-en-zon-en-aardgas-1-jaar-vast-4850'],
-    ['Greenchoice', 'Groene stroom en aardgas 1 jaar', 231, '/aanmelden/greenchoice/5279/nederlandse-groene-stroom-en-aardgas-met-natuur-voor-morgen-1-jaar-vast-actie'],
-  ] },
-  vast3: { l: '3 jaar vast', uitleg: 'Drie jaar zekerheid', r: [
-    ['Budget Thuis', 'Europese groene stroom en aardgas 3 jaar', 202, '/aanmelden/budgetthuis/5046/europese-groene-stroom-en-aardgas-vast-3-jaar'],
-    ['Energiedirect', 'Groene stroom en aardgas 3 jaar', 204, '/aanmelden/energiedirect/5018/groene-stroom-en-aardgas-3-jaar-vast'],
-    ['Vandebron', 'Groene stroom en gas 3 jaar', 206, '/aanmelden/vandebron/4992/100-procent-groene-stroom-en-co2-gecompenseerd-gas-3-jaar-vast'],
-  ] },
-  variabel: { l: 'Variabel', uitleg: 'Elke dag dezelfde prijs, maar die kan elke maand veranderen. Altijd opzegbaar', r: [
-    ['Frank Energie', 'Groene stroom en aardgas variabel', 245, '/energie-vergelijken/frank-energie/nederlandse-groene-stroom-en-aardgas-variabel-4892'],
-    ['Greenchoice', 'Windstroom en aardgas variabel', 252, '/energie-vergelijken/greenchoice/windstroom-uit-nederland-en-co2-gecompenseerd-gas-variabel-5051'],
-    ['Mega', 'EU groene stroom en aardgas variabel', 255, '/energie-vergelijken/mega/eu-groene-stroom-en-aardgas-variabel-4816'],
-  ] },
-};
+// ---------- Top 3 goedkoopste contracten voor stroom en gas samen (gegevens in top3.js) ----------
+const GL = pad => topLink(pad);
 function toonTop3(k) {
   const t = TOP3[k];
   $('top3tabs').querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', b.dataset.k === k));
   $('top3').innerHTML = t.r.map(([lev, pak, pm, pad], i) => `<li><a href="${GL(pad)}" target="_blank" rel="sponsored noopener"><span class="nr">${i + 1}</span><span><b>${lev}</b><small>${pak}</small></span><span class="pr">€ ${pm}<small> p/m</small></span></a></li>`).join('');
-  $('top3uitleg').textContent = `${t.uitleg}. Bedragen per maand voor stroom en gas samen, bij 2.300 kWh en 1.000 m³ per jaar, inclusief welkomstkorting. Tarieven van november 2026; wat jij betaalt hangt af van je adres en verbruik. Dit is geen advies: controleer de tarieven en voorwaarden bij het energiebedrijf voordat je overstapt.`;
+  $('top3uitleg').textContent = `${t.uitleg}. Bedragen per maand voor stroom en gas samen, bij 2.300 kWh en 1.000 m³ per jaar, inclusief welkomstkorting. Tarieven van ${PEIL}; wat jij betaalt hangt af van je adres en verbruik. Dit is geen advies: controleer de tarieven en voorwaarden bij het energiebedrijf voordat je overstapt.`;
 }
 if ($('top3tabs')) {
   $('top3tabs').innerHTML = Object.entries(TOP3).map(([k, t]) => `<button type="button" role="tab" data-k="${k}">${t.l}</button>`).join('');
@@ -87,6 +64,7 @@ function applyServer(j) {
   if (j.devices) { devices = j.devices; LS.set('sw-devices', devices); }
   if ('betaaldTot' in j) accInfo = { betaaldTot: j.betaaldTot, proefAfdwingen: j.proefAfdwingen };
   if ('hasPush' in j) { hasPush = j.hasPush; LS.set('sw-haspush', hasPush); }
+  if ('email' in j) { mailInfo = j.email; typeof renderMail === 'function' && setTimeout(renderMail); }
   renderDevices(); renderPushNotice();
 }
 
@@ -97,7 +75,7 @@ async function load() {
   try {
     const r = await fetch('/api/prices', { cache: 'no-store' });
     if (!r.ok) throw 0;
-    data = await r.json(); globalThis.__swGas = data.gas;
+    data = await r.json(); globalThis.__swGas = data.gas; globalThis.__swTemp = data.temp;
     LS.set('sw-lastdata', data);
   } catch { data = data || LS.get('sw-lastdata', null); }
   render();
@@ -335,12 +313,37 @@ function proefHTML(d) {
   if (over <= 0) return accInfo.proefAfdwingen ? '<div class="proefr op">Je gratis proefperiode is voorbij.</div>' : '';
   return accInfo.proefAfdwingen ? `<div class="proefr">Gratis tot ${datumNL(d.proef.eind)}.</div>` : '';
 }
+// ---------- Besparing delen als plaatje (gratis reclame) ----------
+async function deelBesparing(bedrag) {
+  const c = document.createElement('canvas'); c.width = c.height = 1080; const g = c.getContext('2d');
+  g.fillStyle = '#0F2340'; g.fillRect(0, 0, 1080, 1080);
+  g.fillStyle = '#F5B700'; g.beginPath(); g.moveTo(0, 1080); g.lineTo(520, 760); g.lineTo(400, 860); g.lineTo(1080, 640); g.lineTo(560, 960); g.lineTo(680, 860); g.closePath(); g.globalAlpha = .18; g.fill(); g.globalAlpha = 1;
+  const f = (w, px) => `${w} ${px}px "Plex", system-ui, sans-serif`;
+  try { await Promise.all([document.fonts.load('700 74px Plex'), document.fonts.load('600 52px Plex')]); } catch { /* systeemletter */ }
+  g.textAlign = 'center';
+  g.fillStyle = '#C7D2E3'; g.font = f(600, 52); g.fillText('Deze maand bespaarde ik', 540, 330);
+  g.fillStyle = '#F5B700'; g.font = f(700, 190); g.fillText(eur(bedrag, 2), 540, 540);
+  g.fillStyle = '#FFFFFF'; g.font = f(600, 46); g.fillText('door stroom te gebruiken als het goedkoop is', 540, 640);
+  g.font = f(700, 74); g.fillStyle = '#F5B700'; g.fillText('Stroom', 430, 880); g.fillStyle = '#FFFFFF'; g.fillText('wekker', 660, 880);
+  g.fillStyle = '#C7D2E3'; g.font = f(600, 40); g.fillText('stroomwekker.eu · gratis', 540, 950);
+  const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+  const file = new File([blob], 'besparing-stroomwekker.png', { type: 'image/png' });
+  const tekst = `Ik bespaarde deze maand ${eur(bedrag, 2)} met Stroomwekker: mijn apparaten gaan vanzelf aan als stroom goedkoop is. Gratis: https://stroomwekker.eu/?bron=deel`;
+  try {
+    if (navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], text: tekst }); return; }
+    if (navigator.share) { await navigator.share({ text: tekst, url: 'https://stroomwekker.eu/?bron=deel' }); return; }
+  } catch (e) { if (e.name === 'AbortError') return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  toast('Het plaatje is opgeslagen. Deel het op Facebook, WhatsApp of Instagram.');
+}
 function renderDevices() {
   if (typeof renderMijn === 'function') setTimeout(renderMijn);
   { const m = devices.map(d => d.verbruik).filter(v => v && v.meet && v.maand);
     const kwh = m.reduce((a, v) => a + v.maand.kwh, 0), kost = m.reduce((a, v) => a + v.maand.cost, 0), ref = m.reduce((a, v) => a + v.maand.ref, 0);
     const el = $('devSom'); el.hidden = !(kwh > 0.05);
-    if (!el.hidden) el.innerHTML = `Deze maand samen: <strong>${kwhTxt(kwh)}</strong> voor <strong>${eur(kost, 2)}</strong>.` + (ref - kost > 0.005 ? ` Je bespaarde <b>${eur(ref - kost, 2)}</b> door op goedkope momenten stroom te gebruiken.` : ''); }
+    if (!el.hidden) el.innerHTML = `Deze maand samen: <strong>${kwhTxt(kwh)}</strong> voor <strong>${eur(kost, 2)}</strong>.` + (ref - kost > 0.005 ? ` Je bespaarde <b>${eur(ref - kost, 2)}</b> door op goedkope momenten stroom te gebruiken.` : '')
+      + (ref - kost >= 0.5 ? ' <button type="button" class="deelknop" id="deelBesparing">Deel je besparing</button>' : '');
+    if (!el.hidden && $('deelBesparing')) $('deelBesparing').onclick = () => deelBesparing(ref - kost); }
   $('devList').innerHTML = devices.map(d => {
     const s = d.status;
     const st = d.enabled === false ? '<span class="status muted">Staat op pauze</span>'
@@ -370,6 +373,7 @@ const ruleUI = () => {
 };
 $('dKind').onchange = () => { kindUI(); ruleUI(); }; $('dRule').onchange = ruleUI;
 function openDev(d) {
+  if (d?.kind === 'easee') { toast('Een Easee-laadpaal pas je aan door hem weg te halen en opnieuw te koppelen via "Apparaat toevoegen".'); return; }
   editing = d ? d.id : null;
   $('devForm').hidden = false; $('devAdd').hidden = true; $('dMsg').textContent = '';
   $('dName').value = d?.name || ''; $('dKind').value = d?.kind || 'tuya';
@@ -443,19 +447,53 @@ $('sGasOpslag').value = ((settings.gasOpslag ?? 0.07) * 100).toFixed(2);
 $('sGasOpslag').oninput = () => { settings.lever = ''; $('sLever').value = ''; const v = num('sGasOpslag'); if (Number.isFinite(v)) { settings.gasOpslag = v / 100; render(); sync().catch(() => {}); } };
 $('sOpslag').oninput = () => { settings.lever = ''; $('sLever').value = ''; const v = num('sOpslag'); if (Number.isFinite(v)) { settings.opslag = v / 100; render(); sync().catch(() => {}); } };
 $('myCode').value = token;
-$('useCode').onclick = async () => {
-  const c = $('otherCode').value.trim();
-  if (!/^[A-Za-z0-9_-]{32,64}$/.test(c)) { $('otherCode').value = ''; $('otherCode').placeholder = 'Deze code klopt niet'; return; }
+async function wisselNaar(c) {
   const old = token; token = c;
   try {
     const j = await api({ action: 'get' });
     LS.set('sw-token', c);
     settings = { ...settings, ...(j.settings || {}) }; alerts = j.alerts || [];
     LS.set('sw-alerts', alerts); LS.set('sw-settings', settings); applyServer(j); renderAlerts(); render(); await enablePush();
-    $('otherCode').value = ''; $('otherCode').placeholder = '✓ Gekoppeld';
-  } catch (e) { token = old; $('otherCode').value = ''; $('otherCode').placeholder = e.message; }
-  $('myCode').value = token;
+    $('myCode').value = token; return true;
+  } catch (e) { token = old; $('myCode').value = token; throw e; }
+}
+$('useCode').onclick = async () => {
+  const c = $('otherCode').value.trim();
+  if (!/^[A-Za-z0-9_-]{32,64}$/.test(c)) { $('otherCode').value = ''; $('otherCode').placeholder = 'Deze code klopt niet'; return; }
+  try { await wisselNaar(c); $('otherCode').value = ''; $('otherCode').placeholder = '✓ Gekoppeld'; }
+  catch (e) { $('otherCode').value = ''; $('otherCode').placeholder = e.message; }
 };
+
+// ---------- E-mail: berichten per mail en inloggen met een link ----------
+function toast(t) { const d = document.createElement('div'); d.className = 'toast'; d.setAttribute('role', 'status'); d.textContent = t; document.body.append(d); setTimeout(() => d.remove(), 6000); }
+let mailInfo = null;
+function renderMail() {
+  if (!$('sMail')) return;
+  if (mailInfo && document.activeElement !== $('sMail')) $('sMail').value = mailInfo.adres || '';
+  $('sMailBer').checked = mailInfo ? mailInfo.berichten !== false : true;
+  if (mailInfo && !$('sMailMsg').dataset.vast) { $('sMailMsg').textContent = mailInfo.ok ? '✓ Bevestigd' : 'Nog niet bevestigd: klik op de link in de mail die we stuurden.'; $('sMailMsg').className = 'msg ' + (mailInfo.ok ? 'ok' : ''); }
+}
+async function slaMailOp(adres, berichten, msgEl) {
+  const zeg = (t, ok) => { if (msgEl) { msgEl.textContent = t; msgEl.className = 'msg ' + (ok ? 'ok' : 'err'); msgEl.dataset.vast = '1'; } };
+  if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(adres)) { zeg('Vul een geldig e-mailadres in.'); return false; }
+  zeg('Bezig…', true);
+  try { await sync(); const j = await api({ action: 'email', email: adres, berichten }); applyServer(j);
+    zeg(j.email?.ok ? '✓ Opgeslagen' : 'Bijna klaar: we hebben je een mail gestuurd. Klik op de link om je adres te bevestigen.', true); return true; }
+  catch (e) { zeg(e.message); return false; }
+}
+$('sMailSave') && ($('sMailSave').onclick = () => slaMailOp($('sMail').value.trim(), $('sMailBer').checked, $('sMailMsg')));
+$('sMailBer') && ($('sMailBer').onchange = () => { if (mailInfo?.adres) slaMailOp(mailInfo.adres, $('sMailBer').checked, $('sMailMsg')); });
+$('loginGo') && ($('loginGo').onclick = async () => {
+  const m = $('loginMsg'); m.className = 'msg ok'; m.textContent = 'Bezig…';
+  try { const r = await fetch('/api/account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'loginlink', email: $('loginMail').value.trim() }) });
+    const j = await r.json(); if (!r.ok) throw new Error(j.error); m.textContent = j.msg; }
+  catch (e) { m.className = 'msg err'; m.textContent = e.message || 'Dat lukte niet. Probeer het later opnieuw.'; }
+});
+{ const n = new URLSearchParams(location.search).get('login');
+  if (n) { history.replaceState(null, '', location.pathname);
+    fetch('/api/account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'login', nonce: n }) })
+      .then(r => r.json()).then(async j => { if (j.error) throw new Error(j.error); await wisselNaar(j.token); toast('✓ Je bent ingelogd. Je ziet nu je eigen berichten en apparaten.'); })
+      .catch(e => toast(e.message || 'Deze inloglink werkt niet meer.')); } }
 
 // ---------- Installeren ----------
 let bip = null;
@@ -487,7 +525,7 @@ setTimeout(maybeInstall, 1500);
 // ---------- Start ----------
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
 renderAlerts(); renderDevices(); renderPushNotice();
-data = LS.get('sw-lastdata', null); globalThis.__swGas = data?.gas; render();
+data = LS.get('sw-lastdata', null); globalThis.__swGas = data?.gas; globalThis.__swTemp = data?.temp; render();
 load();
 api({ action: 'get' }).then(j => { if (j.devices?.length || j.alerts?.length || j.hasPush) applyServer(j); }).catch(() => {});
 
@@ -554,7 +592,9 @@ const sApparaat = () => ({ t: 'Wat wil je vanzelf laten aangaan?', p: 'Kies wat 
   ...Object.entries(PRESETS).map(([k, v]) => ({ i: v.icon, l: { boiler: 'Boiler', was: 'Wasmachine, droger of vaatwasser', auto: 'Elektrische auto', anders: 'Iets anders' }[k], s: 'Aan ' + v.uitleg, go: () => { W.d.preset = k; go(sStekker); } })),
   { i: '⚙️', l: 'Zelf instellen', s: 'Voor wie alles zelf wil kiezen', go: () => { wizClose(); openMeer(); openDev(null); $('apparaten').scrollIntoView({ behavior: 'smooth' }); } },
 ] });
-const sStekker = () => ({ t: 'Welke slimme stekker heb je?', p: 'Aan en uit zetten werkt met élke stekker hieronder, ook de goedkoopste. Alleen voor het verbruik zien heb je een stekker met energiemeter nodig.', opts: [
+const sStekker = () => ({ t: W.d.preset === 'auto' ? 'Hoe laad je je auto?' : 'Welke slimme stekker heb je?', p: W.d.preset === 'auto' ? 'Heb je een Easee-laadpaal? Die koppelen we rechtstreeks. Laad je met een gewone stekker, kies dan je slimme stekker.' : 'Aan en uit zetten werkt met élke stekker hieronder, ook de goedkoopste. Alleen voor het verbruik zien heb je een stekker met energiemeter nodig.', opts: [
+  ...(W.d.preset === 'auto' ? [{ i: '🚗', l: 'Easee-laadpaal', s: 'Rechtstreeks gekoppeld, geen stekker nodig. Klaar in 2 minuten.', go: () => { W.d.kind = 'easee'; go(sEasee); } },
+    { i: '❓', l: 'Andere laadpaal of Tesla', s: 'Zaptec, Wallbox, Alfen, Tesla en andere', go: () => go(sLaadAnders) }] : []),
   { i: '🛒', l: 'Van de Action (LSC)', s: 'Makkelijk met een timer, of volledig automatisch', go: () => { W.d.kind = 'tuya'; W.d.lsc = true; go(sLscKeuze); } },
   { i: '📱', l: 'Smart Life of Tuya', s: 'Ook Hema, Calex, Nedis, Woox. Aan en uit: altijd. Verbruik zien: alleen met energiemeter', go: () => { W.d.kind = 'tuya'; go(sTuya); } },
   { i: '🔵', l: 'Shelly', s: 'Snelst te koppelen (3 minuten). Verbruik zien: Plug S, Plus Plug S en modellen met PM', go: () => { W.d.kind = 'shelly'; go(sShelly); } },
@@ -590,6 +630,7 @@ function wDevice() {
   const d = { id: W.d.id || (W.d.id = crypto.randomUUID()), name: W.d.name || p.name, kind: W.d.kind, notify: true, rule: W.d.rule || p.rule };
   if (W.d.kind === 'tuya') Object.assign(d, { accessId: v('wA'), accessSecret: v('wS'), deviceId: v('wD'), region: 'eu', code: 'switch_1' });
   if (W.d.kind === 'shelly') Object.assign(d, { host: v('wH'), key: v('wK'), deviceId: v('wD'), channel: 0 });
+  if (W.d.kind === 'easee') Object.assign(d, { deviceId: v('wD'), ...(W.d.easee || {}) });
   return d;
 }
 const meetZin = r => r?.meet === true ? ' Deze stekker meet ook het verbruik: je ziet straks wat je apparaat kost en wat je bespaart.' : r?.meet === false ? ' Deze stekker meet geen verbruik. Dat is niet erg: aan en uit zetten werkt gewoon.' : '';
@@ -755,6 +796,40 @@ const sTuyaCodes = () => ({ t: `Stap ${W.d.lsc ? 6 : 5}: neem 2 codes over`, of:
     + '<p class="hint" style="margin-top:12px">Gekozen? Tik op <b>Test: zet aan</b>. Gaat je stekker aan? Dan klopt alles.</p>' + testRow,
   after: () => { wireVelden(); wireZoek(); wireTest(); } });
 
+// ---- Easee-laadpaal: inloggen, laadpaal kiezen, testen ----
+const sEasee = () => ({ t: 'Koppel je Easee-laadpaal', of: 3,
+  p: 'Log in met je Easee-account (hetzelfde als in de Easee-app). Wij bewaren je wachtwoord niet: we krijgen van Easee alleen een sleutel om laden te pauzeren en te hervatten.',
+  html: `<label class="veld">E-mailadres of telefoonnummer van je Easee-account<input id="eUser" autocomplete="username"></label>
+    <label class="veld">Wachtwoord<input id="ePass" type="password" autocomplete="current-password"></label>
+    <button class="btn" type="button" id="eLogin">Koppelen</button><p class="msg" id="eMsg" role="status"></p>
+    <div id="eLijst" class="opts"></div><input type="hidden" id="wD">
+    <div id="eTest" hidden><p class="hint" style="margin-top:12px">Zit je auto aan de laadpaal? Tik op <b>Test: zet aan</b>. De laadpaal begint dan te laden (of blijft laden).</p>${testRow}</div>`,
+  after: () => {
+    const zeg = (t, ok) => { $('eMsg').textContent = t; $('eMsg').className = 'msg ' + (ok ? 'ok' : 'err'); if (!ok) W.d.fout = t; };
+    $('eLogin').onclick = async () => {
+      zeg('Even geduld…', true);
+      try {
+        const r = await api({ action: 'easee-login', user: $('eUser').value.trim(), password: $('ePass').value });
+        $('ePass').value = '';
+        W.d.easee = { eAccess: r.eAccess, eRefresh: r.eRefresh, eExp: r.eExp };
+        if (!r.chargers.length) { zeg('We vonden geen laadpaal bij dit account.'); return; }
+        zeg('✓ Gekoppeld. Tik op je laadpaal:', true);
+        $('eLijst').innerHTML = r.chargers.map((c, i) => `<button class="opt" type="button" data-i="${i}"><span>${svg('car')}</span><div><b>${esc(c.name)}</b><small>${esc(c.id)}</small></div></button>`).join('');
+        $('eLijst').querySelectorAll('[data-i]').forEach(b => b.onclick = () => { $('wD').value = r.chargers[+b.dataset.i].id; $('eLijst').querySelectorAll('.opt').forEach(o => o.classList.toggle('sel', o === b)); $('eTest').hidden = false; });
+        if (r.chargers.length === 1) $('eLijst').querySelector('[data-i]').click();
+      } catch (e) { zeg(e.message); }
+    };
+    wireTest();
+  } });
+const sLaadAnders = () => ({ t: 'Andere laadpaal of Tesla', of: 3, html: '<ol class="kstap">' + [
+  'Kijk eerst in de app van je laadpaal of auto. Veel laadpalen en Tesla hebben zelf een stand voor <b>slim laden</b> of <b>dynamisch tarief</b>. Zet die aan: dat is het makkelijkst.',
+  'Heb je Homey, Home Assistant of IFTTT? Dan kun je je laadpaal koppelen met een eigen link. Stroomwekker roept die link aan als laden goedkoop is.',
+  'Laad je met een gewone stekker of een laadkabel in het stopcontact? Kies dan je slimme stekker. Let op: een slimme stekker kan meestal maximaal 3.680 watt aan.',
+].map(x => `<li><span>${x}</span></li>`).join('') + '</ol>', opts: [
+  { i: '⚙️', l: 'Ik heb Homey, Home Assistant of IFTTT', go: () => { wizClose(); openMeer(); openDev(null); $('dName').value = 'Auto laden'; $('dKind').value = 'webhook'; $('dRule').value = 'cheapest'; $('dHrs').value = '6'; kindUI(); ruleUI(); $('apparaten').scrollIntoView({ behavior: 'smooth' }); } },
+  { i: '🔌', l: 'Ik laad met een slimme stekker', go: () => { W.d.preset = 'auto'; go(() => ({ ...sStekker(), opts: sStekker().opts.filter(o => !/Easee|Andere laadpaal/.test(o.l)) })); } },
+] });
+
 // ---- Shelly ----
 const sShelly = () => stap('Stap 1: zoek je Shelly-gegevens op', [
   'Open de <b>Shelly-app</b> (Shelly Smart Control) op je telefoon.',
@@ -822,10 +897,12 @@ const sBerichtKies = () => ({ t: 'Wanneer wil je een bericht?', p: 'Tik aan wat 
 const sKlaarBericht = () => {
   const perm = 'Notification' in window ? Notification.permission : 'unsupported';
   const ios = /iPhone|iPad/.test(navigator.userAgent) && !matchMedia('(display-mode: standalone)').matches;
-  const html = ios ? '<p><b>Nog één ding:</b> op een iPhone moet je Stroomwekker eerst op je beginscherm zetten. Tik onderin op <b>Deel</b> en kies <b>Zet op beginscherm</b>. Open de app daarna via je beginscherm en zet berichten aan.</p>'
+  const mailKeuze = '<div class="mailalt"><p><b>Makkelijker: krijg je berichten per e-mail.</b></p><div class="mailrij"><input id="wMail" type="email" autocomplete="email" placeholder="naam@voorbeeld.nl" aria-label="Je e-mailadres"><button class="btn btn-sm" id="wMailOk" type="button">Per e-mail</button></div><p class="msg" id="wMailMsg" role="status"></p></div>';
+  const html = ios ? '<p><b>Nog één ding:</b> op een iPhone moet je Stroomwekker eerst op je beginscherm zetten. Tik onderin op <b>Deel</b> en kies <b>Zet op beginscherm</b>. Open de app daarna via je beginscherm en zet berichten aan.</p>' + mailKeuze
     : perm === 'granted' ? '<div class="bigok">'+svg('bell')+'</div><p>Je krijgt vanaf nu een bericht op dit apparaat. Ook als de site dicht is.</p>'
-    : '<p>Je browser staat berichten nog niet toe. Tik op het slotje naast het webadres en zet <b>Meldingen</b> aan. Probeer het daarna opnieuw.</p>';
-  return { t: perm === 'granted' && !ios ? 'Klaar' : 'Bijna klaar', of: 3, html, opts: [{ i: '✅', l: 'Sluiten', go: wizClose }] };
+    : '<p>Je browser staat berichten nog niet toe. Tik op het slotje naast het webadres en zet <b>Meldingen</b> aan. Probeer het daarna opnieuw.</p>' + mailKeuze;
+  return { t: perm === 'granted' && !ios ? 'Klaar' : 'Bijna klaar', of: 3, html, opts: [{ i: '✅', l: 'Sluiten', go: wizClose }],
+    after: () => { $('wMailOk') && ($('wMailOk').onclick = () => slaMailOp($('wMail').value.trim(), true, $('wMailMsg'))); } };
 };
 function addAlert(a, quiet) {
   if (!alerts.some(x => x.type === a.type && (a.type !== 'timer' || x.name === a.name))) alerts.push({ id: crypto.randomUUID(), value: 0, hours: 1, ...a });
@@ -839,7 +916,7 @@ const sWarmte = () => ({ t: 'Hoe verwarm je je huis?', opts: [
 ] });
 function warmteUitleg() {
   const cur = data && current(data.quarters, Date.now()), w = cur && warmte(cur, settings);
-  return w ? `<div class="timerkaart"><small>Nu, met de prijzen van vandaag</small><b>${w.beter === 'stroom' ? 'Stook met stroom' : 'Stook op gas'}</b><small>Warmte uit stroom: ${ct(w.stroom)} cent per kWh. Uit gas: ${ct(w.gas)} cent per kWh. Stroom wint zolang hij onder ${ct(w.grens)} cent blijft.</small></div>` : '';
+  return w ? `<div class="timerkaart"><small>Nu, met de prijzen van vandaag</small><b>${w.beter === 'stroom' ? 'Stook met stroom' : 'Stook op gas'}</b><small>${w.temp != null ? `Buiten is het nu ${String(w.temp).replace('.', ',')} °C, dus je warmtepomp maakt ongeveer ${String(w.cop).replace('.', ',')} kWh warmte van 1 kWh stroom. ` : ''}Warmte uit stroom: ${ct(w.stroom)} cent per kWh. Uit gas: ${ct(w.gas)} cent per kWh. Stroom wint zolang hij onder ${ct(w.grens)} cent blijft.</small></div>` : '';
 }
 const sHybride = () => ({ t: 'Gas of stroom: wij rekenen het uit', html: warmteUitleg() + '<p>Een warmtepomp is bijna altijd goedkoper dan gas. Maar bij een dynamisch contract is stroom soms zó duur, vaak tussen 17:00 en 20:00, dat je cv-ketel dan goedkoper stookt. Heeft je warmtepomp zelf een stand voor dynamische prijzen? Zet die dan aan. Dat is het makkelijkst.</p>', opts: [
   { i: '🔔', l: 'Stuur mij een bericht als ik beter op gas kan stoken', s: 'En weer als de warmtepomp goedkoper is', go: async () => { addAlert({ type: 'warmte', value: COP }); await enablePush(); go(sKlaarBericht); } },

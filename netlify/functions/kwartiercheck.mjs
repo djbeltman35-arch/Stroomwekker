@@ -4,6 +4,7 @@ import { store } from '../lib/store.mjs';
 import { refreshPrices } from '../lib/data.mjs';
 import { switchDevice, readMeter } from '../lib/devices.mjs';
 import { magSchakelen, afdwingen, proefVoor } from '../lib/proef.mjs';
+import { stuurMail, mailKlaar } from '../lib/mail.mjs';
 import { alertsDue, deviceWants, batteryMode, price, current, fmtCt, nlTime, nlDayBounds, inRange, quarterStart, Q, DEFAULT_SETTINGS } from '../../public/js/engine.js';
 
 // Verbruik van het afgelopen kwartier optellen bij de dag: kWh, wat het kostte, en wat het op een gemiddeld moment had gekost.
@@ -30,7 +31,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 export default async () => {
   const now = Date.now() + 20e3; // net na de kwartierwissel: tel als het nieuwe kwartier
-  const { quarters, gas } = await refreshPrices(now); // ververst meteen de bewaarde prijzen voor bezoekers
+  const { quarters, gas, temp } = await refreshPrices(now); // ververst meteen de bewaarde prijzen voor bezoekers
   const s = store();
   const vapidOk = process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY;
   if (vapidOk) webpush.setVapidDetails('mailto:djbeltman35@gmail.com', process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
@@ -41,7 +42,7 @@ export default async () => {
     const acc = await s.get(key, { type: 'json' });
     if (!acc) continue;
     const st = acc.state || (acc.state = {});
-    const settings = { ...DEFAULT_SETTINGS, ...(acc.settings || {}), gas: gas || {} };
+    const settings = { ...DEFAULT_SETTINGS, ...(acc.settings || {}), gas: gas || {}, temp: temp || {} };
     const msgs = alertsDue(acc.alerts || [], quarters, now, settings, st.alerts || (st.alerts = {}));
 
     // Proefperiode per stekker bijhouden (ook voor oudere accounts)
@@ -136,6 +137,19 @@ export default async () => {
       for (const m of msgs) {
         try { await webpush.sendNotification(acc.push, JSON.stringify(m), { TTL: 900, urgency: 'high' }); sent++; }
         catch (e) { if (e.statusCode === 404 || e.statusCode === 410) { acc.push = null; break; } }
+      }
+    }
+    // Berichten per e-mail (bevestigd adres): alles van dit kwartier in één mail, hooguit 8 per dag.
+    // Gewone meldingen over aan/uit gaan van apparaten sturen we niet per mail.
+    const mailMsgs = msgs.filter(m => !String(m.id).startsWith('dev-'));
+    if (acc.email?.ok && acc.email.berichten !== false && mailMsgs.length && (mailKlaar() || process.env.DEV_MEMORY)) {
+      const dag = nlDayBounds(now).day, tel = st.mailTel?.dag === dag ? st.mailTel.n : 0;
+      if (tel < 8) {
+        try {
+          await stuurMail(acc.email.adres, mailMsgs[0].title.replace(/^[^\p{L}\d€]+/u, '') + (mailMsgs.length > 1 ? ` (+${mailMsgs.length - 1})` : ''),
+            mailMsgs.map(m => `${m.title}\n${m.body || ''}`).join('\n\n') + `\n\nOpen Stroomwekker: https://stroomwekker.eu/\n\nGeen berichten meer per e-mail? Klik hier: https://stroomwekker.eu/api/email?a=${key.slice(2)}&uit=${acc.email.code}`);
+          st.mailTel = { dag, n: tel + 1 }; sent++;
+        } catch (e) { console.error('mail', e.message); }
       }
     }
     await s.setJSON(key, acc);

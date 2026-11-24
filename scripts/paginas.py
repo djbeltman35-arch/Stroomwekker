@@ -429,6 +429,7 @@ maak('/privacy/', 'Privacyverklaring | Stroomwekker',
       <li><b>Het verbruik van je apparaat</b>, als je stekker dat meet, zodat we kunnen laten zien wat het kost en wat je bespaart. We bewaren maximaal de laatste 62 dagen.</li>
       <li><b>Wanneer de gratis proefperiode van je stekker begon.</b> Daarvoor bewaren we het nummer van je stekker alleen onherkenbaar gemaakt (versleuteld met een hash). Zo kan iedere stekker één keer gratis proberen.</li>
       <li><b>Berichten via het contactformulier</b>, zodat we je kunnen antwoorden.</li>
+      <li><b>Je e-mailadres</b>, alleen als je het zelf invult bij Instellingen. We gebruiken het om je berichten per e-mail te sturen (als je dat aanzet) en om je een inloglink te sturen. Elke mail heeft een afmeldlink. Wis je je gegevens, dan wissen we ook je e-mailadres.</li>
     </ul>
     <p>Je instellingen worden gekoppeld aan een lange, willekeurige code die alleen in jouw browser staat. Wij weten dus niet wie je bent. We verkopen niets en geven niets aan anderen, behalve wat nodig is om de dienst te laten werken (zie hieronder).</p>
   </section>
@@ -484,6 +485,34 @@ print('gemaakt /404.html')
 # ---------------- Widget ----------------
 code_licht = '<iframe src="https://stroomwekker.eu/widget/stroomprijs" width="340" height="150" style="border:0;max-width:100%" title="Stroomprijs nu" loading="lazy"></iframe>\n<p style="font-size:13px"><a href="https://stroomwekker.eu/">Stroomprijs per kwartier van Stroomwekker</a></p>'
 code_donker = code_licht.replace('stroomprijs"', 'stroomprijs?stijl=donker"')
+
+maak('/bespaarcheck/', 'Bespaarcheck: is een dynamisch energiecontract goedkoper voor jou? | Stroomwekker',
+     'Reken in een minuut uit wat een dynamisch contract jou had gekost, met de echte stroom- en gasprijzen van de afgelopen 30 dagen. Gratis, zonder account.',
+     'Bespaarcheck: is dynamisch goedkoper voor jou?', 'Vul je verbruik en je huidige prijs in. Wij rekenen het uit met de echte prijzen van de afgelopen 30 dagen.', """
+  <section class="card">
+    <form class="form" id="bcForm" style="background:none;border:0;padding:0">
+      <div class="twee">
+        <label>Stroom per jaar (kWh)<input id="bcKwh" type="number" inputmode="numeric" value="2300"><span class="hint">Staat op je jaarafrekening. Gemiddeld huishouden: 2.300.</span></label>
+        <label>Gas per jaar (m³)<input id="bcM3" type="number" inputmode="numeric" value="1000"><span class="hint">Geen gas? Vul 0 in.</span></label>
+        <label>Wat betaal je nu per kWh? (€)<input id="bcPs" type="text" inputmode="decimal" placeholder="0,36"><span class="hint">Inclusief belasting. Weet je het niet? Laat leeg, dan rekenen we met 0,36 (gemiddeld variabel contract).</span></label>
+        <label>Wat betaal je nu per m³ gas? (€)<input id="bcPg" type="text" inputmode="decimal" placeholder="1,95"><span class="hint">Weet je het niet? Laat leeg, dan rekenen we met 1,95.</span></label>
+      </div>
+      <label>Hoeveel stroom kun je verschuiven naar goedkope uren?
+        <select id="bcSchuif"><option value="0.1">Weinig: alleen de wasmachine (10%)</option><option value="0.25" selected>Gemiddeld: wasmachine, vaatwasser en boiler (25%)</option><option value="0.4">Veel: ook een elektrische auto of warmtepomp (40%)</option></select></label>
+    </form>
+    <div id="bcUit" aria-live="polite" style="margin-top:16px"><p class="muted">Even rekenen…</p></div>
+  </section>
+  <section class="card">
+    <h2>Hoe werkt een dynamisch contract?</h2>
+    <p>De stroomprijs verandert elk kwartier en gas één keer per dag. Gebruik je stroom vooral als het goedkoop is, dan betaal je minder. Stroomwekker zet je apparaten vanzelf aan op die momenten. <a href="/gids/dynamisch-energiecontract/">Lees de uitleg</a> of <a href="/">probeer Stroomwekker gratis</a>.</p>
+  </section>
+  <style>.bckop{font-size:22px;line-height:1.3;margin:0 0 12px}.bckop b{color:#13703A}
+  .pagina .top3{list-style:none;padding:0!important;margin:0;display:grid;gap:8px}.pagina .top3 li{margin:0}.top3 a{display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:10px;text-decoration:none;color:var(--ink);background:var(--surface,#fff)}
+  .top3 .nr{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:#F5B700;color:#0F2340}.top3 b{display:block}.top3 small{display:block;color:var(--muted);font-size:14px}.top3 .pr{text-align:right;font-weight:800;white-space:nowrap}
+  .tabel{width:100%;border-collapse:collapse}.tabel td{padding:9px 4px;border-top:1px solid var(--line)}.tabel td:last-child{text-align:right;white-space:nowrap}</style>
+  <script type="module" src="/js/bespaarcheck.js"></script>
+""", soort='WebPage', byline=False)
+
 maak('/widget/', 'Gratis stroomprijs-widget voor je website | Stroomwekker',
      'Zet de actuele dynamische stroomprijs gratis op je eigen website of blog. Kopieer de code, plak hem in je pagina en klaar. Altijd actueel, inclusief belasting.',
      'Gratis stroomprijs-widget', 'Laat de stroomprijs van nu op je eigen website zien. Gratis, zonder account.', f'''

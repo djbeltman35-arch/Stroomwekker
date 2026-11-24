@@ -28,3 +28,4 @@
 
 Citeren mag met bronvermelding en een link naar stroomwekker.eu. Overnemen of namaken mag niet zonder schriftelijke toestemming.
 - [Gasprijs vandaag](https://stroomwekker.eu/gasprijs-vandaag/): dynamische gasprijs per m³ van vandaag en morgen, de laatste 30 dagen, en of een hybride warmtepomp nu beter op gas of stroom stookt.
+- [Bespaarcheck](https://stroomwekker.eu/bespaarcheck/): reken uit of een dynamisch energiecontract goedkoper is, met de echte prijzen van de afgelopen 30 dagen.

@@ -229,6 +229,9 @@ details.meer>summary::-webkit-details-marker{display:none}
 details.meer>summary::after{content:"";width:9px;height:9px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg) translateY(-3px)}
 details.meer[open]>summary::after{transform:rotate(-135deg)}
 #mijn{border-left:3px solid var(--green)}
+.deelknop{margin-left:6px;font:inherit;font-size:14px;font-weight:700;padding:6px 12px;border-radius:999px;border:0;background:#F5B700;color:#0F2340;cursor:pointer}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0F2340;color:#fff;padding:12px 18px;border-radius:12px;z-index:99;max-width:92vw;font-size:15px;box-shadow:0 6px 24px rgba(0,0,0,.25)}.mailalt{margin-top:16px;padding:14px;border-radius:12px;background:#F1F4F8}.mailalt p{margin:0 0 8px}
+.mailrij{display:flex;gap:8px}.mailrij input{flex:1;min-width:0;padding:10px;border:1px solid var(--line);border-radius:8px;font-size:16px}.mailchk{display:flex;gap:8px;align-items:center;margin:8px 0 0}
 .verschil{margin:0 0 12px;font-size:15.5px}.verschil summary{cursor:pointer;font-weight:700;color:var(--blue,#2563EB)}.verschil ul{margin:8px 0 6px;padding-left:20px;display:grid;gap:6px}.verschil p{margin:0}
 .top3kop{font-size:18px;margin:18px 0 10px}
 .top3tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}.top3tabs button{font:inherit;font-size:15px;font-weight:600;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface,#fff);color:var(--ink);cursor:pointer}.top3tabs button[aria-selected="true"]{background:var(--navy,#0F2340);color:#fff;border-color:var(--navy,#0F2340)}
@@ -600,8 +603,19 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
         <span class="hint">Meestal 6 tot 10 cent per m³. Weet je het niet? Laat dan 7 staan.</span></label>
     </form>
     <a class="koopstekker" id="vergelijkOpslag" href="#" target="_blank" rel="sponsored noopener"><span aria-hidden="true">⚡</span><span><b>Betaal je meer dan nodig?</b><small>Vergelijk dynamische contracten en hun toeslag per kWh · advertentie</small></span></a>
-    <details style="margin-top:12px"><summary class="small" style="cursor:pointer;font-weight:700">Ook op een andere telefoon of computer gebruiken</summary>
-      <p class="small">Dit is je eigen code. Plak deze code op je andere telefoon of computer. Dan zie je daar dezelfde berichten en apparaten. Geef deze code aan niemand.</p>
+    <div class="mailblok">
+      <h3 style="font-size:17px;margin:16px 0 6px">Je e-mailadres</h3>
+      <p class="small" style="margin:0 0 8px">Krijg je berichten ook per e-mail, en log met één klik in op een andere telefoon of computer. We gebruiken je adres nergens anders voor.</p>
+      <div class="mailrij"><input id="sMail" type="email" autocomplete="email" placeholder="naam@voorbeeld.nl" aria-label="Je e-mailadres"><button class="btn btn-sm" id="sMailSave" type="button">Opslaan</button></div>
+      <label class="small mailchk"><input type="checkbox" id="sMailBer" checked> Stuur mijn berichten ook per e-mail</label>
+      <p class="msg" id="sMailMsg" role="status"></p>
+    </div>
+    <details style="margin-top:12px"><summary class="small" style="cursor:pointer;font-weight:700">Inloggen op een andere telefoon of computer</summary>
+      <p class="small">Vul het e-mailadres in dat je hier al hebt bevestigd. Je krijgt een mail met een inloglink. Open die link op het apparaat waar je wilt inloggen.</p>
+      <div class="mailrij"><input id="loginMail" type="email" autocomplete="email" placeholder="naam@voorbeeld.nl" aria-label="E-mailadres voor de inloglink"><button class="btn btn-sm" id="loginGo" type="button">Stuur inloglink</button></div>
+      <p class="msg" id="loginMsg" role="status"></p>
+      <p class="small" style="margin-top:14px">Of gebruik je eigen code. Plak deze code op je andere apparaat. Geef deze code aan niemand.</p>
+
       <input id="myCode" readonly style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:13px">
       <div style="display:flex;gap:8px;margin-top:8px"><input id="otherCode" placeholder="Plak hier een code" style="flex:1;padding:8px;border:1px solid var(--line);border-radius:8px"><button class="btn btn-sm" id="useCode" type="button">Gebruiken</button></div>
     </details>
@@ -611,6 +625,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
 
   <div class="card" id="vergelijken">
     <h2>Nog geen dynamisch contract? Of wil je overstappen?</h2>
+    <a class="koopstekker" href="/bespaarcheck/"><span aria-hidden="true">🧮</span><span><b>Is dynamisch goedkoper voor jou?</b><small>Reken het in een minuut uit met de echte prijzen van de afgelopen 30 dagen</small></span></a>
     <h3 class="top3kop">De 3 goedkoopste voor stroom en gas samen</h3>
     <details class="verschil"><summary>Wat is het verschil?</summary>
       <ul>
@@ -679,7 +694,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
     <div class="cols">
       <div><div class="fl" aria-label="Stroomwekker"><span class="woord"><span class="s">Stroom</span><span class="w">wekker<svg class="flits" viewBox="0 0 600 200" aria-hidden="true"><path d="M0 200 285 52 215 112 600 0 315 148 385 88Z"/></svg></span></span></div>
         <p style="margin:0;max-width:40ch">Hulp voor iedereen met een dynamisch energiecontract: de stroomprijs per kwartier, automatische berichten en apparaten die vanzelf schakelen.</p></div>
-      <div><h3>Stroomwekker</h3><nav aria-label="Stroomwekker"><a href="/stroomprijs-vandaag/">Stroomprijs vandaag</a><a href="/stroomprijs-morgen/">Stroomprijs morgen</a><a href="/gasprijs-vandaag/">Gasprijs vandaag</a><a href="/stroomprijs/">Prijsarchief</a><a href="/hoe-werkt-het/">Hoe werkt het?</a><a href="/gids/">Uitleg en tips</a><a href="/over/">Over Stroomwekker</a><a href="/contact/">Contact</a></nav></div>
+      <div><h3>Stroomwekker</h3><nav aria-label="Stroomwekker"><a href="/stroomprijs-vandaag/">Stroomprijs vandaag</a><a href="/stroomprijs-morgen/">Stroomprijs morgen</a><a href="/gasprijs-vandaag/">Gasprijs vandaag</a><a href="/bespaarcheck/">Bespaarcheck</a><a href="/stroomprijs/">Prijsarchief</a><a href="/hoe-werkt-het/">Hoe werkt het?</a><a href="/gids/">Uitleg en tips</a><a href="/over/">Over Stroomwekker</a><a href="/contact/">Contact</a></nav></div>
       <div><h3>Ook van de maker</h3><nav class="twee" aria-label="Ook van de maker"><a href="https://bespaarvriend.nl/?bron=stroomwekker" target="_blank" rel="noopener">Bespaarvriend</a><a href="https://boodschappenvergelijk.nl/" target="_blank" rel="noopener">Boodschappenvergelijk</a><a href="https://goedkopertanken.netlify.app/" target="_blank" rel="noopener">Tankwijzer</a><a href="https://vluchtwijzer.netlify.app/" target="_blank" rel="noopener">Vluchtwijzer</a><a href="https://vakantietoppers.netlify.app/" target="_blank" rel="noopener">Vakantiewijzer</a><a href="https://salderingscheck-nl.netlify.app/" target="_blank" rel="noopener">Salderingscheck</a><a href="https://euroroadrules.eu/" target="_blank" rel="noopener">EuroRoadRules</a><a href="https://foutcodezoeker.nl/" target="_blank" rel="noopener">Foutcodezoeker</a><a href="https://bespaarvriend.nl/elektronica/" target="_blank" rel="noopener">Elektrovergelijk</a><a href="https://bonnenboek.netlify.app/" target="_blank" rel="noopener">Bonnenboek</a><a href="https://allesoporde.netlify.app/" target="_blank" rel="noopener">Alles op orde</a></nav></div>
     </div>
     <p class="muted" style="margin:0;font-size:13px">© 2026 Stroomwekker – Erik Beltman. Alle rechten voorbehouden. Overnemen of publiceren mag alleen met schriftelijke toestemming (<a href="/gebruiksvoorwaarden/" style="color:#C9D4E5">auteursrecht en gebruiksvoorwaarden</a>). <a href="/privacy/" style="color:#C9D4E5">Privacy</a>. <a href="/zo-rekenen-wij/" style="color:#C9D4E5">Zo berekenen wij de prijs</a>. Prijsdata: Energy-Charts (Fraunhofer ISE, CC BY 4.0) en EnergyZero. We doen ons best, maar kunnen fouten maken. De prijs van je energiebedrijf is leidend. Stroomwekker geeft informatie, geen advies; gebruik is op eigen risico (<a href="/gebruiksvoorwaarden/#disclaimer" style="color:#C9D4E5">disclaimer</a>).</p>
