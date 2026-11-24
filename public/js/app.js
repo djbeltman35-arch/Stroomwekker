@@ -765,7 +765,7 @@ const urenTxt = () => { const u = W.d.alexaUren || 2; return u === 1 ? '1 uur' :
 const KNOPSITE = 'https://alexa.hapicom.jp/';
 // Directe links naar de skills in de Alexa-winkel (opent de Alexa-app als die er is)
 const SKILL_URL = asin => 'https://alexa.amazon.com/spa/index.html#skills/dp/' + asin;
-const SKILL = { 'Smart Life': '', 'LSC Smart Connect': '', knop: '' }; // Amazon heeft in NL geen werkende skill-links (alle varianten geven 404)
+const SKILL = { 'Smart Life': SKILL_URL('B01N1ZVI7M'), 'LSC Smart Connect': SKILL_URL('B082VWZ372'), knop: SKILL_URL('B0GFT3BQBH') }; // opent de skill in de Alexa-app
 const skillKnop = (naam, label) => SKILL[naam] ? `<div class="knoprij"><a class="btn" href="${SKILL[naam]}" target="_blank" rel="noopener">${label}</a></div>` : '';
 
 // Schets van een telefoonscherm. Geel omrand = daar tik je op.
@@ -807,14 +807,14 @@ const sAlexa2 = () => ({ t: 'Stap 1: open de app Alexa', of: AX,
 
 const sAlexa3 = () => { const app = W.d.merkApp || 'Smart Life'; return { t: 'Stap 2: zet je stekker in Alexa', of: AX,
   html: skillKnop(app, `Open ${app} in Alexa`)
-    + regels([SKILL[app] ? 'Tik op de gele knop.' : `Tik in Alexa onderin op <b>Meer</b> → <b>Vaardigheden en games</b> → <b>Slim huis</b>.`, `Zoek <b>${xe(app)}</b> en tik erop.`,
+    + regels([`Tik op de gele knop. Werkt die niet? Tik in Alexa op <b>Meer</b> → <b>Vaardigheden en games</b> → <b>Slim huis</b> en zoek <b>${xe(app)}</b>.`,
       'Tik op <b>Inschakelen voor gebruik</b>.', `Log in met je account van <b>${xe(app)}</b>.`])
     + tel('Slim huis', [{ k: 'zoek', t: app }, { k: 'rij', t: app, s: 'Vaardigheid voor slim huis', hl: 1 }, { k: 'ruimte', h: 4 }, { k: 'knop', t: 'INSCHAKELEN VOOR GEBRUIK', hl: 1 }]),
   opts: verder(sAlexa4) }; };
 
 const sAlexa4 = () => ({ t: 'Stap 3: zet de Stroomwekker-knop in Alexa', of: AX,
   html: skillKnop('knop', 'Open de knop in Alexa')
-    + regels([SKILL.knop ? 'Tik op de gele knop.' : 'Tik in Alexa onderin op <b>Meer</b> → <b>Vaardigheden en games</b> → <b>Slim huis</b>.', 'Zoek <b>Virtuele triggerknop voor Alexa-routines</b> en tik erop.',
+    + regels(['Tik op de gele knop. Werkt die niet? Tik in Alexa op <b>Meer</b> → <b>Vaardigheden en games</b> → <b>Slim huis</b> en zoek <b>Virtuele triggerknop voor Alexa-routines</b>.',
       'Tik op <b>Inschakelen voor gebruik</b>.', 'Log in met je Amazon-account.', 'Vraagt Alexa om apparaten te zoeken? Tik op <b>Zoeken</b>.'])
     + tel('Slim huis', [{ k: 'zoek', t: 'Virtuele triggerknop' }, { k: 'rij', t: 'Virtuele triggerknop voor', s: 'Alexa-routines', hl: 1 }, { k: 'ruimte', h: 4 }, { k: 'knop', t: 'INSCHAKELEN VOOR GEBRUIK', hl: 1 }]),
   opts: verder(sAlexa5) });
