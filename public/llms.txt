@@ -27,3 +27,4 @@
 - [Privacy](https://stroomwekker.eu/privacy/) · [Auteursrecht en gebruiksvoorwaarden](https://stroomwekker.eu/gebruiksvoorwaarden/)
 
 Citeren mag met bronvermelding en een link naar stroomwekker.eu. Overnemen of namaken mag niet zonder schriftelijke toestemming.
+- [Gasprijs vandaag](https://stroomwekker.eu/gasprijs-vandaag/): dynamische gasprijs per m³ van vandaag en morgen, de laatste 30 dagen, en of een hybride warmtepomp nu beter op gas of stroom stookt.

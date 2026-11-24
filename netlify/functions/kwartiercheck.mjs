@@ -30,7 +30,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 export default async () => {
   const now = Date.now() + 20e3; // net na de kwartierwissel: tel als het nieuwe kwartier
-  const { quarters } = await refreshPrices(now); // ververst meteen de bewaarde prijzen voor bezoekers
+  const { quarters, gas } = await refreshPrices(now); // ververst meteen de bewaarde prijzen voor bezoekers
   const s = store();
   const vapidOk = process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY;
   if (vapidOk) webpush.setVapidDetails('mailto:djbeltman35@gmail.com', process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
@@ -41,7 +41,7 @@ export default async () => {
     const acc = await s.get(key, { type: 'json' });
     if (!acc) continue;
     const st = acc.state || (acc.state = {});
-    const settings = { ...DEFAULT_SETTINGS, ...(acc.settings || {}) };
+    const settings = { ...DEFAULT_SETTINGS, ...(acc.settings || {}), gas: gas || {} };
     const msgs = alertsDue(acc.alerts || [], quarters, now, settings, st.alerts || (st.alerts = {}));
 
     // Proefperiode per stekker bijhouden (ook voor oudere accounts)

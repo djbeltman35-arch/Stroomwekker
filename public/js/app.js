@@ -1,4 +1,4 @@
-import { price, current, quarterStart, nlDayBounds, nlTime, inRange, cheapestBlock, levels, levelOf, alertsDue, negativeWindows, batteryPlan, Q, DEFAULT_SETTINGS } from '/js/engine.js';
+import { gasPrijs, warmte, gasUren, COP, price, current, quarterStart, nlDayBounds, nlTime, inRange, cheapestBlock, levels, levelOf, alertsDue, negativeWindows, batteryPlan, Q, DEFAULT_SETTINGS } from '/js/engine.js';
 
 const $ = id => document.getElementById(id);
 const LS = { get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
@@ -14,6 +14,43 @@ const TILES = [
   ['🔒', '3 jaar vaste prijs', 'Zekerheid in plaats van dynamisch', aw('https://www.gaslicht.com/energievergelijken/energiecontract-3-jaar-vast', '3jaarvast')],
 ];
 $('vergelijkOpslag').href = aw('https://www.gaslicht.com/energievergelijken/dynamisch-energiecontract-vergelijken', 'toeslag');
+// ---------- Top 3 goedkoopste contracten voor stroom en gas samen ----------
+// Bron: ranglijsten van de vergelijker (november 2026), bij 2.300 kWh stroom en 1.000 m³ gas per jaar, inclusief welkomstkorting.
+// Elke maand bijwerken: de volgorde verandert met de tarieven.
+const GL = pad => aw('https://www.gaslicht.com' + pad, 'top3');
+const TOP3 = {
+  dynamisch: { l: 'Dynamisch', uitleg: 'Prijs per kwartier, past bij Stroomwekker', r: [
+    ['Budget Thuis', 'Europese groene stroom en aardgas', 195, '/aanmelden/budgetthuis/5120/europese-groene-stroom-en-aardgas-dynamisch'],
+    ['NextEnergy', 'Groene stroom en aardgas', 197, '/aanmelden/nextenergy/5082/groene-stroom-en-aardgas-dynamisch'],
+    ['Vandebron', 'NL groene stroom en aardgas', 197, '/aanmelden/vandebron/5232/nl-groene-stroom-en-aardgas-met-investering-in-lokale-natuur-dynamisch'],
+  ] },
+  vast1: { l: '1 jaar vast', uitleg: 'Een jaar lang dezelfde prijs', r: [
+    ['Energiedirect', 'Groene stroom en aardgas 1 jaar', 227, '/energie-vergelijken/energiedirect/groene-stroom-en-aardgas-1-jr-vast-5017'],
+    ['Eneco', 'Hollandse wind en zon en aardgas 1 jaar', 231, '/energie-vergelijken/eneco/hollandse-wind-en-zon-en-aardgas-1-jaar-vast-4850'],
+    ['Greenchoice', 'Groene stroom en aardgas 1 jaar', 231, '/aanmelden/greenchoice/5279/nederlandse-groene-stroom-en-aardgas-met-natuur-voor-morgen-1-jaar-vast-actie'],
+  ] },
+  vast3: { l: '3 jaar vast', uitleg: 'Drie jaar zekerheid', r: [
+    ['Budget Thuis', 'Europese groene stroom en aardgas 3 jaar', 202, '/aanmelden/budgetthuis/5046/europese-groene-stroom-en-aardgas-vast-3-jaar'],
+    ['Energiedirect', 'Groene stroom en aardgas 3 jaar', 204, '/aanmelden/energiedirect/5018/groene-stroom-en-aardgas-3-jaar-vast'],
+    ['Vandebron', 'Groene stroom en gas 3 jaar', 206, '/aanmelden/vandebron/4992/100-procent-groene-stroom-en-co2-gecompenseerd-gas-3-jaar-vast'],
+  ] },
+  variabel: { l: 'Variabel', uitleg: 'Prijs kan elke maand veranderen, altijd opzegbaar', r: [
+    ['Frank Energie', 'Groene stroom en aardgas variabel', 245, '/energie-vergelijken/frank-energie/nederlandse-groene-stroom-en-aardgas-variabel-4892'],
+    ['Greenchoice', 'Windstroom en aardgas variabel', 252, '/energie-vergelijken/greenchoice/windstroom-uit-nederland-en-co2-gecompenseerd-gas-variabel-5051'],
+    ['Mega', 'EU groene stroom en aardgas variabel', 255, '/energie-vergelijken/mega/eu-groene-stroom-en-aardgas-variabel-4816'],
+  ] },
+};
+function toonTop3(k) {
+  const t = TOP3[k];
+  $('top3tabs').querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', b.dataset.k === k));
+  $('top3').innerHTML = t.r.map(([lev, pak, pm, pad], i) => `<li><a href="${GL(pad)}" target="_blank" rel="sponsored noopener"><span class="nr">${i + 1}</span><span><b>${lev}</b><small>${pak}</small></span><span class="pr">€ ${pm}<small> p/m</small></span></a></li>`).join('');
+  $('top3uitleg').textContent = `${t.uitleg}. Bedragen per maand voor stroom en gas samen, bij 2.300 kWh en 1.000 m³ per jaar, inclusief welkomstkorting. Tarieven van november 2026; wat jij betaalt hangt af van je adres en verbruik.`;
+}
+if ($('top3tabs')) {
+  $('top3tabs').innerHTML = Object.entries(TOP3).map(([k, t]) => `<button type="button" role="tab" data-k="${k}">${t.l}</button>`).join('');
+  $('top3tabs').querySelectorAll('button').forEach(b => b.onclick = () => toonTop3(b.dataset.k));
+  toonTop3('dynamisch');
+}
 $('tiles').innerHTML = TILES.map(([i, b, s, u]) => `<a href="${u}" target="_blank" rel="sponsored noopener"><span class="i" aria-hidden="true">${i}</span><b>${b}</b><small>${s}</small></a>`).join('');
 
 // ---------- Status ----------
@@ -60,7 +97,7 @@ async function load() {
   try {
     const r = await fetch('/api/prices', { cache: 'no-store' });
     if (!r.ok) throw 0;
-    data = await r.json();
+    data = await r.json(); globalThis.__swGas = data.gas;
     LS.set('sw-lastdata', data);
   } catch { data = data || LS.get('sw-lastdata', null); }
   render();
@@ -96,8 +133,9 @@ function render() {
     $('nowUntil').textContent = 'Geen prijs voor dit kwartier gevonden';
   }
   $('avgP').textContent = tq.length ? ct(P(tq.reduce((s, q) => s + q.spot, 0) / tq.length)) + ' cent' : '–';
-  const g = data.gas?.[today.day];
+  const g = gasPrijs(now, settings);
   $('gasP').textContent = g != null ? eur(g, 2) : '–';
+  renderWarmte(now);
 
   const from = quarterStart(now), to = mq.length ? tom.end : today.end;
   const rest = inRange(qs, from, to);
@@ -209,9 +247,19 @@ document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click
   day = +b.dataset.day; document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b)); render();
 }));
 
+// ---------- Verwarmen: gas of stroom (hybride warmtepomp) ----------
+function renderWarmte(now) {
+  const el = $('warmteNu'); if (!el) return;
+  const cur = current(data.quarters, now), w = cur && warmte(cur, settings);
+  if (!w) { el.hidden = true; return; }
+  const { start, end } = nlDayBounds(now), gasStuk = gasUren(data.quarters, Math.max(start, quarterStart(now)), end, settings);
+  el.hidden = false;
+  el.innerHTML = `<b>${w.beter === 'stroom' ? '♨️ Hybride warmtepomp: stook nu met stroom' : '🔥 Hybride warmtepomp: stook nu op gas'}</b><small>Stroom is goedkoper zolang hij onder ${ct(w.grens)} cent blijft.${gasStuk.length ? ' Vandaag is gas goedkoper ' + gasStuk.map(b => `van ${nlTime(b.start)} tot ${nlTime(b.end)}`).join(', ') + '.' : ' Vandaag blijft stroom de rest van de dag goedkoper.'} <a href="/gasprijs-vandaag/">Hoe rekenen we dit?</a></small>`;
+}
+
 // ---------- Meldingen ----------
 const alertText = a => a.type === 'below' ? `Stroom goedkoper dan ${ct(a.value)} cent` : a.type === 'above' ? `Stroom duurder dan ${ct(a.value)} cent`
-  : a.type === 'cheapest' ? `De goedkoopste ${a.hours} uur beginnen` : a.type === 'negative' ? 'Zonnepanelen beter uit' : a.type === 'battery' ? 'Thuisbatterij laden of gebruiken' : a.type === 'timer' ? `Timer-tijden voor ${esc(a.name || 'je apparaat')}` : 'De prijzen van morgen zijn er';
+  : a.type === 'cheapest' ? `De goedkoopste ${a.hours} uur beginnen` : a.type === 'negative' ? 'Zonnepanelen beter uit' : a.type === 'battery' ? 'Thuisbatterij laden of gebruiken' : a.type === 'timer' ? `Timer-tijden voor ${esc(a.name || 'je apparaat')}` : a.type === 'warmte' ? 'Stoken op gas of stroom (hybride warmtepomp)' : a.type === 'gasmorgen' ? 'Gas morgen veel goedkoper of duurder' : 'De prijzen van morgen zijn er';
 function renderAlerts() {
   if (typeof renderMijn === 'function') setTimeout(renderMijn);
   $('alertList').innerHTML = alerts.map(a => `<li class="item"><div class="txt"><b>${alertText(a)}</b></div><button class="x" data-del="${a.id}" aria-label="Verwijderen">×</button></li>`).join('');
@@ -265,7 +313,7 @@ async function localAlerts() {
 setInterval(localAlerts, 60e3);
 
 // ---------- Apparaten ----------
-const ruleText = r => r.type === 'cheap' ? 'Aan als stroom goedkoop is' : r.type === 'battery' ? `Thuisbatterij: laden als het goedkoop is (${r.hours} uur)` : r.type === 'solar' ? 'Uit als terugleveren geld kost' : r.type === 'cheapest' ? `Aan in de goedkoopste ${r.hours} uur van de dag${r.block ? ' (achter elkaar)' : ''}` : `Aan onder ${ct(r.on)} cent, uit boven ${ct(r.off ?? r.on)} cent`;
+const ruleText = r => r.type === 'warmte' ? 'Hybride warmtepomp: aan als stroom goedkoper verwarmt dan gas' : r.type === 'cheap' ? 'Aan als stroom goedkoop is' : r.type === 'battery' ? `Thuisbatterij: laden als het goedkoop is (${r.hours} uur)` : r.type === 'solar' ? 'Uit als terugleveren geld kost' : r.type === 'cheapest' ? `Aan in de goedkoopste ${r.hours} uur van de dag${r.block ? ' (achter elkaar)' : ''}` : `Aan onder ${ct(r.on)} cent, uit boven ${ct(r.off ?? r.on)} cent`;
 // Verbruik: alleen bij stekkers met een energiemeter. Aan- en uitzetten werkt met elke stekker.
 const kwhTxt = v => v.toFixed(v < 10 ? 2 : 1).replace('.', ',') + ' kWh';
 function verbruikHTML(d) {
@@ -367,7 +415,7 @@ function formDevice() {
     accessId: $('dTId').value.trim(), accessSecret: $('dTSecret').value.trim(), region: $('dTReg').value, code: $('dTCode').value,
     onUrl: $('dOn').value.trim(), offUrl: $('dOff').value.trim(), method: $('dMethod').value,
     supplyUrl: $('dSupply').value.trim(),
-    rule: rt === 'battery' ? { type: 'battery', hours: +$('dBatHrs').value } : rt === 'solar' ? { type: 'solar', limit: (num('dLimit') || 0) / 100 } : rt === 'cheapest' ? { type: 'cheapest', hours: +$('dHrs').value, block: $('dBlock').checked } : { type: 'below', on: num('dOnP') / 100, off: num('dOffP') / 100 } };
+    rule: rt === 'warmte' ? { type: 'warmte', cop: COP } : rt === 'battery' ? { type: 'battery', hours: +$('dBatHrs').value } : rt === 'solar' ? { type: 'solar', limit: (num('dLimit') || 0) / 100 } : rt === 'cheapest' ? { type: 'cheapest', hours: +$('dHrs').value, block: $('dBlock').checked } : { type: 'below', on: num('dOnP') / 100, off: num('dOffP') / 100 } };
 }
 const say = (t, ok) => { $('dMsg').textContent = t; $('dMsg').className = 'msg ' + (ok ? 'ok' : 'err'); };
 async function test(on) {
@@ -390,7 +438,9 @@ $('sMode').value = settings.mode; $('sOpslag').value = (settings.opslag * 100).t
 $('sOpslagWrap').hidden = settings.mode === 'kaal';
 $('sMode').onchange = () => { settings.mode = $('sMode').value; $('sOpslagWrap').hidden = settings.mode === 'kaal'; render(); sync().catch(() => {}); };
 { const opt = [...$('sLever').options].find(o => o.value && Math.abs(Number(o.value) / 100 - settings.opslag) < 1e-6 && settings.lever === o.textContent); if (opt) opt.selected = true; }
-$('sLever').onchange = () => { const v = Number($('sLever').value); if (!v) return; settings.opslag = v / 100; settings.lever = $('sLever').selectedOptions[0].textContent; $('sOpslag').value = v.toFixed(2); render(); sync().catch(() => {}); };
+$('sLever').onchange = () => { const v = Number($('sLever').value); if (!v) return; settings.opslag = v / 100; const gv = Number($('sLever').selectedOptions[0].dataset.gas); if (gv) { settings.gasOpslag = gv / 100; $('sGasOpslag').value = gv.toFixed(2); } settings.lever = $('sLever').selectedOptions[0].textContent; $('sOpslag').value = v.toFixed(2); render(); sync().catch(() => {}); };
+$('sGasOpslag').value = ((settings.gasOpslag ?? 0.07) * 100).toFixed(2);
+$('sGasOpslag').oninput = () => { settings.lever = ''; $('sLever').value = ''; const v = num('sGasOpslag'); if (Number.isFinite(v)) { settings.gasOpslag = v / 100; render(); sync().catch(() => {}); } };
 $('sOpslag').oninput = () => { settings.lever = ''; $('sLever').value = ''; const v = num('sOpslag'); if (Number.isFinite(v)) { settings.opslag = v / 100; render(); sync().catch(() => {}); } };
 $('myCode').value = token;
 $('useCode').onclick = async () => {
@@ -437,7 +487,7 @@ setTimeout(maybeInstall, 1500);
 // ---------- Start ----------
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
 renderAlerts(); renderDevices(); renderPushNotice();
-data = LS.get('sw-lastdata', null); render();
+data = LS.get('sw-lastdata', null); globalThis.__swGas = data?.gas; render();
 load();
 api({ action: 'get' }).then(j => { if (j.devices?.length || j.alerts?.length || j.hasPush) applyServer(j); }).catch(() => {});
 
@@ -722,6 +772,7 @@ const sShellyCodes = () => ({ t: 'Stap 2: neem 2 gegevens over', of: 3,
   after: () => { wireVelden(); wireZoek(); wireTest(); } });
 const sKlaarApparaat = () => {
   const p = PRESETS[W.d.preset || 'anders'];
+  if (W.d.rule?.type === 'warmte') return { t: 'Klaar', of: 4, html: `<div class="bigok">${svg("check")}</div><p>Vanaf nu mag je warmtepomp alleen draaien als stroom goedkoper verwarmt dan gas. Is gas goedkoper, dan neemt je cv-ketel het over.</p>`, opts: [{ i: '✅', l: 'Klaar', go: wizClose }] };
   return { t: 'Klaar', of: 4, html: `<div class="bigok">${svg("check")}</div><p>Je ${W.d.rule?.type === 'battery' ? 'batterij laadt' : p.name.toLowerCase() + ' gaat'} vanaf nu vanzelf aan <b>${W.d.rule?.type === 'battery' ? 'als stroom het goedkoopst is' : p.uitleg}</b>. Je hoeft niets meer te doen.</p>`,
     opts: [{ i: '🔔', l: 'Stuur mij een bericht als hij aan of uit gaat', go: async () => { await enablePush(); sync().catch(() => {}); wizClose(); } },
       { i: '✅', l: 'Nee, klaar', go: wizClose }] };
@@ -754,6 +805,7 @@ const BERICHT = [
   ['tomorrow', '📅', 'Als de prijzen van morgen er zijn', {}],
   ['negative', '☀️', 'Als ik mijn zonnepanelen uit moet zetten', { value: 0 }],
   ['battery', '🔋', 'Als ik mijn batterij moet laden', { hours: 3 }],
+  ['gasmorgen', '🔥', 'Als gas morgen veel goedkoper of duurder wordt', {}],
 ];
 const sBerichtKies = () => ({ t: 'Wanneer wil je een bericht?', p: 'Tik aan wat je wilt. Je kunt er meer kiezen.',
   html: '<div class="opts">' + BERICHT.map(([k, i, l]) => `<button class="opt${alerts.some(a => a.type === k) ? ' sel' : ''}" type="button" data-k="${k}"><span>${ico(i)}</span><div><b>${l}</b></div></button>`).join('') + '</div>'
@@ -780,7 +832,29 @@ function addAlert(a, quiet) {
   if (!quiet) { renderAlerts(); sync().catch(() => {}); }
 }
 
-const FLOWS = { apparaat: sApparaat, batterij: sBatterij, zon: sZon, bericht: sBerichtKies };
+// ---- Verwarmen: hybride warmtepomp of cv-ketel ----
+const sWarmte = () => ({ t: 'Hoe verwarm je je huis?', opts: [
+  { i: '♨️', l: 'Met een hybride warmtepomp', s: 'Een warmtepomp samen met een cv-ketel op gas', go: () => go(sHybride) },
+  { i: '🔥', l: 'Alleen met een cv-ketel op gas', s: 'Krijg een bericht als gas morgen veel goedkoper of duurder wordt', go: async () => { addAlert({ type: 'gasmorgen' }); await enablePush(); go(sKlaarBericht); } },
+] });
+function warmteUitleg() {
+  const cur = data && current(data.quarters, Date.now()), w = cur && warmte(cur, settings);
+  return w ? `<div class="timerkaart"><small>Nu, met de prijzen van vandaag</small><b>${w.beter === 'stroom' ? 'Stook met stroom' : 'Stook op gas'}</b><small>Warmte uit stroom: ${ct(w.stroom)} cent per kWh. Uit gas: ${ct(w.gas)} cent per kWh. Stroom wint zolang hij onder ${ct(w.grens)} cent blijft.</small></div>` : '';
+}
+const sHybride = () => ({ t: 'Gas of stroom: wij rekenen het uit', html: warmteUitleg() + '<p>Een warmtepomp is bijna altijd goedkoper dan gas. Maar bij een dynamisch contract is stroom soms zó duur, vaak tussen 17:00 en 20:00, dat je cv-ketel dan goedkoper stookt. Heeft je warmtepomp zelf een stand voor dynamische prijzen? Zet die dan aan. Dat is het makkelijkst.</p>', opts: [
+  { i: '🔔', l: 'Stuur mij een bericht als ik beter op gas kan stoken', s: 'En weer als de warmtepomp goedkoper is', go: async () => { addAlert({ type: 'warmte', value: COP }); await enablePush(); go(sKlaarBericht); } },
+  { i: '🔌', l: 'Vanzelf omschakelen', s: 'Met een Shelly-schakelaar of Homey, Home Assistant of IFTTT. Laat een installateur dit aansluiten.', go: () => go(sHybrideAuto) },
+] });
+const sHybrideAuto = () => ({ t: 'Vanzelf omschakelen', of: 4, html: '<ol class="kstap">' + [
+  'Veel hybride warmtepompen hebben een aansluiting om de warmtepomp tijdelijk te blokkeren (soms "SG Ready" of "externe vrijgave" genoemd). Een installateur kan daar een slimme schakelaar op zetten, zoals een <b>Shelly 1</b>.',
+  'Stroomwekker zet die schakelaar <b>aan</b> als stroom goedkoper verwarmt dan gas, en <b>uit</b> als gas goedkoper is. Je cv-ketel neemt het dan over.',
+  'Werk nooit zelf in je warmtepomp of meterkast. Laat dit altijd door een installateur doen.',
+].map(x => `<li><span>${x}</span></li>`).join('') + '</ol>', opts: [
+  { i: '🔵', l: 'Ik heb een Shelly-schakelaar', go: () => { W.d.kind = 'shelly'; W.d.preset = 'anders'; W.d.name = 'Warmtepomp'; W.d.rule = { type: 'warmte', cop: COP }; go(sShelly); } },
+  { i: '⚙️', l: 'Ik heb Homey, Home Assistant of IFTTT', go: () => { wizClose(); openMeer(); openDev(null); $('dName').value = 'Warmtepomp'; $('dKind').value = 'webhook'; $('dRule').value = 'warmte'; kindUI(); ruleUI(); $('apparaten').scrollIntoView({ behavior: 'smooth' }); } },
+] });
+
+const FLOWS = { warmte: sWarmte, apparaat: sApparaat, batterij: sBatterij, zon: sZon, bericht: sBerichtKies };
 document.querySelectorAll('[data-flow]').forEach(b => b.onclick = () => wizOpen(FLOWS[b.dataset.flow]));
 { const st = new URLSearchParams(location.search).get('start'); if (FLOWS[st]) { history.replaceState(null, '', location.pathname); setTimeout(() => wizOpen(FLOWS[st]), 300); } }
 function openMeer() { $('meer').open = true; }

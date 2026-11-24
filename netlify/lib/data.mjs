@@ -172,4 +172,4 @@ export async function maandArchief(maand, now = Date.now()) {
   if (maandKlaar) { if (st) await st.setJSON(key, res).catch(() => {}); else archiefMem.set(key, res); }
   return res;
 }
-export { ymd, plusDag };
+export { ymd, plusDag, gasPeriode };

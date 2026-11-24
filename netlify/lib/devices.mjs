@@ -123,6 +123,8 @@ export function validateDevice(d) {
   const cleanRule = rule.type === 'cheap' ? { type: 'cheap' }
     : rule.type === 'battery'
     ? { type: 'battery', hours: Math.max(0.25, Math.min(12, Number(rule.hours) || 3)) }
+    : rule.type === 'warmte'
+    ? { type: 'warmte', cop: Math.max(2, Math.min(6, Number(rule.cop) || 3.5)) }
     : rule.type === 'solar'
     ? { type: 'solar', limit: Math.max(-0.5, Math.min(0.2, Number(rule.limit) || 0)) }
     : rule.type === 'cheapest'

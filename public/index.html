@@ -229,6 +229,10 @@ details.meer>summary::-webkit-details-marker{display:none}
 details.meer>summary::after{content:"";width:9px;height:9px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg) translateY(-3px)}
 details.meer[open]>summary::after{transform:rotate(-135deg)}
 #mijn{border-left:3px solid var(--green)}
+.top3kop{font-size:18px;margin:18px 0 10px}
+.top3tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}.top3tabs button{font:inherit;font-size:15px;font-weight:600;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface,#fff);color:var(--ink);cursor:pointer}.top3tabs button[aria-selected="true"]{background:var(--navy,#0F2340);color:#fff;border-color:var(--navy,#0F2340)}
+.top3{list-style:none;padding:0;margin:0;display:grid;gap:8px;counter-reset:t}.top3 a{display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:10px;text-decoration:none;color:var(--ink);background:var(--surface,#fff)}.top3 a:hover{background:var(--soft)}
+.top3 .nr{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:#F5B700;color:#0F2340}.top3 b{display:block;font-size:16.5px}.top3 small{display:block;color:var(--muted);font-size:14px}.top3 .pr{text-align:right;font-weight:800;font-size:17px;white-space:nowrap}.top3 .pr small{font-weight:400}
 .tiles{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:6px;overflow:hidden;margin:0 0 10px}
 .tiles a{display:grid;align-content:start;gap:3px;padding:14px 16px;text-decoration:none;color:var(--ink);border-left:1px solid var(--line)}
 .tiles a:first-child{border-left:0}.tiles a:hover{background:var(--soft)}
@@ -252,6 +256,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
 .verbr.ja div span{display:block;font-size:12.5px;color:var(--muted)}.verbr.ja div b{display:block;font-size:16px}
 .verbr.ja small,.verbr.ja .besp{grid-column:1/-1;margin:0}.verbr.ja small{color:var(--muted)}.verbr .besp{color:#13703A;font-size:14px}
 .devsom{background:#EAF6EE;border:1px solid #BFE3CB;border-radius:8px;padding:10px 12px;font-size:14.5px;margin:0 0 10px;color:#14213A}.devsom b{color:#13703A}
+.warmtenu{margin:12px 0 0;padding:12px 14px;border-radius:12px;background:#F1F4F8;font-size:15px}.warmtenu b{display:block}.warmtenu small{display:block;color:var(--muted,#5B6B80);margin-top:3px;font-size:14px}
 .timerkaart{display:flex;flex-direction:column;gap:4px;background:#0F2340;color:#fff;border-radius:14px;padding:16px 18px;margin:0 0 16px}.timerkaart b{font-size:24px;line-height:1.25;color:#F5B700}.timerkaart small{color:#C7D2E3;font-size:14px}
 .schets{margin:4px 0 16px}.schets svg{width:100%;height:auto;display:block;font-family:inherit}.schets figcaption{font-size:13px;color:var(--muted,#5B6B80);margin-top:6px}
 .hulp{margin:22px 0 4px}.hulp a{display:flex;gap:10px;align-items:center;color:inherit;text-decoration:none;font-size:15px;padding:12px 14px;border-radius:12px;background:#F1F4F8}.hulp svg{width:22px;height:22px;flex:none;color:#2563EB}.hulp b{color:#2563EB}
@@ -325,6 +330,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
       <div class="keuzes">
         <button type="button" data-flow="apparaat"><span class="ico" data-ic="plug"></span><b>Apparaat automatisch aan en uit</b><small>Boiler, wasmachine of auto</small></button>
         <button type="button" data-flow="batterij"><span class="ico" data-ic="battery"></span><b>Thuisbatterij slim laden</b><small>Laden als stroom goedkoop is</small></button>
+        <button type="button" data-flow="warmte"><span class="ico" data-ic="drop"></span><b>Verwarmen: gas of stroom?</b><small>Hybride warmtepomp of cv-ketel</small></button>
         <button type="button" data-flow="zon"><span class="ico" data-ic="sun"></span><b>Zonnepanelen</b><small>Weten wanneer terugleveren geld kost</small></button>
         <button type="button" data-flow="bericht"><span class="ico" data-ic="bell"></span><b>Alleen een bericht</b><small>Als stroom goedkoop of duur is</small></button>
       </div>
@@ -459,6 +465,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
           <option value="cheapest">In de goedkoopste uren van de dag</option>
           <option value="solar">Zonnepanelen: uit als terugleveren geld kost</option>
           <option value="battery">Thuisbatterij: laden als het goedkoop is, leveren als het duur is</option>
+          <option value="warmte">Hybride warmtepomp: aan als stroom goedkoper verwarmt dan gas</option>
         </select></label>
       <div id="rBat" hidden>
         <label>Hoeveel uur duurt het om de batterij vol te laden? <select id="dBatHrs"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></label>
@@ -501,9 +508,10 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
     <div class="row3">
       <div class="mini"><span class="k">Straks</span><span class="v" id="nextP">–</span><span class="s" id="nextT"></span></div>
       <div class="mini"><span class="k">Normaal vandaag</span><span class="v" id="avgP">–</span><span class="s">per kWh</span></div>
-      <div class="mini"><span class="k">Gas vandaag</span><span class="v" id="gasP">–</span><span class="s">per m³</span></div>
+      <a class="mini" href="/gasprijs-vandaag/" style="text-decoration:none;color:inherit"><span class="k">Gas vandaag</span><span class="v" id="gasP">–</span><span class="s">per m³ ›</span></a>
     </div>
-    <p class="small" style="margin:12px 0 0"><a href="/stroomprijs-vandaag/">Alle stroomprijzen van vandaag per kwartier</a> · <a href="/stroomprijs-morgen/">Stroomprijs morgen</a><a href="/stroomprijs/">Prijsarchief</a></p>
+    <p class="warmtenu" id="warmteNu" hidden></p>
+    <p class="small" style="margin:12px 0 0"><a href="/stroomprijs-vandaag/">Alle stroomprijzen van vandaag per kwartier</a> · <a href="/stroomprijs-morgen/">Stroomprijs morgen</a> · <a href="/gasprijs-vandaag/">Gasprijs vandaag</a> · <a href="/stroomprijs/">Prijsarchief</a></p>
   </div>
 
   <div class="card" id="zon">
@@ -576,16 +584,19 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
       <label>Wie is je energiebedrijf?
         <select id="sLever">
           <option value="">Kies je energiebedrijf</option>
-          <option value="1.80">ANWB Energie (1,80 cent)</option>
-          <option value="1.82">Frank Energie (1,82 cent)</option>
-          <option value="1.80">Tibber (1,80 cent)</option>
-          <option value="2.00">Zonneplan (2,00 cent)</option>
-          <option value="2.00">Ander bedrijf of weet ik niet (2,00 cent)</option>
+          <option value="1.80" data-gas="5.91">ANWB Energie (1,80 cent)</option>
+          <option value="1.82" data-gas="7.99">Frank Energie (1,82 cent)</option>
+          <option value="1.80" data-gas="7.49">Tibber (1,80 cent)</option>
+          <option value="2.00" data-gas="8.00">Zonneplan (2,00 cent)</option>
+          <option value="2.00" data-gas="7.00">Ander bedrijf of weet ik niet (2,00 cent)</option>
         </select>
         <span class="hint">Zo rekent Stroomwekker met de toeslag van jouw energiebedrijf. Bedragen van november 2026, inclusief btw. Staat er op je contract iets anders? Vul dat hieronder in.</span></label>
       <label id="sOpslagWrap">Wat rekent je energiebedrijf extra? (in cent)
         <input id="sOpslag" type="number" step="0.01" inputmode="decimal" value="2.00">
         <span class="hint">Dit staat op je contract. Het heet vaak "inkoopvergoeding" of "opslag". Meestal is het 1,5 tot 3 cent. Weet je het niet? Laat dan 2 staan.</span></label>
+      <label>Wat rekent je energiebedrijf extra voor gas? (in cent per m³)
+        <input id="sGasOpslag" type="number" step="0.01" inputmode="decimal" value="7.00">
+        <span class="hint">Meestal 6 tot 10 cent per m³. Weet je het niet? Laat dan 7 staan.</span></label>
     </form>
     <a class="koopstekker" id="vergelijkOpslag" href="#" target="_blank" rel="sponsored noopener"><span aria-hidden="true">⚡</span><span><b>Betaal je meer dan nodig?</b><small>Vergelijk dynamische contracten en hun toeslag per kWh · advertentie</small></span></a>
     <details style="margin-top:12px"><summary class="small" style="cursor:pointer;font-weight:700">Ook op een andere telefoon of computer gebruiken</summary>
@@ -599,6 +610,11 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
 
   <div class="card" id="vergelijken">
     <h2>Nog geen dynamisch contract? Of wil je overstappen?</h2>
+    <h3 class="top3kop">De 3 goedkoopste voor stroom en gas samen</h3>
+    <div class="top3tabs" role="tablist" id="top3tabs"></div>
+    <ol class="top3" id="top3"></ol>
+    <p class="small muted" id="top3uitleg"></p>
+    <h3 class="top3kop">Zelf vergelijken</h3>
     <div class="tiles" id="tiles"></div>
   <p class="partnerlabel">Dit zijn advertenties. Kies je via een tegel een contract, dan krijgt deze site soms een klein bedrag. Jij betaalt niets extra.</p>
   </div>
@@ -654,7 +670,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
     <div class="cols">
       <div><div class="fl" aria-label="Stroomwekker"><span class="woord"><span class="s">Stroom</span><span class="w">wekker<svg class="flits" viewBox="0 0 600 200" aria-hidden="true"><path d="M0 200 285 52 215 112 600 0 315 148 385 88Z"/></svg></span></span></div>
         <p style="margin:0;max-width:40ch">Hulp voor iedereen met een dynamisch energiecontract: de stroomprijs per kwartier, automatische berichten en apparaten die vanzelf schakelen.</p></div>
-      <div><h3>Stroomwekker</h3><nav aria-label="Stroomwekker"><a href="/stroomprijs-vandaag/">Stroomprijs vandaag</a><a href="/stroomprijs-morgen/">Stroomprijs morgen</a><a href="/stroomprijs/">Prijsarchief</a><a href="/hoe-werkt-het/">Hoe werkt het?</a><a href="/gids/">Uitleg en tips</a><a href="/over/">Over Stroomwekker</a><a href="/contact/">Contact</a></nav></div>
+      <div><h3>Stroomwekker</h3><nav aria-label="Stroomwekker"><a href="/stroomprijs-vandaag/">Stroomprijs vandaag</a><a href="/stroomprijs-morgen/">Stroomprijs morgen</a><a href="/gasprijs-vandaag/">Gasprijs vandaag</a><a href="/stroomprijs/">Prijsarchief</a><a href="/hoe-werkt-het/">Hoe werkt het?</a><a href="/gids/">Uitleg en tips</a><a href="/over/">Over Stroomwekker</a><a href="/contact/">Contact</a></nav></div>
       <div><h3>Ook van de maker</h3><nav class="twee" aria-label="Ook van de maker"><a href="https://bespaarvriend.nl/?bron=stroomwekker" target="_blank" rel="noopener">Bespaarvriend</a><a href="https://boodschappenvergelijk.nl/" target="_blank" rel="noopener">Boodschappenvergelijk</a><a href="https://goedkopertanken.netlify.app/" target="_blank" rel="noopener">Tankwijzer</a><a href="https://vluchtwijzer.netlify.app/" target="_blank" rel="noopener">Vluchtwijzer</a><a href="https://vakantietoppers.netlify.app/" target="_blank" rel="noopener">Vakantiewijzer</a><a href="https://salderingscheck-nl.netlify.app/" target="_blank" rel="noopener">Salderingscheck</a><a href="https://euroroadrules.eu/" target="_blank" rel="noopener">EuroRoadRules</a><a href="https://foutcodezoeker.nl/" target="_blank" rel="noopener">Foutcodezoeker</a><a href="https://bespaarvriend.nl/elektronica/" target="_blank" rel="noopener">Elektrovergelijk</a><a href="https://bonnenboek.netlify.app/" target="_blank" rel="noopener">Bonnenboek</a><a href="https://allesoporde.netlify.app/" target="_blank" rel="noopener">Alles op orde</a></nav></div>
     </div>
     <p class="muted" style="margin:0;font-size:13px">© 2026 Stroomwekker – Erik Beltman. Alle rechten voorbehouden. Overnemen of publiceren mag alleen met schriftelijke toestemming (<a href="/gebruiksvoorwaarden/" style="color:#C9D4E5">auteursrecht en gebruiksvoorwaarden</a>). <a href="/privacy/" style="color:#C9D4E5">Privacy</a>. <a href="/zo-rekenen-wij/" style="color:#C9D4E5">Zo berekenen wij de prijs</a>. Prijsdata: Energy-Charts (Fraunhofer ISE, CC BY 4.0) en EnergyZero. We doen ons best, maar kunnen fouten maken. De prijs van je energiebedrijf is leidend.</p>

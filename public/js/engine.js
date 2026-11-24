@@ -8,7 +8,35 @@ export const Q = 15 * 60 * 1000;  // één kwartier in ms
 export const DEFAULT_SETTINGS = {
   mode: 'allin',   // 'allin' = wat je ongeveer betaalt, 'kaal' = beursprijs excl. btw
   opslag: 0.02,    // inkoopvergoeding leverancier per kWh, incl. btw
+  gasOpslag: 0.07, // inkoopvergoeding leverancier per m3 gas, incl. btw
 };
+
+// ---------- Gas en verwarmen ----------
+// De gasprijs geldt per gasdag (06:00 tot 06:00). s.gas = { 'YYYY-MM-DD': prijs per m3 incl. energiebelasting en btw }.
+export const WARMTE_M3 = 9; // ongeveer 9 kWh warmte uit 1 m3 gas met een HR-ketel
+export const COP = 3.5;     // een hybride warmtepomp maakt gemiddeld 3,5 kWh warmte van 1 kWh stroom
+export function gasDag(t) { return nlDayBounds(t - 6 * 3600e3).day; }
+export function gasPrijs(t, s = DEFAULT_SETTINGS) {
+  const g = (s.gas || globalThis.__swGas)?.[gasDag(t)];
+  return g == null ? null : g + Number(s.gasOpslag ?? DEFAULT_SETTINGS.gasOpslag);
+}
+// Wat kost 1 kWh warmte nu met gas en met de warmtepomp?
+export function warmte(q, s = DEFAULT_SETTINGS, cop = COP) {
+  const g = q && gasPrijs(q.t, s);
+  if (g == null) return null;
+  const st = (q.spot * (1 + BTW) + Number(s.opslag ?? 0.02) + EB_STROOM) / cop, gs = g / WARMTE_M3;
+  return { stroom: st, gas: gs, beter: st <= gs ? 'stroom' : 'gas', grens: gs * cop };
+}
+// Aaneengesloten stukken waarin stoken op gas goedkoper is
+export function gasUren(quarters, from, to, s = DEFAULT_SETTINGS, cop = COP) {
+  const out = [];
+  for (const q of inRange(quarters, from, to)) {
+    const w = warmte(q, s, cop); if (!w || w.beter !== 'gas') continue;
+    const last = out[out.length - 1];
+    if (last && last.end === q.t) last.end = q.t + Q; else out.push({ start: q.t, end: q.t + Q });
+  }
+  return out;
+}
 
 export function price(spot, s = DEFAULT_SETTINGS) {
   if (s.mode === 'kaal') return spot;
@@ -167,6 +195,14 @@ export function deviceWants(device, quarters, t, s, lastOn) {
     const m = batteryMode(r.hours, quarters, t, s);
     return m === null ? null : m === 'charge';
   }
+  if (r.type === 'warmte') {
+    // Hybride warmtepomp: AAN (warmtepomp mag draaien) zolang stroom goedkoper verwarmt dan gas. 3% marge tegen heen-en-weer schakelen.
+    const w = warmte(cur, s, Number(r.cop) || COP);
+    if (!w) return null;
+    if (w.stroom <= w.gas * 0.97) return true;
+    if (w.stroom > w.gas * 1.03) return false;
+    return lastOn === undefined ? w.beter === 'stroom' : lastOn === true;
+  }
   if (r.type === 'solar') {
     // Zonnepanelen/omvormer: UIT zolang de beursprijs onder de grens ligt, anders AAN.
     const limit = Number.isFinite(Number(r.limit)) ? Number(r.limit) : 0;
@@ -236,6 +272,29 @@ export function alertsDue(alerts, quarters, t, s, state = {}) {
           : { id: a.id, title: '🔋 Gebruik nu je thuisbatterij', body: `Stroom is nu duur. Gebruik je batterij tot ${nlTime(p.discharge.end)}.` });
       }
       state[a.id] = { ...st, mode: m };
+    } else if (a.type === 'warmte') {
+      // Hybride warmtepomp: bericht als gas goedkoper wordt, en als de warmtepomp weer goedkoper is
+      const w = cur && warmte(cur, s, Number(a.value) > 1 ? Number(a.value) : COP);
+      if (!w) continue;
+      const nu = w.stroom > w.gas * 1.03 ? 'gas' : w.stroom <= w.gas * 0.97 ? 'stroom' : st.mode || 'stroom';
+      if (st.mode && nu !== st.mode) {
+        const blok = gasUren(quarters, cur.t, cur.t + 24 * 3600e3, s, Number(a.value) > 1 ? Number(a.value) : COP)[0];
+        out.push(nu === 'gas'
+          ? { id: a.id, title: '🔥 Stook nu op gas', body: `Stroom is nu zo duur dat je cv-ketel goedkoper verwarmt dan je warmtepomp${blok ? `, tot ${nlTime(blok.end)}` : ''}.` }
+          : { id: a.id, title: '♨️ Warmtepomp is weer goedkoper', body: 'Stroom verwarmt nu weer goedkoper dan gas. Zet je warmtepomp weer aan.' });
+      }
+      state[a.id] = { ...st, mode: nu };
+    } else if (a.type === 'gasmorgen') {
+      // Bericht als de gasprijs van morgen bekend is en duidelijk anders is dan vandaag
+      const vd = gasPrijs(t, s), mg = (s.gas || globalThis.__swGas)?.[nlDayBounds(end + 60e3).day];
+      const dagM = nlDayBounds(end + 60e3).day;
+      if (vd != null && mg != null && st.day !== dagM) {
+        const mgAll = mg + Number(s.gasOpslag ?? DEFAULT_SETTINGS.gasOpslag), pct = Math.round((mgAll / vd - 1) * 100);
+        // Pas als het verschil groot genoeg is; tot die tijd blijven we kijken (de echte prijs kan later komen)
+        if (Math.abs(pct) >= 5) { out.push({ id: a.id, title: pct < 0 ? `🔥 Gas wordt morgen ${-pct}% goedkoper` : `🔥 Gas wordt morgen ${pct}% duurder`,
+          body: `Morgen vanaf 06:00 kost gas ${fmtEuro(mgAll, 2)} per m³. Vandaag is het ${fmtEuro(vd, 2)}.` });
+          state[a.id] = { ...st, day: dagM }; }
+      }
     } else if (a.type === 'timer') {
       // Voor stekkers die wij niet zelf kunnen schakelen (zoals de LSC-app): elke dag de tijden voor de timer
       const tm = nlDayBounds(end + 60e3);

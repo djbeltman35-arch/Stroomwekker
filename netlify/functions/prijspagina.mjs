@@ -1,7 +1,7 @@
 // Stroomprijs vandaag / morgen: echte HTML met alle kwartierprijzen, zodat Google en AI-zoekers ze kunnen lezen.
-import { getPrices, dagArchief, maandArchief, ARCHIEF_START, ymd, plusDag } from '../lib/data.mjs';
+import { getPrices, dagArchief, maandArchief, ARCHIEF_START, ymd, plusDag, gasPeriode } from '../lib/data.mjs';
 import { HEAD, HEADER, FOOTER } from '../lib/sjabloon.mjs';
-import { price, nlDayBounds, inRange, cheapestBlock, priciestBlock, levels, levelOf, nlTime, current, negativeWindows, DEFAULT_SETTINGS, Q } from '../../public/js/engine.js';
+import { gasPrijs, warmte, gasUren, gasDag, COP, WARMTE_M3, price, nlDayBounds, inRange, cheapestBlock, priciestBlock, levels, levelOf, nlTime, current, negativeWindows, DEFAULT_SETTINGS, Q } from '../../public/js/engine.js';
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const ct = v => (v * 100).toFixed(1).replace('.', ',');
@@ -55,6 +55,7 @@ export default async (req) => {
   const pad = new URL(req.url).pathname;
   const now = Date.now();
   if (pad.startsWith('/sitemap-archief')) return sitemap(now);
+  if (pad.startsWith('/gasprijs')) return gasPagina(now);
   const mDag = pad.match(/^\/stroomprijs\/(\d{4}-\d{2}-\d{2})\/?$/), mMaand = pad.match(/^\/stroomprijs\/(\d{4}-\d{2})\/?$/);
   if (/^\/stroomprijs\/?$/.test(pad)) return archiefIndex(now);
   if (mMaand) return maandPagina(mMaand[1], now);
@@ -173,6 +174,54 @@ function ldBasis(title, url, tussen = []) {
   ] };
 }
 
+// ---------- Gasprijs vandaag (en verwarmen: gas of stroom) ----------
+async function gasPagina(now) {
+  const S = DEFAULT_SETTINGS, url = 'https://stroomwekker.eu/gasprijs-vandaag/';
+  let data = { quarters: [], gas: {} }, hist = {};
+  const van = ymd(now - 30 * 86400e3), tot = ymd(now + 86400e3);
+  try { [data, hist] = await Promise.all([getPrices(now), gasPeriode(van, tot)]); } catch { /* hieronder netjes melden */ }
+  const gas = { ...hist, ...(data.gas || {}) }, s = { ...S, gas };
+  const vandaagDag = gasDag(now), vd = gas[vandaagDag], morgenDag = plusDag(vandaagDag, 1), mg = gas[morgenDag];
+  const opsl = S.gasOpslag, all = v => v + opsl;
+  const dagen = Object.keys(gas).filter(d => d < vandaagDag).sort().slice(-30);
+  const gem = dagen.length ? dagen.reduce((a, d) => a + gas[d], 0) / dagen.length : null;
+  const cur = current(data.quarters, now), w = cur && warmte(cur, s);
+  const { start, end } = nlDayBounds(now), stukken = gasUren(data.quarters, Math.max(start, cur ? cur.t : start), end, s);
+  const datumTxt = datum(now);
+  const title = vd != null ? `Gasprijs vandaag: ${eur(all(vd))} per m³ (${datumTxt.split(' ').slice(1, 3).join(' ')}) | Stroomwekker` : 'Gasprijs vandaag per m³ | Stroomwekker';
+  const desc = vd != null ? `De dynamische gasprijs van vandaag is ${eur(all(vd))} per m³, inclusief belasting en een gemiddelde opslag. Met de prijs van morgen, de laatste 30 dagen en of je beter met gas of stroom stookt.` : 'De dynamische gasprijs van vandaag per m³, inclusief belasting.';
+  const kc = [['Vandaag', vd != null ? eur(all(vd)) : '–', 'per m³, vanaf 06:00'],
+    ['Morgen', mg != null && morgenDag !== vandaagDag ? eur(all(mg)) : 'nog niet bekend', mg != null ? (all(mg) < all(vd ?? mg) ? 'goedkoper dan vandaag' : all(mg) > all(vd ?? mg) ? 'duurder dan vandaag' : 'gelijk aan vandaag') : ''],
+    ['Gemiddeld', gem != null ? eur(all(gem)) : '–', 'laatste 30 dagen'],
+    ['Warmte uit gas', vd != null ? ct(all(vd) / WARMTE_M3) + ' ct' : '–', 'per kWh warmte']];
+  const rijen = dagen.slice().reverse().map(d => `<tr><td>${hoofd(kortDag(d))}</td><td>${eur(all(gas[d]))}</td><td>${eur(gas[d])}</td></tr>`).join('');
+  const body = `
+<section class="card"><div class="kerncijfers">${kc.map(([k, v, sm]) => `<div><span>${k}</span><b>${v}</b><small>${sm}</small></div>`).join('')}</div>
+<p>Bij een dynamisch gascontract verandert de prijs <b>één keer per dag, om 06:00</b>. De prijs hierboven is inclusief energiebelasting, btw en een gemiddelde opslag van ${ct(opsl).replace(',0', '')} cent per m³. Wat jouw energiebedrijf extra rekent, stel je in op de <a href="/#instellingen">startpagina</a>.</p></section>
+
+<section class="card"><h2>Hybride warmtepomp: stook je nu beter met gas of stroom?</h2>
+${w ? `<p><b>${w.beter === 'stroom' ? 'Nu is stoken met stroom goedkoper.' : 'Nu is stoken op gas goedkoper.'}</b> Warmte uit je warmtepomp kost nu ${ct(w.stroom)} cent per kWh, uit je cv-ketel ${ct(w.gas)} cent.</p>
+<p>Stroom is goedkoper zolang hij onder <b>${ct(w.grens)} cent per kWh</b> blijft. ${stukken.length ? 'Vandaag is gas goedkoper ' + stukken.map(b => `van ${nlTime(b.start)} tot ${nlTime(b.end)}`).join(', ') + '.' : 'Vandaag blijft stroom de rest van de dag goedkoper.'}</p>` : '<p>De prijzen zijn even niet bereikbaar. Probeer het straks opnieuw.</p>'}
+<p>Zo rekenen we: 1 m³ gas geeft met een HR-ketel ongeveer ${WARMTE_M3} kWh warmte. Een hybride warmtepomp maakt gemiddeld ${String(COP).replace('.', ',')} kWh warmte van 1 kWh stroom. Als het vriest is dat minder, als het zacht weer is meer.</p>
+<div class="cta"><a class="btn" href="/?start=warmte">Krijg een bericht of schakel vanzelf</a></div></section>
+
+<section class="card"><h2>Gasprijs van de laatste 30 dagen</h2>
+<div class="tabelwrap"><table class="tabel"><thead><tr><th>Dag</th><th>Wat je ongeveer betaalt</th><th>Zonder opslag</th></tr></thead><tbody>${rijen}</tbody></table></div>
+<p class="small muted" style="margin-top:10px">Bron: EnergyZero (dagprijs gas, inclusief energiebelasting en btw). De prijs per dag geldt van 06:00 tot 06:00.</p></section>
+
+<section class="card"><h2>Veelgestelde vragen</h2>
+<h3>Hoe laat verandert de gasprijs?</h3><p>Elke dag om 06:00. De prijs geldt dan tot 06:00 de volgende ochtend.</p>
+<h3>Wanneer is gas het goedkoopst?</h3><p>Dat verschilt per dag en hangt af van de Europese gasbeurs. Bij zacht weer en veel wind is gas vaak goedkoper. Zet een bericht aan, dan hoor je het als gas morgen veel goedkoper of duurder wordt.</p>
+<h3>Kan ik slim stoken met een dynamisch gascontract?</h3><p>Met alleen een cv-ketel weinig: de prijs is de hele dag gelijk. Met een hybride warmtepomp wel. Stroom verandert elk kwartier, dus soms is gas goedkoper en soms de warmtepomp. Stroomwekker rekent het voor je uit.</p></section>`;
+  const ld = ldBasis(title, url);
+  ld['@graph'].push({ '@type': 'FAQPage', mainEntity: [
+    ['Hoe laat verandert de gasprijs?', 'Elke dag om 06:00. De prijs geldt dan tot 06:00 de volgende ochtend.'],
+    ['Kan ik slim stoken met een dynamisch gascontract?', 'Met alleen een cv-ketel weinig: de prijs is de hele dag gelijk. Met een hybride warmtepomp wel. Stroom verandert elk kwartier, dus soms is gas goedkoper en soms de warmtepomp.'],
+  ].map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) });
+  return html(pagina({ title, desc, url, h1: 'Gasprijs vandaag', intro: `${hoofd(datumTxt)}. De dynamische gasprijs per m³, inclusief belasting.`, body, ld,
+    nav: '<a href="/stroomprijs-vandaag/">Stroomprijs vandaag</a><a href="/stroomprijs-morgen/">Stroomprijs morgen</a><a href="/stroomprijs/">Archief</a>' }), 900);
+}
+
 // ---------- Archief: overzicht, maanden en sitemap ----------
 const kortDag = d => new Intl.DateTimeFormat('nl-NL', { timeZone: 'Europe/Amsterdam', weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(d + 'T12:00:00Z'));
 const dagNaam = d => datum(Date.parse(d + 'T12:00:00Z'));
@@ -262,4 +311,4 @@ function html(body, sMax) {
   } });
 }
 
-export const config = { path: ['/stroomprijs-vandaag', '/stroomprijs-vandaag/', '/stroomprijs-morgen', '/stroomprijs-morgen/', '/stroomprijs', '/stroomprijs/', '/stroomprijs/:p', '/stroomprijs/:p/', '/sitemap-archief.xml'] };
+export const config = { path: ['/gasprijs-vandaag', '/gasprijs-vandaag/', '/stroomprijs-vandaag', '/stroomprijs-vandaag/', '/stroomprijs-morgen', '/stroomprijs-morgen/', '/stroomprijs', '/stroomprijs/', '/stroomprijs/:p', '/stroomprijs/:p/', '/sitemap-archief.xml'] };
