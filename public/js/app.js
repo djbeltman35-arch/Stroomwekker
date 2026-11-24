@@ -598,7 +598,7 @@ const sStekker = () => ({ t: W.d.preset === 'auto' ? 'Hoe laad je je auto?' : 'W
   { i: '🛒', l: 'Van de Action (LSC)', s: 'Makkelijk met een timer, of volledig automatisch', go: () => { W.d.kind = 'tuya'; W.d.lsc = true; go(sLscKeuze); } },
   { i: '📱', l: 'Smart Life of Tuya', s: 'Ook Hema, Calex, Nedis, Woox. Makkelijk via Alexa, of via Tuya', go: () => { W.d.kind = 'tuya'; W.d.lsc = false; go(sLscKeuze); } },
   { i: '🔵', l: 'Shelly', s: 'Snelst te koppelen (3 minuten). Verbruik zien: Plug S, Plus Plug S en modellen met PM', go: () => { W.d.kind = 'shelly'; go(sShelly); } },
-  { i: '🗣️', l: 'Een andere stekker die met Alexa werkt', s: 'Bijvoorbeeld TP-Link, Meross of Philips Hue', go: () => { W.d.merkApp = ''; W.d.kind = 'webhook'; W.d.alexa = true; go(sAlexa1); } },
+  ...(ALEXA_AAN ? [{ i: '🗣️', l: 'Een andere stekker die met Alexa werkt', s: 'Bijvoorbeeld TP-Link, Meross of Philips Hue', go: () => { W.d.merkApp = ''; W.d.kind = 'webhook'; W.d.alexa = true; go(sAlexa1); } }] : []),
   { i: '❓', l: 'Ik heb nog geen slimme stekker', go: () => go(sGeenStekker) },
 ] });
 const BOLSHELLY = 'https://partner.bol.com/click/click?p=1&t=url&s=1558346&url=' + encodeURIComponent('https://www.bol.com/nl/nl/s/?searchtext=shelly+plug+s') + '&f=TXL&name=stroomwekker-shelly';
@@ -733,8 +733,10 @@ function wireZoek() {
 }
 
 // ---- Action (LSC): makkelijk met een timer, of volledig automatisch ----
-const sLscKeuze = () => ({ t: 'Hoe wil je het doen?', p: 'Je kunt op drie manieren kiezen. De eerste is de makkelijkste die vanzelf gaat.', opts: [
-  { i: '🗣️', l: 'Vanzelf, via de app Alexa (aanrader)', s: 'Alles op je telefoon. Geen codes, geen computer. Kost ongeveer 10 minuten. Gratis.', go: () => { W.d.merkApp = W.d.lsc ? 'LSC Smart Connect' : 'Smart Life'; W.d.kind = 'webhook'; W.d.alexa = true; go(sAlexa1); } },
+// De Alexa-route werkt (nog) niet: Voice Monkey en URL Routine Trigger staan niet in de Nederlandse Alexa-winkel.
+const ALEXA_AAN = false;
+const sLscKeuze = () => ({ t: 'Hoe wil je het doen?', p: ALEXA_AAN ? 'Je kunt op drie manieren kiezen. De eerste is de makkelijkste die vanzelf gaat.' : 'Je kunt op twee manieren kiezen.', opts: [
+  ...(ALEXA_AAN ? [{ i: '🗣️', l: 'Vanzelf, via de app Alexa (aanrader)', s: 'Alles op je telefoon. Geen codes, geen computer. Kost ongeveer 10 minuten. Gratis.', go: () => { W.d.merkApp = W.d.lsc ? 'LSC Smart Connect' : 'Smart Life'; W.d.kind = 'webhook'; W.d.alexa = true; go(sAlexa1); } }] : []),
   ...(W.d.lsc ? [{ i: '⏱️', l: 'Zelf een timer zetten', s: 'Je krijgt elke dag een bericht met de goedkoopste tijden. Die zet je zelf in de LSC-app. Klaar in 2 minuten.', go: () => { W.d.kind = ''; W.d.alexa = false; go(sLscTimer); } }] : []),
   { i: '🔧', l: 'Vanzelf, via Tuya (voor gevorderden)', s: (W.d.lsc ? 'Verhuis je stekker naar de app Smart Life. ' : '') + 'Kost ongeveer 20 minuten op een computer.', go: () => { W.d.kind = 'tuya'; W.d.alexa = false; go(sTuya); } },
 ] });
