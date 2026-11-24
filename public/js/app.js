@@ -601,10 +601,10 @@ const sStekker = () => ({ t: W.d.preset === 'auto' ? 'Hoe laad je je auto?' : 'W
   ...(ALEXA_AAN ? [{ i: '🗣️', l: 'Een andere stekker die met Alexa werkt', s: 'Bijvoorbeeld TP-Link, Meross of Philips Hue', go: () => { W.d.merkApp = ''; W.d.kind = 'webhook'; W.d.alexa = true; go(sAlexa1); } }] : []),
   { i: '❓', l: 'Ik heb nog geen slimme stekker', go: () => go(sGeenStekker) },
 ] });
-const BOLSHELLY = 'https://partner.bol.com/click/click?p=1&t=url&s=1558346&url=' + encodeURIComponent('https://www.bol.com/nl/nl/s/?searchtext=shelly+plug+s') + '&f=TXL&name=stroomwekker-shelly';
+const BOLSHELLY = 'https://partner.bol.com/click/click?p=1&t=url&s=1558346&url=' + encodeURIComponent('https://www.bol.com/nl/nl/p/shelly-plug-s-gen3-slim-wifi-matter-stekker-met-energiebewaking/9300000246796238/') + '&f=TXL&name=stroomwekker-shelly';
 const sGeenStekker = () => ({ t: 'Je hebt een slimme stekker nodig', of: 4,
   p: 'Een slimme stekker zet je tussen het stopcontact en je apparaat. Wij kunnen hem dan aan en uit zetten. Er zijn twee goede keuzes:',
-  html: `<a class="koopstekker" href="${BOLSHELLY}" target="_blank" rel="sponsored noopener"><span aria-hidden="true">⚡</span><span><b>Makkelijkst: Shelly Plug S</b><small>Rond de € 20 tot € 25. Meet ook het verbruik. Koppelen duurt 3 minuten, op je telefoon · advertentie</small></span></a>
+  html: `<a class="koopstekker" href="${BOLSHELLY}" target="_blank" rel="sponsored noopener"><span aria-hidden="true">⚡</span><span><b>Makkelijkst: Shelly Plug S Gen3 (wit)</b><small>Rond de € 20. Meet ook het verbruik. Koppelen duurt 3 minuten, op je telefoon · advertentie</small></span></a>
     <div class="koopstekker"><span aria-hidden="true">🛒</span><span><b>Goedkoopst: LSC Smart Connect van de Action</b><small>Een paar euro. Koppelen duurt ongeveer 20 minuten en gaat het best op een computer. Kies een stekker met energiemeter als je het verbruik wilt zien.</small></span></div>
     <p class="small muted" style="margin-top:12px">Let op: een slimme stekker kan meestal maximaal 3.680 watt aan. Voor een laadpaal of grote boiler heb je soms iets anders nodig.</p>`,
   opts: [{ i: '🔔', l: 'Stuur me intussen een bericht als stroom goedkoop is', go: () => go(sBerichtKies) }, { i: '🏠', l: 'Terug naar het begin', go: wizClose }] });
