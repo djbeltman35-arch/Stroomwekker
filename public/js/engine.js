@@ -236,6 +236,15 @@ export function alertsDue(alerts, quarters, t, s, state = {}) {
           : { id: a.id, title: '🔋 Gebruik nu je thuisbatterij', body: `Stroom is nu duur. Gebruik je batterij tot ${nlTime(p.discharge.end)}.` });
       }
       state[a.id] = { ...st, mode: m };
+    } else if (a.type === 'timer') {
+      // Voor stekkers die wij niet zelf kunnen schakelen (zoals de LSC-app): elke dag de tijden voor de timer
+      const tm = nlDayBounds(end + 60e3);
+      if (inRange(quarters, tm.start, tm.end).length >= 92 && st.day !== tm.day) {
+        const b = cheapestBlock(quarters, tm.start, tm.end, Math.max(1, Math.round(Number(a.hours || 2) * 4)));
+        if (b) out.push({ id: a.id, title: `⏰ Timer voor morgen: ${a.name || 'je apparaat'}`,
+          body: `Zet hem aan om ${nlTime(b.start)} en uit om ${nlTime(b.end)}. Dan is stroom het goedkoopst (${fmtCt(price(b.avg, s))}).` });
+        state[a.id] = { ...st, day: tm.day };
+      }
     } else if (a.type === 'tomorrow') {
       const tm = nlDayBounds(end + 60e3);
       const qs = inRange(quarters, tm.start, tm.end);

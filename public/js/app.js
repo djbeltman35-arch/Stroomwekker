@@ -211,7 +211,7 @@ document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click
 
 // ---------- Meldingen ----------
 const alertText = a => a.type === 'below' ? `Stroom goedkoper dan ${ct(a.value)} cent` : a.type === 'above' ? `Stroom duurder dan ${ct(a.value)} cent`
-  : a.type === 'cheapest' ? `De goedkoopste ${a.hours} uur beginnen` : a.type === 'negative' ? 'Zonnepanelen beter uit' : a.type === 'battery' ? 'Thuisbatterij laden of gebruiken' : 'De prijzen van morgen zijn er';
+  : a.type === 'cheapest' ? `De goedkoopste ${a.hours} uur beginnen` : a.type === 'negative' ? 'Zonnepanelen beter uit' : a.type === 'battery' ? 'Thuisbatterij laden of gebruiken' : a.type === 'timer' ? `Timer-tijden voor ${esc(a.name || 'je apparaat')}` : 'De prijzen van morgen zijn er';
 function renderAlerts() {
   if (typeof renderMijn === 'function') setTimeout(renderMijn);
   $('alertList').innerHTML = alerts.map(a => `<li class="item"><div class="txt"><b>${alertText(a)}</b></div><button class="x" data-del="${a.id}" aria-label="Verwijderen">×</button></li>`).join('');
@@ -505,7 +505,7 @@ const sApparaat = () => ({ t: 'Wat wil je vanzelf laten aangaan?', p: 'Kies wat 
   { i: '⚙️', l: 'Zelf instellen', s: 'Voor wie alles zelf wil kiezen', go: () => { wizClose(); openMeer(); openDev(null); $('apparaten').scrollIntoView({ behavior: 'smooth' }); } },
 ] });
 const sStekker = () => ({ t: 'Welke slimme stekker heb je?', p: 'Aan en uit zetten werkt met élke stekker hieronder, ook de goedkoopste. Alleen voor het verbruik zien heb je een stekker met energiemeter nodig.', opts: [
-  { i: '🛒', l: 'Van de Action (LSC)', s: 'Aan en uit: altijd. Verbruik zien: alleen met energiemeter', go: () => { W.d.kind = 'tuya'; W.d.lsc = true; go(sTuya); } },
+  { i: '🛒', l: 'Van de Action (LSC)', s: 'Makkelijk met een timer, of volledig automatisch', go: () => { W.d.kind = 'tuya'; W.d.lsc = true; go(sLscKeuze); } },
   { i: '📱', l: 'Smart Life of Tuya', s: 'Ook Hema, Calex, Nedis, Woox. Aan en uit: altijd. Verbruik zien: alleen met energiemeter', go: () => { W.d.kind = 'tuya'; go(sTuya); } },
   { i: '🔵', l: 'Shelly', s: 'Snelst te koppelen (3 minuten). Verbruik zien: Plug S, Plus Plug S en modellen met PM', go: () => { W.d.kind = 'shelly'; go(sShelly); } },
   { i: '❓', l: 'Ik heb nog geen slimme stekker', go: () => go(sGeenStekker) },
@@ -639,6 +639,31 @@ function wireZoek() {
   });
 }
 
+// ---- Action (LSC): makkelijk met een timer, of volledig automatisch ----
+const sLscKeuze = () => ({ t: 'Hoe wil je het doen?', p: 'Met de app van de Action kunnen wij je stekker niet zelf schakelen. Je kunt kiezen:', opts: [
+  { i: '⏱️', l: 'Makkelijk: ik zet zelf een timer', s: 'Blijf in de LSC-app. Geen codes nodig. Je krijgt elke dag een bericht met de goedkoopste tijden. Klaar in 2 minuten.', go: () => { W.d.kind = ''; go(sLscTimer); } },
+  { i: '🔌', l: 'Volledig automatisch', s: 'Verhuis je stekker naar de app Smart Life. Daarna doet Stroomwekker alles zelf. Kost ongeveer 20 minuten op een computer.', go: () => { W.d.kind = 'tuya'; go(sTuya); } },
+] });
+function timerBlok(uren) {
+  if (!data?.quarters) return null;
+  const n = Math.max(1, Math.round(uren * 4)), nu = Date.now(), vd = nlDayBounds(nu), tm = nlDayBounds(vd.end + 60e3);
+  const morgen = inRange(data.quarters, tm.start, tm.end).length >= 92;
+  const b = morgen ? cheapestBlock(data.quarters, tm.start, tm.end, n) : cheapestBlock(data.quarters, Math.max(vd.start, quarterStart(nu)), vd.end, n);
+  return b ? { ...b, dag: morgen ? 'morgen' : 'vandaag' } : null;
+}
+const sLscTimer = () => {
+  const p = PRESETS[W.d.preset || 'anders'], uren = p.rule.hours || 2, b = timerBlok(uren);
+  const nu = b ? `<div class="timerkaart"><small>${p.name}, ${b.dag}</small><b>Aan om ${nlTime(b.start)}<br>Uit om ${nlTime(b.end)}</b><small>Dan is stroom het goedkoopst</small></div>` : '';
+  return { t: 'Zet een timer in de LSC-app', of: 4,
+    html: nu + '<ol class="kstap">' + [
+      'Open de app <b>LSC Smart Connect</b> en tik op je stekker.',
+      'Tik onderin op <b>Schema</b> of <b>Timer</b> (de naam verschilt per versie van de app).',
+      `Voeg een tijd toe om hem <b>aan</b> te zetten en een tijd om hem <b>uit</b> te zetten${b ? ', zoals hierboven' : ''}. Kies bij Herhalen: <b>alleen één keer</b>.`,
+      `Elke middag, zodra de prijzen van morgen bekend zijn, sturen wij je een bericht met de goedkoopste ${uren} uur van morgen. Dan pas je de tijden aan. Dat duurt een halve minuut.`,
+    ].map(x => `<li><span>${x}</span></li>`).join('') + '</ol><p class="hint">Liever helemaal automatisch, zonder timer? Kies dan op het vorige scherm voor <b>Volledig automatisch</b>.</p>',
+    opts: [{ i: '🔔', l: 'Stuur mij elke dag de tijden', go: async () => { addAlert({ type: 'timer', hours: uren, name: p.name }); await enablePush(); go(sKlaarBericht); } }] };
+};
+
 // ---- Tuya / Action: kleine stappen, één ding per scherm ----
 const sTuya = () => W.d.lsc ? sTuya1() : sTuya2();
 const sTuya1 = () => stap('Stap 1: zet je stekker in de app Smart Life', [
@@ -751,7 +776,7 @@ const sKlaarBericht = () => {
   return { t: perm === 'granted' && !ios ? 'Klaar' : 'Bijna klaar', of: 3, html, opts: [{ i: '✅', l: 'Sluiten', go: wizClose }] };
 };
 function addAlert(a, quiet) {
-  if (!alerts.some(x => x.type === a.type)) alerts.push({ id: crypto.randomUUID(), value: 0, hours: 1, ...a });
+  if (!alerts.some(x => x.type === a.type && (a.type !== 'timer' || x.name === a.name))) alerts.push({ id: crypto.randomUUID(), value: 0, hours: 1, ...a });
   if (!quiet) { renderAlerts(); sync().catch(() => {}); }
 }
 
