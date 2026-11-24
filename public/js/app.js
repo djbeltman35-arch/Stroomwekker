@@ -44,7 +44,7 @@ function toonTop3(k) {
   const t = TOP3[k];
   $('top3tabs').querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', b.dataset.k === k));
   $('top3').innerHTML = t.r.map(([lev, pak, pm, pad], i) => `<li><a href="${GL(pad)}" target="_blank" rel="sponsored noopener"><span class="nr">${i + 1}</span><span><b>${lev}</b><small>${pak}</small></span><span class="pr">€ ${pm}<small> p/m</small></span></a></li>`).join('');
-  $('top3uitleg').textContent = `${t.uitleg}. Bedragen per maand voor stroom en gas samen, bij 2.300 kWh en 1.000 m³ per jaar, inclusief welkomstkorting. Tarieven van november 2026; wat jij betaalt hangt af van je adres en verbruik.`;
+  $('top3uitleg').textContent = `${t.uitleg}. Bedragen per maand voor stroom en gas samen, bij 2.300 kWh en 1.000 m³ per jaar, inclusief welkomstkorting. Tarieven van november 2026; wat jij betaalt hangt af van je adres en verbruik. Dit is geen advies: controleer de tarieven en voorwaarden bij het energiebedrijf voordat je overstapt.`;
 }
 if ($('top3tabs')) {
   $('top3tabs').innerHTML = Object.entries(TOP3).map(([k, t]) => `<button type="button" role="tab" data-k="${k}">${t.l}</button>`).join('');
@@ -848,7 +848,7 @@ const sHybride = () => ({ t: 'Gas of stroom: wij rekenen het uit', html: warmteU
 const sHybrideAuto = () => ({ t: 'Vanzelf omschakelen', of: 4, html: '<ol class="kstap">' + [
   'Veel hybride warmtepompen hebben een aansluiting om de warmtepomp tijdelijk te blokkeren (soms "SG Ready" of "externe vrijgave" genoemd). Een installateur kan daar een slimme schakelaar op zetten, zoals een <b>Shelly 1</b>.',
   'Stroomwekker zet die schakelaar <b>aan</b> als stroom goedkoper verwarmt dan gas, en <b>uit</b> als gas goedkoper is. Je cv-ketel neemt het dan over.',
-  'Werk nooit zelf in je warmtepomp of meterkast. Laat dit altijd door een installateur doen.',
+  'Werk nooit zelf in je warmtepomp of meterkast. Laat dit altijd door een installateur doen. Schakelen via Stroomwekker is op eigen risico: controleer bij je installateur of je warmtepomp hiervoor geschikt is.',
 ].map(x => `<li><span>${x}</span></li>`).join('') + '</ol>', opts: [
   { i: '🔵', l: 'Ik heb een Shelly-schakelaar', go: () => { W.d.kind = 'shelly'; W.d.preset = 'anders'; W.d.name = 'Warmtepomp'; W.d.rule = { type: 'warmte', cop: COP }; go(sShelly); } },
   { i: '⚙️', l: 'Ik heb Homey, Home Assistant of IFTTT', go: () => { wizClose(); openMeer(); openDev(null); $('dName').value = 'Warmtepomp'; $('dKind').value = 'webhook'; $('dRule').value = 'warmte'; kindUI(); ruleUI(); $('apparaten').scrollIntoView({ behavior: 'smooth' }); } },
