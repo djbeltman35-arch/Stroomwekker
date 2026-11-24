@@ -897,7 +897,7 @@ const sBerichtKies = () => ({ t: 'Wanneer wil je een bericht?', p: 'Tik aan wat 
 const sKlaarBericht = () => {
   const perm = 'Notification' in window ? Notification.permission : 'unsupported';
   const ios = /iPhone|iPad/.test(navigator.userAgent) && !matchMedia('(display-mode: standalone)').matches;
-  const mailKeuze = '<div class="mailalt"><p><b>Makkelijker: krijg je berichten per e-mail.</b></p><div class="mailrij"><input id="wMail" type="email" autocomplete="email" placeholder="naam@voorbeeld.nl" aria-label="Je e-mailadres"><button class="btn btn-sm" id="wMailOk" type="button">Per e-mail</button></div><p class="msg" id="wMailMsg" role="status"></p></div>';
+  const mailKeuze = '<div class="mailalt"><p><b>Makkelijker: krijg elke ochtend één mail met de beste tijden.</b></p><div class="mailrij"><input id="wMail" type="email" autocomplete="email" placeholder="naam@voorbeeld.nl" aria-label="Je e-mailadres"><button class="btn btn-sm" id="wMailOk" type="button">Per e-mail</button></div><p class="msg" id="wMailMsg" role="status"></p></div>';
   const html = ios ? '<p><b>Nog één ding:</b> op een iPhone moet je Stroomwekker eerst op je beginscherm zetten. Tik onderin op <b>Deel</b> en kies <b>Zet op beginscherm</b>. Open de app daarna via je beginscherm en zet berichten aan.</p>' + mailKeuze
     : perm === 'granted' ? '<div class="bigok">'+svg('bell')+'</div><p>Je krijgt vanaf nu een bericht op dit apparaat. Ook als de site dicht is.</p>'
     : '<p>Je browser staat berichten nog niet toe. Tik op het slotje naast het webadres en zet <b>Meldingen</b> aan. Probeer het daarna opnieuw.</p>' + mailKeuze;

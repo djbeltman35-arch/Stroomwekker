@@ -5,7 +5,7 @@ import { refreshPrices } from '../lib/data.mjs';
 import { switchDevice, readMeter } from '../lib/devices.mjs';
 import { magSchakelen, afdwingen, proefVoor } from '../lib/proef.mjs';
 import { stuurMail, mailKlaar } from '../lib/mail.mjs';
-import { alertsDue, deviceWants, batteryMode, price, current, fmtCt, nlTime, nlDayBounds, inRange, quarterStart, Q, DEFAULT_SETTINGS } from '../../public/js/engine.js';
+import { alertsDue, deviceWants, batteryMode, batteryPlan, cheapestBlock, negativeWindows, gasUren, gasPrijs, fmtEuro, price, current, fmtCt, nlTime, nlDayBounds, inRange, quarterStart, Q, DEFAULT_SETTINGS } from '../../public/js/engine.js';
 
 // Verbruik van het afgelopen kwartier optellen bij de dag: kWh, wat het kostte, en wat het op een gemiddeld moment had gekost.
 function boekVerbruik(m, r, now, quarters, settings) {
@@ -28,6 +28,44 @@ function boekVerbruik(m, r, now, quarters, settings) {
 
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// Dagoverzicht voor de ochtendmail: alles wat vandaag telt, in gewone taal.
+function stukken(qs, wil) { const out = []; for (const q of qs) { if (!wil(q)) continue; const l = out[out.length - 1]; if (l && l.end === q.t) l.end = q.t + Q; else out.push({ start: q.t, end: q.t + Q }); } return out; }
+const tijden = l => l.map(b => `${nlTime(b.start)} tot ${nlTime(b.end)}`).join(', ');
+function dagOverzicht(acc, quarters, now, settings) {
+  const { start, end } = nlDayBounds(now), qs = inRange(quarters, start, end);
+  if (qs.length < 80) return '';
+  const r = [], gem = qs.reduce((a, q) => a + q.spot, 0) / qs.length;
+  const b3 = cheapestBlock(quarters, start, end, 12), min = qs.reduce((m, q) => q.spot < m.spot ? q : m), max = qs.reduce((m, q) => q.spot > m.spot ? q : m);
+  r.push(`STROOM VANDAAG\nGemiddeld ${fmtCt(price(gem, settings))} per kWh.\nGoedkoopste 3 uur: ${nlTime(b3.start)} tot ${nlTime(b3.end)} (${fmtCt(price(b3.avg, settings))}).\nGoedkoopst om ${nlTime(min.t)}, duurst om ${nlTime(max.t)} (${fmtCt(price(max.spot, settings))}).`);
+  const apparaten = [];
+  for (const d of acc.devices || []) {
+    if (d.enabled === false) continue;
+    let aan = null; const l = stukken(qs, q => (aan = deviceWants(d, quarters, q.t + 60e3, settings, aan)) === true);
+    if (l.length) apparaten.push(`- ${d.name}: aan van ${tijden(l)}`);
+  }
+  if (apparaten.length) r.push('JE APPARATEN GAAN VANZELF AAN\n' + apparaten.join('\n'));
+  const al = acc.alerts || [], heeft = t => al.find(a => a.type === t);
+  for (const a of al.filter(a => a.type === 'timer')) {
+    const b = cheapestBlock(quarters, Math.max(start, quarterStart(now)), end, Math.max(1, Math.round((a.hours || 2) * 4)));
+    if (b) r.push(`TIMER ${String(a.name || 'je apparaat').toUpperCase()}\nZet hem vandaag aan om ${nlTime(b.start)} en uit om ${nlTime(b.end)}.`);
+  }
+  const warmte = heeft('warmte') || (acc.devices || []).some(d => d.rule?.type === 'warmte');
+  if (warmte) {
+    const g = gasUren(quarters, start, end, settings), gasQ = g.reduce((n, b) => n + (b.end - b.start) / Q, 0);
+    const wp = stukken(qs, q => !g.some(b => q.t >= b.start && q.t < b.end));
+    r.push('HYBRIDE WARMTEPOMP\n' + (!g.length ? 'Vandaag is de warmtepomp de hele dag goedkoper dan gas.'
+      : !wp.length ? 'Vandaag is stoken op gas de hele dag goedkoper dan de warmtepomp.'
+      : gasQ > qs.length / 2 ? `Vandaag is gas meestal goedkoper. De warmtepomp is goedkoper van ${tijden(wp)}.`
+      : `De warmtepomp is meestal goedkoper. Stook op gas van ${tijden(g)}.`));
+  }
+  if (heeft('negative') || (acc.devices || []).some(d => d.rule?.type === 'solar')) { const n = negativeWindows(quarters, start, end, 0); r.push('ZONNEPANELEN\n' + (n.length ? `Terugleveren kost geld van ${tijden(n)}. Zet je panelen dan uit, of gebruik juist veel stroom.` : 'Terugleveren kost vandaag geen geld.')); }
+  const bat = heeft('battery');
+  if (bat) { const p = batteryPlan(quarters, start, end, bat.hours, settings); if (p) r.push('THUISBATTERIJ\n' + (p.worth ? `Laden van ${nlTime(p.charge.start)} tot ${nlTime(p.charge.end)}, gebruiken van ${nlTime(p.discharge.start)} tot ${nlTime(p.discharge.end)}.` : 'Het prijsverschil is vandaag te klein: laden en gebruiken levert bijna niets op.')); }
+  const g = gasPrijs(now, settings);
+  if (g != null && (warmte || heeft('gasmorgen'))) r.push(`GAS VANDAAG\n${fmtEuro(g, 2)} per m³ (vanaf 06:00).`);
+  return 'Goedemorgen!\n\n' + r.join('\n\n') + '\n\nDit is een hulpmiddel, geen advies. De prijzen zijn inclusief belasting en je opslag.';
+}
 
 export default async () => {
   const now = Date.now() + 20e3; // net na de kwartierwissel: tel als het nieuwe kwartier
@@ -139,17 +177,23 @@ export default async () => {
         catch (e) { if (e.statusCode === 404 || e.statusCode === 410) { acc.push = null; break; } }
       }
     }
-    // Berichten per e-mail (bevestigd adres): alles van dit kwartier in één mail, hooguit 8 per dag.
-    // Gewone meldingen over aan/uit gaan van apparaten sturen we niet per mail.
-    const mailMsgs = msgs.filter(m => !String(m.id).startsWith('dev-'));
-    if (acc.email?.ok && acc.email.berichten !== false && mailMsgs.length && (mailKlaar() || process.env.DEV_MEMORY)) {
-      const dag = nlDayBounds(now).day, tel = st.mailTel?.dag === dag ? st.mailTel.n : 0;
-      if (tel < 8) {
+    // E-mail (bevestigd adres): standaard één dagoverzicht om 7:00. Los daarvan alleen een mail bij storingen
+    // (hooguit één per storing per dag) en het maandoverzicht. Alle andere meldingen gaan alleen als pushbericht.
+    if (acc.email?.ok && acc.email.berichten !== false && (mailKlaar() || process.env.DEV_MEMORY)) {
+      const dag = nlDayBounds(now).day, afmeld = `\n\nOpen Stroomwekker: https://stroomwekker.eu/\nGeen mails meer? Klik hier: https://stroomwekker.eu/api/email?a=${key.slice(2)}&uit=${acc.email.code}`;
+      const gemeld = st.mailGemeld?.dag === dag ? st.mailGemeld.ids : [];
+      const urgent = msgs.filter(m => /^(fout-|proef-|maand-)/.test(String(m.id)) && !gemeld.includes(String(m.id)));
+      if (urgent.length) {
         try {
-          await stuurMail(acc.email.adres, mailMsgs[0].title.replace(/^[^\p{L}\d€]+/u, '') + (mailMsgs.length > 1 ? ` (+${mailMsgs.length - 1})` : ''),
-            mailMsgs.map(m => `${m.title}\n${m.body || ''}`).join('\n\n') + `\n\nOpen Stroomwekker: https://stroomwekker.eu/\n\nGeen berichten meer per e-mail? Klik hier: https://stroomwekker.eu/api/email?a=${key.slice(2)}&uit=${acc.email.code}`);
-          st.mailTel = { dag, n: tel + 1 }; sent++;
+          await stuurMail(acc.email.adres, urgent[0].title.replace(/^[^\p{L}\d€]+/u, ''), urgent.map(m => `${m.title}\n${m.body || ''}`).join('\n\n') + afmeld);
+          st.mailGemeld = { dag, ids: [...gemeld, ...urgent.map(m => String(m.id))] }; sent++;
         } catch (e) { console.error('mail', e.message); }
+      }
+      const uurNL = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Amsterdam', hour: '2-digit', hour12: false }).format(new Date(now))) % 24;
+      if (uurNL >= 7 && st.mailDag !== dag && ((acc.alerts || []).length || (acc.devices || []).length)) {
+        st.mailDag = dag;
+        const tekst = dagOverzicht(acc, quarters, now, settings);
+        if (tekst) { try { await stuurMail(acc.email.adres, 'Je stroomdag: de beste tijden van vandaag', tekst + afmeld); sent++; } catch (e) { console.error('mail', e.message); } }
       }
     }
     await s.setJSON(key, acc);

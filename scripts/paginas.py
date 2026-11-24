@@ -429,7 +429,7 @@ maak('/privacy/', 'Privacyverklaring | Stroomwekker',
       <li><b>Het verbruik van je apparaat</b>, als je stekker dat meet, zodat we kunnen laten zien wat het kost en wat je bespaart. We bewaren maximaal de laatste 62 dagen.</li>
       <li><b>Wanneer de gratis proefperiode van je stekker begon.</b> Daarvoor bewaren we het nummer van je stekker alleen onherkenbaar gemaakt (versleuteld met een hash). Zo kan iedere stekker één keer gratis proberen.</li>
       <li><b>Berichten via het contactformulier</b>, zodat we je kunnen antwoorden.</li>
-      <li><b>Je e-mailadres</b>, alleen als je het zelf invult bij Instellingen. We gebruiken het om je berichten per e-mail te sturen (als je dat aanzet) en om je een inloglink te sturen. Elke mail heeft een afmeldlink. Wis je je gegevens, dan wissen we ook je e-mailadres.</li>
+      <li><b>Je e-mailadres</b>, alleen als je het zelf invult bij Instellingen. We gebruiken het om je één mail per dag met de beste tijden te sturen, plus een mail als er iets mis is (als je dat aanzet) en om je een inloglink te sturen. Elke mail heeft een afmeldlink. Wis je je gegevens, dan wissen we ook je e-mailadres.</li>
     </ul>
     <p>Je instellingen worden gekoppeld aan een lange, willekeurige code die alleen in jouw browser staat. Wij weten dus niet wie je bent. We verkopen niets en geven niets aan anderen, behalve wat nodig is om de dienst te laten werken (zie hieronder).</p>
   </section>

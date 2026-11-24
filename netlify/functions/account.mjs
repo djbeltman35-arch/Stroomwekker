@@ -132,7 +132,7 @@ Klik op deze link om je e-mailadres te bevestigen:
 
 ${SITE}/api/email?a=${key.slice(2)}&c=${code}
 
-Daarna kun je berichten per e-mail krijgen en met een inloglink op een ander apparaat inloggen.
+Daarna krijg je elke ochtend één mail met de beste tijden van de dag, en kun je met een inloglink op een ander apparaat inloggen.
 
 Heb je dit niet zelf gevraagd? Dan hoef je niets te doen.
 
