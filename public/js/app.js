@@ -750,14 +750,13 @@ const sAlexa1 = () => stap('Wat heb je nodig?', [
   `Je hebt <b>geen</b> Amazon-speaker nodig, en ook geen computer.`,
   `Het is gratis voor 1 apparaat. Wil je er meer, dan kost Voice Monkey een paar euro per maand.`,
 ], AX, () => sAlexa2());
-const sAlexa2 = () => stap('Stap 1: installeer de app Alexa', [
-  'Open de <b>App Store</b> (iPhone) of <b>Play Store</b> (Android).',
-  'Zoek op <b>Amazon Alexa</b>. Het pictogram is een blauw rondje met een wit tekstballonnetje.',
-  'Tik op <b>Installeren</b> (of <b>Downloaden</b>) en open de app.',
-  'Log in met je Amazon-account. Heb je er geen? Tik op <b>Nieuw account maken</b> en volg de stappen.',
+const sAlexa2 = () => { const x = stap('Stap 1: installeer de app Alexa', [
+  'Tik hierboven op <b>Download de app Alexa</b>. Tik daarna op <b>Installeren</b> (of <b>Downloaden</b>) en open de app.',
+  'Heb je nog geen Amazon-account? Tik hierboven op <b>Maak een Amazon-account</b> en volg de stappen. Het is gratis.',
+  'Log in de Alexa-app in met je Amazon-account.',
   'Vraagt de app om een taal? Kies <b>Nederlands</b>. Vraagt hij om een speaker in te stellen? Tik op <b>Overslaan</b> of <b>Later</b>.',
   '<b>Gelukt</b> als je het beginscherm van de Alexa-app ziet.',
-], AX, () => sAlexa3());
+], AX, () => sAlexa3()); x.html = `<div class="knoprij"><a class="btn btn-line" href="${/iPhone|iPad|iPod/.test(navigator.userAgent) ? 'https://apps.apple.com/nl/app/amazon-alexa/id944011620' : 'https://play.google.com/store/apps/details?id=com.amazon.dee.app'}" target="_blank" rel="noopener">Download de app Alexa</a><a class="btn btn-line" href="https://www.amazon.nl/ap/register?openid.return_to=https%3A%2F%2Fwww.amazon.nl%2F&amp;openid.assoc_handle=nlflex&amp;openid.mode=checkid_setup&amp;openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&amp;openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&amp;openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select" target="_blank" rel="noopener">Maak een Amazon-account</a></div>` + x.html; return x; };
 const sAlexa3 = () => stap('Stap 2: zet je stekker in Alexa', [
   'Tik in de Alexa-app onderin op <b>Meer</b> (de drie streepjes).',
   'Tik op <b>Skills en games</b>.',
@@ -769,19 +768,19 @@ const sAlexa3 = () => stap('Stap 2: zet je stekker in Alexa', [
 ], AX, () => sAlexa4());
 const sAlexa4 = () => { const x = stap('Stap 3: maak een gratis account bij Voice Monkey', [
   'Voice Monkey is een gratis hulpje. Het maakt een "knop" waarmee Stroomwekker een opdracht aan Alexa kan geven.',
-  'Tik hieronder op <b>Open Voice Monkey</b>. Tik daar op <b>Sign up</b> of <b>Login with Amazon</b>, en log in met <b>hetzelfde Amazon-account</b> als in de Alexa-app.',
+  'Tik hieronder op <b>Open Voice Monkey</b>. Kies <b>Login with Amazon</b> en log in met <b>hetzelfde Amazon-account</b> als in de Alexa-app. Je account wordt dan vanzelf aangemaakt.',
   'Ga terug naar de Alexa-app. Tik op <b>Meer</b>, dan <b>Skills en games</b>, en zoek op <b>Voice Monkey</b>.',
   'Tik op <b>Inschakelen voor gebruik</b> en log weer in met hetzelfde Amazon-account.',
   '<b>Gelukt</b> als de Alexa-app zegt dat Voice Monkey is gekoppeld.',
-], AX, () => sAlexa5()); x.html += '<p style="margin-top:14px"><a class="btn btn-line" href="https://voicemonkey.io" target="_blank" rel="noopener">Open Voice Monkey</a></p>'; return x; };
-const sAlexa5 = () => stap('Stap 4: maak twee knoppen', [
-  'Ga terug naar Voice Monkey (de website die je net opende).',
+], AX, () => sAlexa5()); x.html += '<p style="margin-top:14px"><a class="btn btn-line" href="https://app.voicemonkey.io/login" target="_blank" rel="noopener">Open Voice Monkey</a></p>'; return x; };
+const sAlexa5 = () => { const x = stap('Stap 4: maak twee knoppen', [
+  'Ga terug naar Voice Monkey (de website die je net opende). Is hij dicht? Tik dan hieronder op <b>Open Voice Monkey</b>.',
   'Tik op <b>Devices</b> (apparaten) en dan op <b>Add Device</b> of het plusje.',
   'Kies <b>Routine Trigger</b>. Geef hem de naam: <b>Stroomwekker aan</b>. Tik op <b>Save</b> (opslaan).',
   'Doe het nog een keer, met de naam: <b>Stroomwekker uit</b>.',
   'Ga naar de Alexa-app. Tik onderin op <b>Apparaten</b>, dan op het plusje en <b>Apparaat toevoegen</b>, en laat Alexa zoeken. Of trek het scherm omlaag.',
   '<b>Gelukt</b> als je in de Alexa-app twee nieuwe apparaten ziet: <b>Stroomwekker aan</b> en <b>Stroomwekker uit</b>. Alexa noemt ze soms een deurbel. Dat is goed.',
-], AX, () => sAlexa6());
+], AX, () => sAlexa6()); x.html += '<p style="margin-top:14px"><a class="btn btn-line" href="https://app.voicemonkey.io/login" target="_blank" rel="noopener">Open Voice Monkey</a></p>'; return x; };
 const sAlexa6 = () => stap('Stap 5: maak twee routines in Alexa', [
   'Een routine is een regel: "als dit gebeurt, doe dan dat". Je maakt er twee.',
   'Tik in de Alexa-app op <b>Meer</b> en dan op <b>Routines</b>. Tik op het <b>plusje</b>.',
