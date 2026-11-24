@@ -871,13 +871,14 @@ const sTuya1 = () => stap('Stap 1: zet je stekker in de app Smart Life', [
   'Download de gratis app <b>Smart Life</b> in de App Store of Google Play en maak een account.',
   'Tik in Smart Life op <b>+</b> en voeg je stekker toe, net zoals je in de LSC-app deed. Gaat het lampje van de stekker niet knipperen? Houd het knopje op de stekker 5 seconden ingedrukt.',
 ], W.d.lsc ? 8 : 7, () => sTuya2());
+const TUYA_REG = 'https://auth.tuya.com/register?from=https%3A%2F%2Fplatform.tuya.com%2F';
 const sTuya2 = () => stap(`Stap ${W.d.lsc ? 2 : 1}: maak een gratis Tuya-account`, [
   'Dit doe je het makkelijkst op een <b>computer</b>. Tuya is het bedrijf achter Smart Life.',
-  'Ga naar <b>platform.tuya.com</b> en klik op <b>Sign Up</b> (aanmelden). Vul je e-mailadres in en kies een wachtwoord.',
+  `Klik op de knop hieronder. Je komt meteen op de aanmeldpagina van Tuya. Vul je e-mailadres in en kies een wachtwoord.<div class="knoprij"><a class="btn" href="${TUYA_REG}" target="_blank" rel="noopener">Maak een Tuya-account</a></div><small>Heb je al een account? <a href="https://platform.tuya.com/" target="_blank" rel="noopener">Log hier in</a>.</small>`,
   'Vraagt de site wat voor account je wilt? Kies dan <b>Individual Developer</b> (privépersoon).',
 ], W.d.lsc ? 8 : 7, () => sTuya3(), SCH.aanmelden());
 const sTuya3 = () => stap(`Stap ${W.d.lsc ? 3 : 2}: maak een project`, [
-  'Klik links in het menu op <b>Cloud</b> en dan op <b>Development</b>.',
+  'Ga naar <a href="https://platform.tuya.com/" target="_blank" rel="noopener"><b>platform.tuya.com</b></a>. Klik links in het menu op <b>Cloud</b> en dan op <b>Development</b>.',
   'Klik op de blauwe knop <b>Create Cloud Project</b>.',
   'Vul bij <b>Project Name</b> iets in, bijvoorbeeld <i>Stroomwekker</i>. Kies bij <b>Industry</b>: <i>Smart Home</i>. Kies bij <b>Development Method</b>: <i>Smart Home</i>.',
   'Kies bij <b>Data Center</b>: <b>Central Europe Data Center</b>. Klik op <b>Create</b>.',
