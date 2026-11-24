@@ -14,6 +14,8 @@ head = re.sub(r'(<link rel="canonical" href=")[^"]*', r'\1{{URL}}', head)
 head = re.sub(r'(<meta property="og:url" content=")[^"]*', r'\1{{URL}}', head)
 head = re.sub(r'(<meta property="og:type" content=")[^"]*', r'\1article', head)
 head = re.sub(r'<script type="application/ld\+json">.*?</script>\n?', '', head, flags=re.S)
+m = re.search(r'<style id="hmenu-css">.*?</style>\n', s, re.S)
+if m: head += m.group(0)  # menu rechtsboven
 hb = s.index('</head>'); he = s.index('</header>') + len('</header>')
 header = s[hb:he].replace(' aria-current="page"', '')
 footer = s[s.index('</main>'):]

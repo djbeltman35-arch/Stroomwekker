@@ -931,13 +931,14 @@ const sHybrideAuto = () => ({ t: 'Vanzelf omschakelen', of: 4, html: '<ol class=
   { i: '⚙️', l: 'Ik heb Homey, Home Assistant of IFTTT', go: () => { wizClose(); openMeer(); openDev(null); $('dName').value = 'Warmtepomp'; $('dKind').value = 'webhook'; $('dRule').value = 'warmte'; kindUI(); ruleUI(); $('apparaten').scrollIntoView({ behavior: 'smooth' }); } },
 ] });
 
-const FLOWS = { warmte: sWarmte, apparaat: sApparaat, batterij: sBatterij, zon: sZon, bericht: sBerichtKies };
+const sAutoStart = () => { W.d.preset = 'auto'; return sStekker(); };
+const FLOWS = { auto: sAutoStart, warmte: sWarmte, apparaat: sApparaat, batterij: sBatterij, zon: sZon, bericht: sBerichtKies };
 document.querySelectorAll('[data-flow]').forEach(b => b.onclick = () => wizOpen(FLOWS[b.dataset.flow]));
 { const st = new URLSearchParams(location.search).get('start'); if (FLOWS[st]) { history.replaceState(null, '', location.pathname); setTimeout(() => wizOpen(FLOWS[st]), 300); } }
 function openMeer() { $('meer').open = true; }
-$('navStart').onclick = e => { e.preventDefault(); scrollTo({ top: 0, behavior: 'smooth' }); };
+$('navStart') && ($('navStart').onclick = e => { e.preventDefault(); scrollTo({ top: 0, behavior: 'smooth' }); });
 $('footMeer') && ($('footMeer').onclick = e => { e.preventDefault(); openMeer(); $('meer').scrollIntoView({ behavior: 'smooth' }); });
-$('navMeer').onclick = e => { e.preventDefault(); openMeer(); $('meer').scrollIntoView({ behavior: 'smooth' }); };
+$('navMeer') && ($('navMeer').onclick = e => { e.preventDefault(); openMeer(); $('meer').scrollIntoView({ behavior: 'smooth' }); });
 $('licht').onclick = e => { e.preventDefault(); openMeer(); $('prijs').scrollIntoView({ behavior: 'smooth' }); };
 $('mijnMeer').onclick = () => scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -957,3 +958,20 @@ $('mijnList').addEventListener('click', e => {
   if (d || a) { renderDevices(); renderAlerts(); sync().catch(() => {}); }
 });
 renderMijn();
+
+// ---------- Menu rechtsboven: doelen op deze pagina openen ----------
+function naarDoel() {
+  const h = location.hash;
+  if (!h) return;
+  const m = document.querySelector('.hmenu'); if (m) m.open = false;
+  if (h === '#instellingen' || h === '#inloggen') { openMeer(); if (h === '#inloggen') { const d = $('loginMail')?.closest('details'); if (d) d.open = true; } }
+  if (h === '#installeren') { installeer(); return; }
+  const doel = h === '#inloggen' ? $('loginMail') : document.querySelector(h);
+  if (doel) setTimeout(() => doel.scrollIntoView({ behavior: 'smooth', block: h === '#inloggen' ? 'center' : 'start' }), 50);
+}
+addEventListener('hashchange', naarDoel); setTimeout(naarDoel, 400);
+document.querySelectorAll('.hmenu a').forEach(a => a.addEventListener('click', ev => { const m = a.closest('.hmenu'); if (m) m.open = false;
+  const u = new URL(a.href); if (u.pathname === location.pathname && u.searchParams.get('start') && FLOWS[u.searchParams.get('start')]) { a.blur(); ev.preventDefault(); wizOpen(FLOWS[u.searchParams.get('start')]); }
+  else if (u.pathname === location.pathname && u.hash && u.hash === location.hash) naarDoel(); }));
+addEventListener('click', e => { const m = document.querySelector('.hmenu[open]'); if (m && !m.contains(e.target)) m.open = false; });
+addEventListener('keydown', e => { if (e.key === 'Escape') { const m = document.querySelector('.hmenu[open]'); if (m) { m.open = false; m.querySelector('summary').focus(); } } });
