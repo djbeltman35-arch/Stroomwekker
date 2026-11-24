@@ -1175,7 +1175,7 @@ const sHybrideAuto = () => ({ t: 'Vanzelf omschakelen', of: 4, html: '<ol class=
 ] });
 
 const sAutoStart = () => { W.d.preset = 'auto'; return sStekker(); };
-const FLOWS = { auto: sAutoStart, warmte: sWarmte, apparaat: sApparaat, batterij: sBatterij, zon: sZon, bericht: sBerichtKies };
+const FLOWS = { auto: sAutoStart, warmte: sWarmte, apparaat: sApparaat, batterij: sBatterij, zon: sZon, bericht: sBerichtKies, toevoegen: sToevoegen };
 document.querySelectorAll('[data-flow]').forEach(b => b.onclick = () => wizOpen(FLOWS[b.dataset.flow]));
 { const st = new URLSearchParams(location.search).get('start'); if (FLOWS[st]) { history.replaceState(null, '', location.pathname); setTimeout(() => wizOpen(FLOWS[st]), 300); } }
 function openMeer() { $('meer').open = true; }
@@ -1183,13 +1183,13 @@ $('navStart') && ($('navStart').onclick = e => { e.preventDefault(); scrollTo({ 
 $('footMeer') && ($('footMeer').onclick = e => { e.preventDefault(); openMeer(); $('meer').scrollIntoView({ behavior: 'smooth' }); });
 $('navMeer') && ($('navMeer').onclick = e => { e.preventDefault(); openMeer(); $('meer').scrollIntoView({ behavior: 'smooth' }); });
 $('licht').onclick = e => { e.preventDefault(); openMeer(); $('prijs').scrollIntoView({ behavior: 'smooth' }); };
-const sToevoegen = () => ({ t: 'Wat wil je toevoegen?', p: 'Kies wat je wilt. Wij helpen je stap voor stap.', opts: [
+function sToevoegen() { return { t: 'Wat wil je toevoegen?', p: 'Kies wat je wilt. Wij helpen je stap voor stap.', opts: [
   { i: '🔌', l: 'Apparaat automatisch aan en uit', s: 'Boiler, wasmachine of auto', go: () => go(sApparaat) },
   { i: '🔋', l: 'Thuisbatterij slim laden', s: 'Laden als stroom goedkoop is', go: () => go(sBatterij) },
   { i: '♨️', l: 'Verwarmen: gas of stroom?', s: 'Hybride warmtepomp of cv-ketel', go: () => go(sWarmte) },
   { i: '☀️', l: 'Zonnepanelen', s: 'Weten wanneer terugleveren geld kost', go: () => go(sZon) },
   { i: '🔔', l: 'Alleen een bericht', s: 'Als stroom goedkoop of duur is', go: () => go(sBerichtKies) },
-] });
+] }; }
 $('mijnMeer').onclick = () => wizOpen(sToevoegen);
 
 // ---- "Wat staat er aan" ----
@@ -1214,13 +1214,13 @@ function naarDoel() {
   const h = location.hash;
   if (!h) return;
   const m = document.querySelector('.hmenu'); if (m) m.open = false;
-  if (h === '#instellingen' || h === '#inloggen') { openMeer(); if (h === '#inloggen') { const d = $('loginMail')?.closest('details'); if (d) d.open = true; } }
+  if (h === '#instellingen' || h === '#inloggen' || h === '#apparaten') { openMeer(); if (h === '#inloggen') { const d = $('loginMail')?.closest('details'); if (d) d.open = true; } }
   if (h === '#installeren') { installeer(); return; }
   const doel = h === '#inloggen' ? $('loginMail') : document.querySelector(h);
   if (doel) setTimeout(() => doel.scrollIntoView({ behavior: 'smooth', block: h === '#inloggen' ? 'center' : 'start' }), 50);
 }
 addEventListener('hashchange', naarDoel); setTimeout(naarDoel, 400);
-document.querySelectorAll('.hmenu a').forEach(a => a.addEventListener('click', ev => { const m = a.closest('.hmenu'); if (m) m.open = false;
+document.querySelectorAll('.hmenu a, .sublinks a').forEach(a => a.addEventListener('click', ev => { const m = a.closest('.hmenu'); if (m) m.open = false;
   const u = new URL(a.href); if (u.pathname === location.pathname && u.searchParams.get('start') && FLOWS[u.searchParams.get('start')]) { a.blur(); ev.preventDefault(); wizOpen(FLOWS[u.searchParams.get('start')]); }
   else if (u.pathname === location.pathname && u.hash && u.hash === location.hash) naarDoel(); }));
 addEventListener('click', e => { const m = document.querySelector('.hmenu[open]'); if (m && !m.contains(e.target)) m.open = false; });
