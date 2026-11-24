@@ -749,7 +749,7 @@ const sLscKeuze = () => ({ t: 'Hoe wil je het doen?', p: ALEXA_AAN ? 'Je kunt op
 
 // ---- Via Alexa: Stroomwekker drukt op een "knop" bij Voice Monkey, Alexa zet je stekker aan of uit ----
 // Heel kleine stappen, één ding per scherm. Elke stap: wat je doet, en hoe je weet dat het gelukt is.
-const AX = 6;
+const AX = 10;
 const appNaam = () => W.d.merkApp || 'de app van je stekker';
 const ALEXA_APP = () => /iPhone|iPad|iPod/.test(navigator.userAgent) ? 'https://apps.apple.com/nl/app/amazon-alexa/id944011620' : 'https://play.google.com/store/apps/details?id=com.amazon.dee.app';
 const AMAZON_REG = 'https://www.amazon.nl/ap/register?openid.return_to=https%3A%2F%2Fwww.amazon.nl%2F&amp;openid.assoc_handle=nlflex&amp;openid.mode=checkid_setup&amp;openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&amp;openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&amp;openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select';
@@ -763,60 +763,96 @@ function startAlexa() {
 }
 const urenTxt = () => { const u = W.d.alexaUren || 2; return u === 1 ? '1 uur' : String(u).replace('.', ',') + ' uur'; };
 const KNOPSITE = 'https://alexa.hapicom.jp/';
+// Directe links naar de skills in de Alexa-winkel (opent de Alexa-app als die er is)
+const SKILL = { 'Smart Life': 'https://www.amazon.nl/dp/B01N1ZVI7M', 'LSC Smart Connect': '', knop: '' };
+const skillKnop = (naam, label) => SKILL[naam] ? `<div class="knoprij"><a class="btn" href="${SKILL[naam]}" target="_blank" rel="noopener">${label}</a></div>` : '';
+
+// Schets van een telefoonscherm. Geel omrand = daar tik je op.
+function tel(titel, rijen, cap = 'Zo ziet het er ongeveer uit. Tik op wat geel omrand is.') {
+  const B = 240; let y = 46, o = '';
+  const hl = (x, yy, w, h) => `<rect x="${x - 3}" y="${yy - 3}" width="${w + 6}" height="${h + 6}" rx="9" fill="none" stroke="#F5B700" stroke-width="3.5"/>`;
+  for (const r of rijen) {
+    if (r.k === 'kop') { o += `<rect x="14" y="${y}" width="${B - 28}" height="18" rx="5" fill="#DDE2E8"/><text x="22" y="${y + 12.5}" font-size="8.5" font-weight="700" letter-spacing="1" fill="#3A4656">${xe(r.t)}</text>`; y += 20; }
+    else if (r.k === 'rij') { const h = r.s ? 32 : 24; o += `<rect x="14" y="${y}" width="${B - 28}" height="${h}" fill="#EEF1F4"/><text x="24" y="${y + (r.s ? 13 : 15.5)}" font-size="10" fill="#1F2A37">${xe(r.t)}</text>` + (r.s ? `<text x="24" y="${y + 25}" font-size="8.5" fill="#B5650B">${xe(r.s)}</text>` : '') + (r.hl ? hl(14, y, B - 28, h) : ''); y += h + 2; }
+    else if (r.k === 'knop') { o += `<rect x="20" y="${y + 4}" width="${B - 40}" height="22" rx="11" fill="${r.grijs ? '#E5E7EB' : '#1A73E8'}"/><text x="${B / 2}" y="${y + 19}" text-anchor="middle" font-size="10" font-weight="700" fill="${r.grijs ? '#374151' : '#fff'}">${xe(r.t)}</text>` + (r.hl ? hl(20, y + 4, B - 40, 22) : ''); y += 32; }
+    else if (r.k === 'zoek') { o += `<rect x="14" y="${y + 2}" width="${B - 28}" height="20" rx="10" fill="#EEF1F4"/><text x="26" y="${y + 15.5}" font-size="9.5" fill="#1F2A37">🔍 ${xe(r.t)}</text>`; y += 28; }
+    else if (r.k === 'tekst') { o += `<text x="18" y="${y + 12}" font-size="${r.groot ? 13 : 9.5}" font-weight="${r.groot ? 700 : 400}" fill="${r.mono ? '#C0266D' : '#1F2A37'}" ${r.mono ? 'font-family="monospace"' : ''}>${xe(r.t)}</text>`; y += r.groot ? 22 : 16; }
+    else if (r.k === 'nav') { o += `<line x1="8" y1="${y + 4}" x2="${B - 8}" y2="${y + 4}" stroke="#E5E7EB"/>`; const n = r.items.length, w = (B - 16) / n; r.items.forEach((t, k) => { const x = 8 + k * w; o += `<text x="${x + w / 2}" y="${y + 22}" text-anchor="middle" font-size="8" fill="${k === r.actief ? '#1A73E8' : '#6B7280'}" font-weight="${k === r.actief ? 700 : 400}">${xe(t)}</text>`; if (k === r.actief) o += hl(x + 4, y + 11, w - 8, 15); }); y += 32; }
+    else if (r.k === 'ruimte') y += r.h || 10;
+  }
+  const H = y + 14;
+  const kader = `<rect x="2" y="2" width="${B - 4}" height="${H - 4}" rx="22" fill="#fff" stroke="#0F2340" stroke-width="3"/><rect x="${B / 2 - 24}" y="9" width="48" height="6" rx="3" fill="#0F2340"/><text x="${B / 2}" y="34" text-anchor="middle" font-size="11" font-weight="700" fill="#1F2A37">${xe(titel)}</text>`;
+  return `<figure class="schets tel"><svg viewBox="0 0 ${B} ${H}" role="img" aria-label="Voorbeeld van het scherm: ${xe(titel)}">${kader + o}</svg><figcaption>${cap}</figcaption></figure>`;
+}
+const regels = l => '<ol class="kstap">' + l.map(x => `<li><span>${x}</span></li>`).join('') + '</ol>';
+const verder = (volgende, l = 'Gedaan, volgende stap') => [{ i: '✅', l, go: () => go(volgende) }];
+
 const sAlexa1 = () => ({ t: 'Wat heb je nodig?', of: AX,
   html: '<ul class="nodig">' + [
     'Je telefoon.',
-    `Je slimme stekker. Hij moet al werken in <b>${appNaam()}</b>: je kunt hem daar aan en uit zetten.`,
-    'Een gratis account bij Amazon. Heb je er nog geen? Maak hem hieronder aan.',
-    'De gratis app Alexa. Je hebt <b>geen</b> Amazon-speaker nodig, en ook geen computer.',
+    `Je slimme stekker. Hij werkt al in de app <b>${appNaam()}</b>.`,
+    'Een Amazon-account (gratis).',
+    'De app Alexa (gratis). Een Amazon-speaker is <b>niet</b> nodig.',
   ].map(x => `<li><span>${x}</span></li>`).join('') + '</ul>'
     + `<div class="knoprij"><a class="btn" href="${AMAZON_REG}" target="_blank" rel="noopener">Maak een Amazon-account</a><a class="btn" href="${ALEXA_APP()}" target="_blank" rel="noopener">Download de app Alexa</a></div>`
-    + `<p class="hint">Zo werkt het: elke dag drukt Stroomwekker op een "knop" in Alexa als stroom het goedkoopst is. Alexa zet je stekker dan aan, en na ${urenTxt()} weer uit. Gratis voor 1 stekker.</p>`,
-  opts: [{ i: '✅', l: 'Ik heb alles, begin', go: () => go(sAlexa2) }] });
-const sAlexa2 = () => { const x = stap('Stap 1: installeer de app Alexa', [
-  'Tik hierboven op <b>Download de app Alexa</b>. Tik daarna op <b>Installeren</b> en open de app.',
-  'Log in met je Amazon-account. Heb je er nog geen? Tik hierboven op <b>Maak een Amazon-account</b>. Het is gratis.',
-  'Vraagt de app om een taal? Kies <b>Nederlands</b>. Vraagt hij om een speaker in te stellen? Tik op <b>Overslaan</b> of <b>Later</b>.',
-  '<b>Gelukt</b> als je het beginscherm van de Alexa-app ziet.',
-], AX, () => sAlexa3()); x.html = `<div class="knoprij"><a class="btn btn-line" href="${ALEXA_APP()}" target="_blank" rel="noopener">Download de app Alexa</a><a class="btn btn-line" href="${AMAZON_REG}" target="_blank" rel="noopener">Maak een Amazon-account</a></div>` + x.html; return x; };
-const sAlexa3 = () => stap('Stap 2: zet je stekker in Alexa', [
-  'Tik in de Alexa-app onderin op <b>Meer</b>.',
-  'Tik op <b>Vaardigheden en games</b>.',
-  `Tik op het vergrootglas en typ: <b>${W.d.merkApp || 'de naam van de app van je stekker'}</b>.`,
-  'Tik op het resultaat en dan op <b>Inschakelen voor gebruik</b>.',
-  `Log in met hetzelfde account als in <b>${appNaam()}</b>. Tik op <b>Autoriseren</b> of <b>Toestaan</b>.`,
-  'Tik op <b>Apparaten zoeken</b> als Alexa het vraagt.',
-  '<b>Gelukt</b> als je stekker in de Alexa-app staat onder <b>Apparaten</b>. Tik erop: kun je hem aan en uit zetten? Mooi.',
-], AX, () => sAlexa4());
-const sAlexa4 = () => stap('Stap 3: zet de knop van Stroomwekker in Alexa', [
-  'Tik in de Alexa-app op <b>Meer</b> en dan op <b>Vaardigheden en games</b>.',
-  'Tik op het vergrootglas en typ: <b>Virtuele triggerknop</b>.',
-  'Tik op <b>Virtuele triggerknop voor Alexa-routines</b> en dan op <b>Inschakelen voor gebruik</b>. Log in met je Amazon-account.',
-  'Tik op <b>Apparaten zoeken</b> als Alexa het vraagt.',
-  '<b>Gelukt</b> als er onder <b>Apparaten</b> een nieuw apparaat staat: <b>Virtual Trigger Button</b>.',
-], AX, () => sAlexa5());
-const sAlexa5 = () => { const x = stap('Stap 4: haal je sleutel op', [
-  'Tik hierboven op <b>Open de knop-website</b>.',
-  'Tik bij <b>Amazon-account koppelen</b> op de knop om in te loggen. Gebruik <b>hetzelfde Amazon-account</b> als in de Alexa-app.',
-  'Scrol naar <b>API-sleutelinstellingen</b> en tik op <b>API-sleutel genereren</b>.',
-  'Er verschijnt een lange code die begint met <b>tr_</b>. Tik erop en kies <b>Kopiëren</b>. Zet hem voor de zekerheid ook in een notitie.',
-  'Je zit nu op het gratis <b>proefabonnement</b>: € 0 per maand. Daar hoef je niets aan te veranderen.',
-  '<b>Gelukt</b> als je de code hebt gekopieerd. Kom dan terug naar Stroomwekker.',
-], AX, () => sAlexa6()); x.html = `<div class="knoprij"><a class="btn" href="${KNOPSITE}" target="_blank" rel="noopener">Open de knop-website</a></div>` + x.html; return x; };
-const sAlexa6 = () => stap('Stap 5: maak één routine in Alexa', [
-  'Een routine is een regel: "als dit gebeurt, doe dan dat".',
-  'Tik in de Alexa-app op <b>Meer</b>, dan <b>Routines</b>, en dan op het <b>plusje</b>.',
-  'Tik bij <b>Wanneer</b> op <b>Slim huis</b> en kies <b>Virtual Trigger Button</b>, dan <b>default</b>.',
-  'Tik op <b>Voeg een actie toe</b> → <b>Slim huis</b> → je stekker → <b>In-/uitschakelen</b> → <b>Aan</b>.',
-  `Tik op <b>Nog een actie toevoegen</b> → <b>Wachten</b> → kies <b>${urenTxt()}</b>.`,
-  'Tik op <b>Nog een actie toevoegen</b> → <b>Slim huis</b> → je stekker → <b>Uit</b>.',
-  'Staat de volgorde goed? Eerst <b>Aan</b>, dan <b>Wachten</b>, dan <b>Uit</b>. Sleep anders met de streepjes. Tik op <b>Opslaan</b>.',
-], AX, () => sAlexa7());
-const sAlexa7 = () => ({ t: 'Stap 6: plak je sleutel hier', of: AX,
-  p: 'Nu weet Stroomwekker welke knop hij moet indrukken.',
-  html: veldHTML('wK', 'Je sleutel', 'De lange code die begint met tr_.', 'Op de knop-website, bij <b>API-sleutelinstellingen</b>. Kwijt? Maak daar gewoon een nieuwe.', 'tr_…', '^tr_\\S{20,}$')
-    + `<p class="hint">Deel deze sleutel met niemand. Wie hem heeft, kan je stekker aanzetten.</p>`
-    + `<p class="hint" style="margin-top:12px">Tik op <b>Test: zet aan</b>. Binnen een paar seconden gaat je stekker aan, en na ${urenTxt()} vanzelf weer uit. Wil je niet zo lang wachten? Zet hem dan zelf uit in de app.</p>` + testRow,
+    + `<p class="hint"><b>Zo werkt het:</b> als stroom het goedkoopst is, drukt Stroomwekker op een knop in Alexa. Alexa zet je stekker aan, en na ${urenTxt()} weer uit. Gratis.</p>`,
+  opts: verder(sAlexa2, 'Ik heb alles, begin') });
+
+const sAlexa2 = () => ({ t: 'Stap 1: open de app Alexa', of: AX,
+  html: `<div class="knoprij"><a class="btn" href="${ALEXA_APP()}" target="_blank" rel="noopener">Download de app Alexa</a></div>`
+    + regels(['Tik op de gele knop. Installeer de app.', 'Log in met je Amazon-account.', 'Vraagt hij om een speaker? Tik op <b>Overslaan</b>.'])
+    + tel('Alexa', [{ k: 'tekst', t: 'Goedemiddag', groot: 1 }, { k: 'ruimte', h: 60 }, { k: 'nav', items: ['Home', 'Afspelen', 'Apparaten', 'Meer'], actief: -1 }], 'Gelukt als je dit beginscherm ziet.'),
+  opts: verder(sAlexa3) });
+
+const sAlexa3 = () => { const app = W.d.merkApp || 'Smart Life'; return { t: 'Stap 2: zet je stekker in Alexa', of: AX,
+  html: skillKnop(app, `Open ${app} in Alexa`)
+    + regels([SKILL[app] ? 'Tik op de gele knop.' : `Tik in Alexa op <b>Meer</b> → <b>Vaardigheden en games</b>. Zoek op <b>${xe(app)}</b>.`,
+      'Tik op <b>Inschakelen voor gebruik</b>.', `Log in met je account van <b>${xe(app)}</b>.`])
+    + tel(app, [{ k: 'tekst', t: app, groot: 1 }, { k: 'tekst', t: 'Vaardigheid voor slim huis' }, { k: 'ruimte', h: 6 }, { k: 'knop', t: 'INSCHAKELEN VOOR GEBRUIK', hl: 1 }]),
+  opts: verder(sAlexa4) }; };
+
+const sAlexa4 = () => ({ t: 'Stap 3: zet de Stroomwekker-knop in Alexa', of: AX,
+  html: skillKnop('knop', 'Open de knop in Alexa')
+    + regels([SKILL.knop ? 'Tik op de gele knop.' : 'Tik in Alexa op <b>Meer</b> → <b>Vaardigheden en games</b>. Zoek op <b>Virtuele triggerknop</b>.',
+      'Tik op <b>Inschakelen voor gebruik</b>.', 'Log in met je Amazon-account.', 'Vraagt Alexa om apparaten te zoeken? Tik op <b>Zoeken</b>.'])
+    + tel('Vaardigheden', [{ k: 'tekst', t: 'Virtuele triggerknop', groot: 1 }, { k: 'tekst', t: 'voor Alexa-routines' }, { k: 'ruimte', h: 6 }, { k: 'knop', t: 'INSCHAKELEN VOOR GEBRUIK', hl: 1 }]),
+  opts: verder(sAlexa5) });
+
+const sAlexa5 = () => ({ t: 'Stap 4: log in op de knop-website', of: AX,
+  html: `<div class="knoprij"><a class="btn" href="${KNOPSITE}" target="_blank" rel="noopener">Open de knop-website</a></div>`
+    + regels(['Tik op de gele knop.', 'Zoek <b>Amazon-account koppelen</b>. Tik op de knop eronder.', 'Log in met <b>hetzelfde</b> Amazon-account als in Alexa.'])
+    + tel('alexa.hapicom.jp', [{ k: 'kop', t: 'AMAZON-ACCOUNT KOPPELEN' }, { k: 'ruimte', h: 4 }, { k: 'knop', t: 'Login with Amazon', hl: 1 }], 'Gelukt als er staat: "Je Amazon-account is gekoppeld".'),
+  opts: verder(sAlexa6) });
+
+const sAlexa6 = () => ({ t: 'Stap 5: maak je sleutel', of: AX,
+  html: regels(['Scrol op de knop-website naar <b>API-sleutelinstellingen</b>.', 'Tik op <b>API-sleutel genereren</b>.', 'Er komt een lange code die begint met <b>tr_</b>. Houd je vinger erop en kies <b>Kopiëren</b>.'])
+    + tel('alexa.hapicom.jp', [{ k: 'kop', t: 'API-SLEUTELINSTELLINGEN' }, { k: 'ruimte', h: 4 }, { k: 'knop', t: 'API-sleutel genereren', grijs: 1, hl: 1 }, { k: 'tekst', t: 'tr_aB3kD9xQ…', mono: 1 }])
+    + '<p class="hint">Kopieer de code meteen. Zet hem voor de zekerheid ook in een notitie. Deel hem met niemand.</p>',
+  opts: verder(sAlexa7) });
+
+const sAlexa7 = () => ({ t: 'Stap 6: begin een routine', of: AX,
+  html: regels(['Ga terug naar de app <b>Alexa</b>.', 'Tik onderin op <b>Meer</b>.', 'Tik op <b>Routines</b>. Tik dan op het <b>plusje (+)</b>.'])
+    + tel('Alexa', [{ k: 'rij', t: 'Routines', hl: 1 }, { k: 'rij', t: 'Vaardigheden en games' }, { k: 'rij', t: 'Instellingen' }, { k: 'ruimte', h: 6 }, { k: 'nav', items: ['Home', 'Afspelen', 'Apparaten', 'Meer'], actief: 3 }]),
+  opts: verder(sAlexa8) });
+
+const sAlexa8 = () => ({ t: 'Stap 7: wanneer moet het gebeuren?', of: AX,
+  html: regels(['Tik bij <b>Wanneer</b> op <b>Slim huis</b>.', 'Kies <b>Virtual Trigger Button</b>.', 'Kies <b>default</b>.'])
+    + tel('Nieuwe routine', [{ k: 'kop', t: 'WANNEER' }, { k: 'rij', t: 'Virtual Trigger Button', s: 'default - Standaardtrigger', hl: 1 }, { k: 'kop', t: 'ZAL ALEXA' }, { k: 'rij', t: 'Voeg een actie toe  ⊕' }]),
+  opts: verder(sAlexa9) });
+
+const sAlexa9 = () => ({ t: 'Stap 8: wat moet er gebeuren?', of: AX,
+  html: regels(['Tik op <b>Voeg een actie toe</b> → <b>Slim huis</b> → je stekker → <b>Aan</b>.',
+    `Tik op <b>Nog een actie toevoegen</b> → <b>Wachten</b> → <b>${urenTxt()}</b>.`,
+    'Tik op <b>Nog een actie toevoegen</b> → <b>Slim huis</b> → je stekker → <b>Uit</b>.',
+    'Tik op <b>Opslaan</b>.'])
+    + tel('Nieuwe routine', [{ k: 'kop', t: 'WANNEER' }, { k: 'rij', t: 'Virtual Trigger Button', s: 'default - Standaardtrigger' }, { k: 'kop', t: 'ZAL ALEXA' },
+      { k: 'rij', t: 'Je stekker', s: 'Stroom: Aan', hl: 1 }, { k: 'rij', t: 'Wacht ' + urenTxt(), hl: 1 }, { k: 'rij', t: 'Je stekker', s: 'Stroom: Uit', hl: 1 }, { k: 'knop', t: 'Opslaan', hl: 1 }],
+      'Precies in deze volgorde: Aan, Wacht, Uit. Verkeerd? Sleep met de streepjes.'),
+  opts: verder(sAlexa10) });
+
+const sAlexa10 = () => ({ t: 'Stap 9: plak je sleutel hier', of: AX,
+  html: veldHTML('wK', 'Je sleutel', 'De lange code die begint met tr_.', 'Op de knop-website (stap 5). Kwijt? Maak daar gewoon een nieuwe.', 'tr_…', '^tr_\\S{20,}$')
+    + `<p class="hint">Tik op <b>Test: zet aan</b>. Je stekker gaat aan, en na ${urenTxt()} vanzelf uit. Niet zo lang wachten? Zet hem zelf uit in de app.</p>` + testRow,
   after: () => { wireVelden(); wireTest(); } });
 function timerBlok(uren) {
   if (!data?.quarters) return null;
