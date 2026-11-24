@@ -131,7 +131,7 @@ export default async () => {
       if (want === null) continue;
       if (want === ds.on && ds.ok) continue; // al goed
       try {
-        await switchDevice(d, want);
+        await switchDevice(d, want, acc);
         if (ds.ok === false && ds.failAt) msgs.push({ id: 'herstel-' + d.id, title: `✅ ${d.name} werkt weer`, body: 'Stroomwekker kan dit apparaat weer aan en uit zetten.' });
         st.devices[d.id] = { on: want, ok: true, at: now, msg: '' };
         switched++;

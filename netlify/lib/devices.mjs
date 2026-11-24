@@ -1,3 +1,4 @@
+import { druk } from './alexaskill.mjs';
 // Apparaten schakelen via de cloud: Shelly Cloud of een webhook (IFTTT, Home Assistant, Homey, Smart Life via IFTTT, ...).
 
 // Tuya Cloud (ook LSC Smart Connect van Action, Smart Life, Hema, Calex, Nedis, ...)
@@ -179,6 +180,7 @@ export function validateDevice(d) {
     const code = /^[a-z0-9_]{3,20}$/.test(d.code || '') ? d.code : 'switch_1';
     return { ...base, kind: 'tuya', region, accessId, accessSecret, deviceId, code };
   }
+  if (d.kind === 'alexa' && d.skill) return { ...base, kind: 'alexa', skill: true };
   if (d.kind === 'alexa') {
     const key = String(d.key || '').trim(), trig = /^[\w-]{1,40}$/.test(d.trig || '') ? d.trig : 'default', trigUit = /^[\w-]{1,40}$/.test(d.trigUit || '') ? d.trigUit : '';
     if (!/^tr_[\w-]{20,100}$/.test(key)) throw new Error('De sleutel klopt niet. Hij begint met tr_ en is heel lang. Kopieer hem opnieuw.');
@@ -189,7 +191,8 @@ export function validateDevice(d) {
   return { ...base, kind: 'webhook', onUrl, offUrl, supplyUrl, method: d.method === 'GET' ? 'GET' : 'POST' };
 }
 
-export async function switchDevice(d, on) {
+export async function switchDevice(d, on, acc) {
+  if (d.kind === 'alexa' && d.skill) { if (on === 'supply') return 'niet ondersteund'; if (!acc) throw new Error('Geen account'); return druk(acc, d, on === true); }
   if (d.kind === 'easee') {
     const tok = await easeeToken(d);
     await easeeJSON(`/chargers/${d.deviceId}/commands/${on ? 'resume_charging' : 'pause_charging'}`, { method: 'POST', headers: { Authorization: 'Bearer ' + tok } });

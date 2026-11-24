@@ -3,6 +3,7 @@ import { validateDevice, switchDevice, readMeter, listDevices, easeeLogin } from
 import { nlDayBounds } from '../../public/js/engine.js';
 import { proefVoor, afdwingen } from '../lib/proef.mjs';
 import { stuurMail, geldigMail, hashMail, willekeurig } from '../lib/mail.mjs';
+import { meldKnoppen } from '../lib/alexaskill.mjs';
 
 const SITE = 'https://stroomwekker.eu';
 
@@ -24,7 +25,7 @@ const mask = acc => ({
   settings: acc.settings, alerts: acc.alerts, hasPush: !!acc.push,
   devices: (acc.devices || []).map(d => ({ ...d, key: d.key ? MASK + d.key.slice(-4) : undefined, accessSecret: d.accessSecret ? MASK + d.accessSecret.slice(-4) : undefined, eAccess: d.eAccess ? MASK : undefined, eRefresh: d.eRefresh ? MASK : undefined,
     status: acc.state?.devices?.[d.id] || null, verbruik: verbruik(d, acc.state?.meter?.[d.id]), proef: acc.proef?.[d.id] || null })),
-  betaaldTot: acc.betaaldTot || null, proefAfdwingen: afdwingen(),
+  betaaldTot: acc.betaaldTot || null, proefAfdwingen: afdwingen(), alexa: !!acc.alexa?.refresh,
   email: acc.email ? { adres: acc.email.adres, ok: !!acc.email.ok, berichten: acc.email.berichten !== false } : null,
 });
 
@@ -106,6 +107,7 @@ Stroomwekker`); } catch (e) { console.error('loginlink', e.message); }
         acc.proef = await proefVoor(s, acc.devices, Date.now(), acc.created || Date.now());
       }
       acc.updated = Date.now();
+      if ('devices' in body && acc.alexa) await meldKnoppen(acc).catch(e => console.error('alexa melden', e.message));
       await s.setJSON(key, acc);
       return Response.json(mask(acc));
     }
@@ -147,6 +149,14 @@ Stroomwekker`);
       return Response.json(await easeeLogin(u, p)); // wachtwoord wordt niet bewaard
     }
 
+    if (body.action === 'alexacode') {
+      // Koppelcode voor de Alexa-skill: 6 tekens, 20 minuten geldig, één keer te gebruiken
+      const tekens = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let code = '';
+      for (const b of crypto.getRandomValues(new Uint8Array(6))) code += tekens[b % tekens.length];
+      await s.setJSON('kc/' + code, { key, exp: Date.now() + 20 * 60e3 });
+      return Response.json({ code, gekoppeld: !!acc.alexa?.refresh });
+    }
+    if (body.action === 'alexastatus') return Response.json({ gekoppeld: !!acc.alexa?.refresh });
     if (body.action === 'list') {
       const d = { ...(body.device || {}), deviceId: 'zoekennnnn', rule: { type: 'cheap' } };
       const dev = validateDevice(d);
@@ -161,7 +171,8 @@ Stroomwekker`);
         dev = validateDevice(d);
       }
       if (!dev) return Response.json({ error: 'Apparaat niet gevonden' }, { status: 404 });
-      await switchDevice(dev, body.on === 'supply' ? 'supply' : !!body.on);
+      await switchDevice(dev, body.on === 'supply' ? 'supply' : !!body.on, acc);
+      if (dev.kind === 'alexa' && dev.skill) await s.setJSON(key, acc);
       // Easee: nieuwe sleutels na verversen meteen bewaren (een refresh-token werkt maar één keer)
       if (dev.kind === 'easee') { const i = (acc.devices || []).findIndex(x => x.id === dev.id); if (i >= 0) { Object.assign(acc.devices[i], { eAccess: dev.eAccess, eRefresh: dev.eRefresh, eExp: dev.eExp }); await s.setJSON(key, acc); } }
       // Meteen kijken of deze stekker ook verbruik meet
