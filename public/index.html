@@ -231,6 +231,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
 #mijn{border-left:3px solid var(--green)}
 .deelknop{margin-left:6px;font:inherit;font-size:14px;font-weight:700;padding:6px 12px;border-radius:999px;border:0;background:#F5B700;color:#0F2340;cursor:pointer}
 .wiz a.btn,.wiz .btn-line{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;padding:12px 16px;border-radius:8px;background:#F5B700;color:#0F2340;font:inherit;font-weight:700;font-size:16.5px;text-decoration:none;border:0;cursor:pointer;box-sizing:border-box}.wiz a.btn:hover,.wiz .btn-line:hover{filter:brightness(.95)}
+.nodig{list-style:none;padding:0;margin:0 0 16px;display:grid;gap:10px}.nodig li{display:flex;gap:12px;align-items:flex-start;background:var(--surface,#fff);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:16.5px;line-height:1.45}.nodig li::before{content:"✓";flex:none;width:26px;height:26px;border-radius:50%;background:#E8F5EC;color:#13703A;font-weight:800;display:grid;place-items:center;font-size:15px}
 .knoprij{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}.knoprij .btn{flex:1 1 180px;text-align:center}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0F2340;color:#fff;padding:12px 18px;border-radius:12px;z-index:99;max-width:92vw;font-size:15px;box-shadow:0 6px 24px rgba(0,0,0,.25)}.mailalt{margin-top:16px;padding:14px;border-radius:12px;background:#F1F4F8}.mailalt p{margin:0 0 8px}
 .mailrij{display:flex;gap:8px}.mailrij input{flex:1;min-width:0;padding:10px;border:1px solid var(--line);border-radius:8px;font-size:16px}.mailchk{display:flex;gap:8px;align-items:center;margin:8px 0 0}
@@ -292,7 +293,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
 
 .wiz{position:fixed;inset:0;z-index:30;background:var(--page);overflow:auto}
 .wiztop{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--navy);color:#fff;padding:10px max(12px,env(safe-area-inset-left))}
-.wiztop button{font-size:15px;padding:8px 10px;color:#fff;font-weight:500}
+.wiztop button{font-size:15px;padding:8px 10px;color:#fff;font-weight:500;white-space:nowrap;flex:none}.wiztop .dots{flex:1;min-width:0}
 .dots{display:flex;gap:6px}.dots i{width:28px;height:3px;border-radius:2px;background:var(--navy-3)}.dots i.on{background:#fff}
 .wizbody{padding-block:28px 60px;max-width:640px}
 .wizbody h2{font-size:26px;line-height:1.2;margin:0 0 8px}
