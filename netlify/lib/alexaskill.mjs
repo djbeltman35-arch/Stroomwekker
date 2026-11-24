@@ -69,11 +69,16 @@ export async function druk(acc, d, aan) {
 }
 
 // Nieuwe of gewijzigde stekkers meteen aan Alexa doorgeven (geen "apparaten zoeken" nodig).
-export async function meldKnoppen(acc) {
+export async function meldKnoppen(acc, oudeIds = []) {
   if (!acc.alexa?.refresh) return;
-  const eps = knoppen(acc);
-  if (!eps.length) return;
+  const eps = knoppen(acc), weg = oudeIds.filter(id => !eps.some(e => e.endpointId === id));
   const tok = await eventToken(acc);
+  // Weggehaalde stekkers ook uit Alexa halen
+  if (weg.length) await stuur(acc, { event: {
+    header: { namespace: 'Alexa.Discovery', name: 'DeleteReport', payloadVersion: '3', messageId: crypto.randomUUID() },
+    payload: { endpoints: weg.map(endpointId => ({ endpointId })), scope: { type: 'BearerToken', token: tok } },
+  } });
+  if (!eps.length) return;
   await stuur(acc, { event: {
     header: { namespace: 'Alexa.Discovery', name: 'AddOrUpdateReport', payloadVersion: '3', messageId: crypto.randomUUID() },
     payload: { endpoints: eps, scope: { type: 'BearerToken', token: tok } },

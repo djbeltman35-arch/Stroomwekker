@@ -882,6 +882,7 @@ const sSkill4 = () => ({ t: 'Stap 3: koppel Stroomwekker aan Alexa', of: SX,
     catch (e) { m.className = 'msg err'; m.textContent = e.message; } } }],
   after: async () => {
     try {
+      const al = devices.find(x => x.kind === 'alexa' && x.skill && x.name === naamApp()); if (al) W.d.id = al.id; // niet dubbel toevoegen
       const d = { id: W.d.id || (W.d.id = crypto.randomUUID()), name: naamApp(), kind: 'alexa', skill: true, notify: true, rule: PRESETS[W.d.preset || 'anders'].rule };
       devices = [...devices.filter(x => x.id !== d.id), d]; await sync();
       const r = await api({ action: 'alexacode' }); $('kcCode').textContent = r.code;

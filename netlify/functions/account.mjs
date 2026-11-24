@@ -3,7 +3,7 @@ import { validateDevice, switchDevice, readMeter, listDevices, easeeLogin } from
 import { nlDayBounds } from '../../public/js/engine.js';
 import { proefVoor, afdwingen } from '../lib/proef.mjs';
 import { stuurMail, geldigMail, hashMail, willekeurig } from '../lib/mail.mjs';
-import { meldKnoppen } from '../lib/alexaskill.mjs';
+import { meldKnoppen, knoppen } from '../lib/alexaskill.mjs';
 
 const SITE = 'https://stroomwekker.eu';
 
@@ -98,6 +98,7 @@ Stroomwekker`); } catch (e) { console.error('loginlink', e.message); }
         opslag: Math.max(0, Math.min(0.5, Number(body.settings.opslag) || 0)), gasOpslag: Math.max(0, Math.min(0.5, Number(body.settings.gasOpslag ?? 0.07) || 0)), lever: String(body.settings.lever || '').slice(0, 60) };
       if ('alerts' in body) acc.alerts = cleanAlerts(body.alerts);
       if ('push' in body) acc.push = body.push && body.push.endpoint?.startsWith('https://') ? body.push : null;
+      const oudeKnoppen = knoppen(acc).map(e => e.endpointId);
       if ('devices' in body) {
         const old = Object.fromEntries((acc.devices || []).map(d => [d.id, d]));
         acc.devices = (body.devices || []).slice(0, 10).map(d => {
@@ -107,7 +108,7 @@ Stroomwekker`); } catch (e) { console.error('loginlink', e.message); }
         acc.proef = await proefVoor(s, acc.devices, Date.now(), acc.created || Date.now());
       }
       acc.updated = Date.now();
-      if ('devices' in body && acc.alexa) await meldKnoppen(acc).catch(e => console.error('alexa melden', e.message));
+      if ('devices' in body && acc.alexa) await meldKnoppen(acc, oudeKnoppen).catch(e => console.error('alexa melden', e.message));
       await s.setJSON(key, acc);
       return Response.json(mask(acc));
     }

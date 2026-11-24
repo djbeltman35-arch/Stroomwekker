@@ -3,10 +3,17 @@
 //  GET/POST /api/alexa/koppel — inlogpagina voor het koppelen (account linking), met een koppelcode uit Stroomwekker
 //  POST /api/alexa/token   — OAuth-tokens voor Alexa
 import { store } from '../lib/store.mjs';
-import { sha, willekeurig, knoppen, grantAanvragen, accountVoorToken } from '../lib/alexaskill.mjs';
+import { sha, willekeurig, knoppen, grantAanvragen, accountVoorToken, druk } from '../lib/alexaskill.mjs';
 
 const CLIENT_ID = 'stroomwekker-alexa';
 const JAAR = 365 * 86400e3;
+// Vaste koppelcode voor de controleurs van Amazon: koppelt aan een demo-account met één "Testlamp".
+const DEMO_CODE = 'AMZ123', DEMO_KEY = 'a/demo-amazon-review';
+async function demoAccount(s) {
+  let acc = await s.get(DEMO_KEY, { type: 'json' });
+  if (!acc) { acc = { created: Date.now(), state: {}, devices: [{ id: 'demo', name: 'Testlamp', kind: 'alexa', skill: true, enabled: true, notify: false, rule: { type: 'cheapest', hours: 2, block: true } }] }; await s.setJSON(DEMO_KEY, acc); }
+  return acc;
+}
 const AMAZON_REDIRECT = /^https:\/\/([\w-]+\.)*(amazon\.(com|co\.uk|de|nl|fr|it|es|co\.jp)|amazonalexa\.com)\//;
 
 const hdr = (namespace, name, extra = {}) => ({ namespace, name, messageId: crypto.randomUUID(), payloadVersion: '3', ...extra });
@@ -74,9 +81,14 @@ async function koppel(req) {
   const redirect = f.get('redirect_uri') || '';
   if (f.get('client_id') !== CLIENT_ID || !AMAZON_REDIRECT.test(redirect)) return pagina('<h1>Deze link klopt niet</h1><p>Start het koppelen opnieuw in de Alexa-app.</p>');
   const code = String(f.get('koppelcode') || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-  const s = store(), kc = code.length === 6 ? await s.get('kc/' + code, { type: 'json' }) : null;
-  if (!kc || kc.exp < Date.now()) return formulier(f, 'Deze koppelcode klopt niet of is verlopen. Vraag in Stroomwekker een nieuwe aan.');
-  await s.delete('kc/' + code);
+  const s = store();
+  let kc = null;
+  if (code === DEMO_CODE) { await demoAccount(s); kc = { key: DEMO_KEY, exp: Infinity }; }
+  else {
+    kc = code.length === 6 ? await s.get('kc/' + code, { type: 'json' }) : null;
+    if (!kc || kc.exp < Date.now()) return formulier(f, 'Deze koppelcode klopt niet of is verlopen. Vraag in Stroomwekker een nieuwe aan.');
+    await s.delete('kc/' + code);
+  }
   const auth = willekeurig(32);
   await s.setJSON('oc/' + await sha(auth), { key: kc.key, redirect, exp: Date.now() + 5 * 60e3 });
   const terug = new URL(redirect); terug.searchParams.set('code', auth); if (f.get('state')) terug.searchParams.set('state', f.get('state'));
@@ -115,8 +127,16 @@ export default async (req) => {
     if (p === '/api/alexa/koppel') return await koppel(req);
     if (p === '/api/alexa/token' && req.method === 'POST') return await token(req);
     if (p === '/api/alexa' && req.method === 'POST') return await directive(req);
+    if (p === '/api/alexa/demo') {
+      // Voor de controleurs van Amazon: druk op de knop "Stroomwekker Testlamp aan/uit" van het demo-account
+      const u = new URL(req.url), aan = u.searchParams.get('druk') !== 'uit';
+      if (u.searchParams.get('code') !== DEMO_CODE) return new Response('Not found', { status: 404 });
+      const s = store(), acc = await demoAccount(s);
+      try { await druk(acc, acc.devices[0], aan); await s.setJSON(DEMO_KEY, acc); return pagina(`<h1>Gedrukt: Testlamp ${aan ? 'aan' : 'uit'}</h1><p>The doorbell event "Stroomwekker Testlamp ${aan ? 'aan' : 'uit'}" was sent to Alexa.</p>`); }
+      catch (e) { return pagina(`<h1>Niet gelukt</h1><p>${esc(e.message)}</p>`); }
+    }
   } catch (e) { console.error('alexa', e.message); return Response.json({ error: 'server_error' }, { status: 500 }); }
   return new Response('Not found', { status: 404 });
 };
 
-export const config = { path: ['/api/alexa', '/api/alexa/koppel', '/api/alexa/token'] };
+export const config = { path: ['/api/alexa', '/api/alexa/koppel', '/api/alexa/token', '/api/alexa/demo'] };
