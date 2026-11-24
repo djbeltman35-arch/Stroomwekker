@@ -1222,7 +1222,8 @@ function naarDoel() {
 addEventListener('hashchange', naarDoel); setTimeout(naarDoel, 400);
 document.querySelectorAll('.hmenu a, .sublinks a').forEach(a => a.addEventListener('click', ev => { const m = a.closest('.hmenu'); if (m) { terugPunt = { y: scrollY, menu: true }; m.open = false; }
   const u = new URL(a.href); if (u.pathname === location.pathname && u.searchParams.get('start') && FLOWS[u.searchParams.get('start')]) { a.blur(); ev.preventDefault(); wizOpen(FLOWS[u.searchParams.get('start')]); }
-  else if (u.pathname === location.pathname && u.hash && u.hash === location.hash) naarDoel(); }));
+  else if (u.pathname === location.pathname && u.hash) { ev.preventDefault(); // ook in de app (/?app=1): niet herladen, maar op deze pagina blijven
+    history.replaceState(null, '', location.pathname + location.search + u.hash); naarDoel(); } }));
 addEventListener('click', e => { const m = document.querySelector('.hmenu[open]'); if (m && !m.contains(e.target)) m.open = false; });
 addEventListener('keydown', e => { if (e.key === 'Escape') { const m = document.querySelector('.hmenu[open]'); if (m) { m.open = false; m.querySelector('summary').focus(); } } });
 
@@ -1232,7 +1233,7 @@ let terugPunt = null;
   const zet = () => { const diep = scrollY > 500; zH.hidden = !diep; zT.hidden = !terugPunt || Math.abs(scrollY - terugPunt.y) < 300;
     document.documentElement.style.setProperty('--instH', inst && !inst.hidden ? inst.offsetHeight + 'px' : '0px'); };
   addEventListener('scroll', zet, { passive: true }); addEventListener('resize', zet); setInterval(zet, 1500); zet();
-  zH.onclick = () => { terugPunt = null; history.replaceState(null, '', location.pathname); scrollTo({ top: 0, behavior: 'smooth' }); };
-  zT.onclick = () => { const p = terugPunt; terugPunt = null; history.replaceState(null, '', location.pathname); scrollTo({ top: p.y, behavior: 'smooth' });
+  zH.onclick = () => { terugPunt = null; history.replaceState(null, '', location.pathname + location.search); scrollTo({ top: 0, behavior: 'smooth' }); };
+  zT.onclick = () => { const p = terugPunt; terugPunt = null; history.replaceState(null, '', location.pathname + location.search); scrollTo({ top: p.y, behavior: 'smooth' });
     if (p.menu) setTimeout(() => { const m = document.querySelector('.hmenu'); if (m) m.open = true; }, 350); zet(); };
 }
