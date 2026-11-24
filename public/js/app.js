@@ -596,7 +596,7 @@ const sApparaat = () => ({ t: 'Wat wil je vanzelf laten aangaan?', p: 'Kies wat 
 const sStekker = () => ({ t: W.d.preset === 'auto' ? 'Hoe laad je je auto?' : 'Welke slimme stekker heb je?', p: W.d.preset === 'auto' ? 'Heb je een Easee-laadpaal? Die koppelen we rechtstreeks. Laad je met een gewone stekker, kies dan je slimme stekker.' : 'Aan en uit zetten werkt met élke stekker hieronder, ook de goedkoopste. Alleen voor het verbruik zien heb je een stekker met energiemeter nodig.', opts: [
   ...(W.d.preset === 'auto' ? [{ i: '🚗', l: 'Easee-laadpaal', s: 'Rechtstreeks gekoppeld, geen stekker nodig. Klaar in 2 minuten.', go: () => { W.d.kind = 'easee'; go(sEasee); } },
     { i: '❓', l: 'Andere laadpaal of Tesla', s: 'Zaptec, Wallbox, Alfen, Tesla en andere', go: () => go(sLaadAnders) }] : []),
-  { i: '🔵', l: 'Shelly · veruit het makkelijkst', s: 'Klaar in 3 minuten op je telefoon. Verbruik zien: Plug S, Plus Plug S en modellen met PM', go: () => { W.d.kind = 'shelly'; go(sShelly); } },
+  { i: '🔵', l: 'Shelly · veruit het makkelijkst', s: 'Klaar in 3 minuten op je telefoon. Verbruik zien: Plug S, Plus Plug S en modellen met PM', go: () => { W.d.kind = 'shelly'; go(bestaand('shelly') ? sHergebruik : sShelly); } },
   { i: '🛒', l: 'Van de Action (LSC)', s: 'Makkelijk met een timer, of volledig automatisch', go: () => { W.d.kind = 'tuya'; W.d.lsc = true; go(sLscKeuze); } },
   { i: '📱', l: 'Smart Life of Tuya', s: 'Ook Hema, Calex, Nedis, Woox. Makkelijk met een timer, of volledig automatisch', go: () => { W.d.kind = 'tuya'; W.d.lsc = false; go(sLscKeuze); } },
   ...(ALEXA_AAN ? [{ i: '🗣️', l: 'Een andere stekker die met Alexa werkt', s: 'Bijvoorbeeld TP-Link, Meross of Philips Hue', go: () => { W.d.merkApp = ''; startAlexa(); } }] : []),
@@ -633,6 +633,7 @@ function wDevice() {
   const p = PRESETS[W.d.preset || 'anders'];
   const v = id => ($(id) ? $(id).value.trim() : '');
   const d = { id: W.d.id || (W.d.id = crypto.randomUUID()), name: W.d.name || p.name, kind: W.d.kind, notify: true, rule: W.d.rule || p.rule };
+  if (W.d.copyFrom) d.copyFrom = W.d.copyFrom;
   if (W.d.kind === 'tuya') Object.assign(d, { accessId: v('wA'), accessSecret: v('wS'), deviceId: v('wD'), region: 'eu', code: 'switch_1' });
   if (W.d.kind === 'shelly') Object.assign(d, { host: v('wH'), key: v('wK'), deviceId: v('wD'), channel: 0 });
   if (W.d.kind === 'easee') Object.assign(d, { deviceId: v('wD'), ...(W.d.easee || {}) });
@@ -743,9 +744,10 @@ function wireZoek() {
 // Alexa-route via de skill 'Virtuele triggerknop voor Alexa-routines' (hapicom): werkt in Nederland, gratis voor 1 knop.
 const ALEXA_AAN = true;
 const sLscKeuze = () => ({ t: 'Hoe wil je het doen?', p: ALEXA_AAN ? 'Je kunt op drie manieren kiezen. De eerste twee doe je helemaal op je telefoon.' : 'Je kunt op twee manieren kiezen. De eerste is het makkelijkst.', opts: [
+  ...(bestaand('tuya') ? [{ i: '✅', l: 'Vanzelf, met je bestaande koppeling (aanrader)', s: 'Je hebt Tuya al eens gekoppeld. Je hoeft alleen je stekker te kiezen. Klaar in 1 minuut.', go: () => { W.d.kind = 'tuya'; W.d.alexa = false; go(sHergebruik); } }] : []),
   ...(ALEXA_AAN ? [{ i: '🗣️', l: 'Vanzelf, via de app Alexa (aanrader)', s: 'Helemaal automatisch. Alles op je telefoon, ongeveer 15 minuten. Gratis voor 1 stekker. Je hebt geen Amazon-speaker nodig.', go: () => { W.d.merkApp = W.d.lsc ? 'LSC Smart Connect' : 'Smart Life'; startAlexa(); } }] : []),
   { i: '⏱️', l: 'Een vaste timer zetten (makkelijkst)', s: `Je zet één keer een tijd in de app ${W.d.lsc ? 'LSC Smart Connect' : 'Smart Life'}. Wij zeggen welke tijd het goedkoopst is. Klaar in 2 minuten, gratis.`, go: async () => { W.d.kind = ''; W.d.alexa = false; await haalVast(); go(sLscTimer); } },
-  { i: '🔧', l: 'Vanzelf, via Tuya (voor gevorderden)', s: (W.d.lsc ? 'Verhuis je stekker naar de app Smart Life. ' : '') + 'Kost ongeveer 20 minuten op een computer.', go: () => { W.d.kind = 'tuya'; W.d.alexa = false; go(sTuya); } },
+  { i: '🔧', l: bestaand('tuya') ? 'Vanzelf, via een ander Tuya-account' : 'Vanzelf, via Tuya (voor gevorderden)', s: (W.d.lsc ? 'Verhuis je stekker naar de app Smart Life. ' : '') + 'Kost ongeveer 20 minuten op een computer.', go: () => { W.d.kind = 'tuya'; W.d.alexa = false; W.d.copyFrom = ''; go(sTuya); } },
 ] });
 
 // ---- Via Alexa: Stroomwekker drukt op een "knop" bij Voice Monkey, Alexa zet je stekker aan of uit ----
@@ -1046,6 +1048,20 @@ const sShellyCodes = () => ({ t: 'Stap 2: neem 2 gegevens over', of: 3,
     + zoekHTML.replace('__VELD__', veldHTML('wD', 'Device ID', 'Het nummer van je Shelly-stekker.', 'Tik in de app op je stekker, dan op <b>Instellingen</b> en <b>Apparaatinformatie</b>. Staat bij <i>Apparaat-ID</i>.', 'bijv. b48a0a1cd978', '^[a-zA-Z0-9]{6,20}$'))
     + '<p class="hint" style="margin-top:12px">Gekozen? Tik op <b>Test: zet aan</b>. Gaat je stekker aan? Dan klopt alles.</p>' + testRow,
   after: () => { wireVelden(); wireZoek(); wireTest(); } });
+// ---- Bestaande koppeling hergebruiken: alleen nog de stekker kiezen ----
+const bestaand = kind => devices.find(x => x.kind === kind && (kind === 'shelly' ? x.host && x.key : x.accessId && x.accessSecret));
+const sHergebruik = () => { const b = bestaand(W.d.kind); W.d.copyFrom = b.id; const sh = W.d.kind === 'shelly';
+  const verborgen = sh ? `<input type="hidden" id="wH" value="${esc(b.host)}"><input type="hidden" id="wK" value="${esc(b.key)}">`
+    : `<input type="hidden" id="wA" value="${esc(b.accessId)}"><input type="hidden" id="wS" value="${esc(b.accessSecret)}">`;
+  return { t: 'Kies je stekker', of: 2,
+    p: `Je ${sh ? 'Shelly' : 'Tuya'}-account is al gekoppeld (bij <b>${esc(b.name)}</b>). Je hoeft niets over te nemen. Tik hieronder op de stekker die je wilt gebruiken.`,
+    html: verborgen + zoekHTML.replace('__VELD__', veldHTML('wD', 'Device ID', 'Het nummer van je stekker.', sh ? 'In de Shelly-app: tik op je stekker, dan <b>Instellingen</b> en <b>Apparaatinformatie</b>.' : 'Op de Tuya-website: tabblad <b>Devices</b>, dan <b>All Devices</b>.', 'bijv. b48a0a1cd978', '^[a-zA-Z0-9]{6,32}$'))
+      + '<p class="hint" style="margin-top:12px">Zie je je nieuwe stekker niet? Zet hem eerst in de ' + (sh ? 'Shelly-app' : 'app Smart Life') + ' en tik dan opnieuw op <b>Zoek mijn stekkers</b>.</p>'
+      + '<p class="hint">Gekozen? Tik op <b>Test: zet aan</b>. Gaat je stekker aan? Dan klopt alles.</p>' + testRow
+      + `<p class="hint" style="margin-top:16px"><a href="#" id="wAnder">Een ander ${sh ? 'Shelly' : 'Tuya'}-account gebruiken</a></p>`,
+    after: () => { wireVelden(); wireZoek(); wireTest(); $('wZoek').click();
+      $('wAnder').onclick = e => { e.preventDefault(); W.d.copyFrom = ''; go(sh ? sShelly : sTuya); }; } };
+};
 const sKlaarApparaat = () => {
   const p = PRESETS[W.d.preset || 'anders'];
   if (W.d.rule?.type === 'warmte') return { t: 'Klaar', of: 4, html: `<div class="bigok">${svg("check")}</div><p>Vanaf nu mag je warmtepomp alleen draaien als stroom goedkoper verwarmt dan gas. Is gas goedkoper, dan neemt je cv-ketel het over.</p>`, opts: [{ i: '✅', l: 'Klaar', go: wizClose }] };
@@ -1141,7 +1157,14 @@ $('navStart') && ($('navStart').onclick = e => { e.preventDefault(); scrollTo({ 
 $('footMeer') && ($('footMeer').onclick = e => { e.preventDefault(); openMeer(); $('meer').scrollIntoView({ behavior: 'smooth' }); });
 $('navMeer') && ($('navMeer').onclick = e => { e.preventDefault(); openMeer(); $('meer').scrollIntoView({ behavior: 'smooth' }); });
 $('licht').onclick = e => { e.preventDefault(); openMeer(); $('prijs').scrollIntoView({ behavior: 'smooth' }); };
-$('mijnMeer').onclick = () => scrollTo({ top: 0, behavior: 'smooth' });
+const sToevoegen = () => ({ t: 'Wat wil je toevoegen?', p: 'Kies wat je wilt. Wij helpen je stap voor stap.', opts: [
+  { i: '🔌', l: 'Apparaat automatisch aan en uit', s: 'Boiler, wasmachine of auto', go: () => go(sApparaat) },
+  { i: '🔋', l: 'Thuisbatterij slim laden', s: 'Laden als stroom goedkoop is', go: () => go(sBatterij) },
+  { i: '♨️', l: 'Verwarmen: gas of stroom?', s: 'Hybride warmtepomp of cv-ketel', go: () => go(sWarmte) },
+  { i: '☀️', l: 'Zonnepanelen', s: 'Weten wanneer terugleveren geld kost', go: () => go(sZon) },
+  { i: '🔔', l: 'Alleen een bericht', s: 'Als stroom goedkoop of duur is', go: () => go(sBerichtKies) },
+] });
+$('mijnMeer').onclick = () => wizOpen(sToevoegen);
 
 // ---- "Wat staat er aan" ----
 function renderMijn() {

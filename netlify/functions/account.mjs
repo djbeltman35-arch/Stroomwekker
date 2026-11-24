@@ -38,6 +38,13 @@ function keepSecrets(d, old) {
   return d;
 }
 
+// Nieuw apparaat dat de koppeling van een eerder apparaat hergebruikt (zelfde soort, zelfde account)
+function bron(d, acc) {
+  const b = d && d.copyFrom ? (acc.devices || []).find(x => x.id === d.copyFrom && x.kind === d.kind) : null;
+  if (!b) return null;
+  return b.kind === 'shelly' ? { key: b.key } : b.kind === 'tuya' ? { accessSecret: b.accessSecret } : null;
+}
+
 function cleanAlerts(list) {
   return (Array.isArray(list) ? list : []).slice(0, 12).map(a => ({
     id: String(a.id || crypto.randomUUID()).slice(0, 40),
@@ -102,7 +109,7 @@ Stroomwekker`); } catch (e) { console.error('loginlink', e.message); }
       if ('devices' in body) {
         const old = Object.fromEntries((acc.devices || []).map(d => [d.id, d]));
         acc.devices = (body.devices || []).slice(0, 10).map(d => {
-          d = keepSecrets(d, old[d.id]);
+          d = keepSecrets(d, old[d.id] || bron(d, acc));
           return validateDevice(d);
         });
         acc.proef = await proefVoor(s, acc.devices, Date.now(), acc.created || Date.now());
@@ -159,7 +166,7 @@ Stroomwekker`);
     }
     if (body.action === 'alexastatus') return Response.json({ gekoppeld: !!acc.alexa?.refresh });
     if (body.action === 'list') {
-      const d = { ...(body.device || {}), deviceId: 'zoekennnnn', rule: { type: 'cheap' } };
+      const d = keepSecrets({ ...(body.device || {}), deviceId: 'zoekennnnn', rule: { type: 'cheap' } }, bron(body.device, acc));
       const dev = validateDevice(d);
       return Response.json({ devices: await listDevices(dev) });
     }
@@ -168,7 +175,7 @@ Stroomwekker`);
       let dev = (acc.devices || []).find(d => d.id === body.deviceId);
       if (body.device) {
         let d = body.device;
-        d = keepSecrets(d, dev);
+        d = keepSecrets(d, dev || bron(d, acc));
         dev = validateDevice(d);
       }
       if (!dev) return Response.json({ error: 'Apparaat niet gevonden' }, { status: 404 });
