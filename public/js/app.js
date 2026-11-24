@@ -637,7 +637,8 @@ function wDevice() {
   if (W.d.kind === 'shelly') Object.assign(d, { host: v('wH'), key: v('wK'), deviceId: v('wD'), channel: 0 });
   if (W.d.kind === 'easee') Object.assign(d, { deviceId: v('wD'), ...(W.d.easee || {}) });
   if (W.d.kind === 'webhook') Object.assign(d, { onUrl: v('wOn'), offUrl: v('wOff'), method: 'GET' });
-  if (W.d.kind === 'alexa') Object.assign(d, { key: v('wK'), trig: 'default', trigUit: '' });
+  if (W.d.kind === 'alexa' && W.d.skill) Object.assign(d, { skill: true, name: naamApp(), rule: PRESETS[W.d.preset || 'anders'].rule });
+  else if (W.d.kind === 'alexa') Object.assign(d, { key: v('wK'), trig: 'default', trigUit: '' });
   return d;
 }
 const meetZin = r => r?.meet === true ? ' Deze stekker meet ook het verbruik: je ziet straks wat je apparaat kost en wat je bespaart.' : r?.meet === false ? ' Deze stekker meet geen verbruik. Dat is niet erg: aan en uit zetten werkt gewoon.' : '';
@@ -755,7 +756,10 @@ const ALEXA_APP = () => /iPhone|iPad|iPod/.test(navigator.userAgent) ? 'https://
 const AMAZON_REG = 'https://www.amazon.nl/ap/register?openid.return_to=https%3A%2F%2Fwww.amazon.nl%2F&amp;openid.assoc_handle=nlflex&amp;openid.mode=checkid_setup&amp;openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&amp;openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&amp;openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select';
 // Gratis: één knop. Stroomwekker drukt hem in aan het begin van het goedkoopste blok; de Alexa-routine zet de stekker aan,
 // wacht het aantal uren en zet hem weer uit. Alexa kan maximaal 4 uur wachten.
+// Eigen Stroomwekker-skill: nog in test. Aanzetten met ?skill=1 (blijft bewaard op dit apparaat).
+const SKILL_AAN = (() => { try { if (new URLSearchParams(location.search).get('skill') === '1') localStorage.setItem('sw-skill', '1'); return localStorage.getItem('sw-skill') === '1'; } catch { return false; } })();
 function startAlexa() {
+  if (SKILL_AAN) { W.d.kind = 'alexa'; W.d.alexa = true; W.d.skill = true; W.d.rule = null; return go(sSkill1); }
   const r = PRESETS[W.d.preset || 'anders'].rule;
   W.d.alexaUren = r.type === 'cheapest' ? Math.min(4, r.hours) : 2;
   W.d.rule = { type: 'cheapest', hours: W.d.alexaUren, block: true };
@@ -855,6 +859,43 @@ const sAlexa10 = () => ({ t: 'Stap 9: plak je sleutel hier', of: AX,
   html: veldHTML('wK', 'Je sleutel', 'De lange code die begint met tr_.', 'Op de knop-website (stap 5). Kwijt? Maak daar gewoon een nieuwe.', 'tr_…', '^tr_\\S{20,}$')
     + `<p class="hint">Tik op <b>Test: zet aan</b>. Je stekker gaat aan, en na ${urenTxt()} vanzelf uit. Niet zo lang wachten? Zet hem zelf uit in de app.</p>` + testRow,
   after: () => { wireVelden(); wireTest(); } });
+// ---- Via de eigen Stroomwekker-skill: geen sleutels, één koppelcode ----
+const SX = 6;
+const naamApp = () => (W.d.name || PRESETS[W.d.preset || 'anders'].name);
+const sSkill1 = () => ({ t: 'Wat heb je nodig?', of: SX,
+  html: '<ul class="nodig">' + ['Je telefoon.', `Je slimme stekker. Hij werkt al in de app <b>${appNaam()}</b>.`, 'Een Amazon-account (gratis).', 'De app Alexa (gratis). Een Amazon-speaker is <b>niet</b> nodig.']
+    .map(x => `<li><span>${x}</span></li>`).join('') + '</ul>'
+    + `<div class="knoprij"><a class="btn" href="${AMAZON_REG}" target="_blank" rel="noopener">Maak een Amazon-account</a><a class="btn" href="${ALEXA_APP()}" target="_blank" rel="noopener">Download de app Alexa</a></div>`
+    + '<p class="hint"><b>Zo werkt het:</b> Stroomwekker krijgt in Alexa twee knoppen: "aan" en "uit". Als stroom goedkoop is, drukt Stroomwekker op "aan". Alexa zet dan je stekker aan.</p>',
+  opts: verder(sSkill2, 'Ik heb alles, begin') });
+const sSkill2 = () => { const x = sAlexa2(); x.t = 'Stap 1: open de app Alexa'; x.of = SX; x.opts = verder(sSkill3); return x; };
+const sSkill3 = () => { const x = sAlexa3(); x.t = 'Stap 2: zet je stekker in Alexa'; x.of = SX; x.opts = verder(sSkill4); return x; };
+const sSkill4 = () => ({ t: 'Stap 3: koppel Stroomwekker aan Alexa', of: SX,
+  html: '<div class="timerkaart" id="kcKaart"><small>Je koppelcode</small><b id="kcCode" style="font-size:40px;letter-spacing:6px">…</b><small>20 minuten geldig</small></div>'
+    + regels(['Tik in Alexa onderin op <b>Meer</b> → <b>Vaardigheden en games</b>. Zoek <b>Stroomwekker</b> en tik erop.',
+      'Tik op <b>Inschakelen voor gebruik</b>.', 'Typ de <b>koppelcode</b> hierboven in en tik op <b>Koppelen</b>.', 'Vraagt Alexa om apparaten te zoeken? Tik op <b>Zoeken</b>.'])
+    + tel('Stroomwekker', [{ k: 'tekst', t: 'Koppel je Stroomwekker', groot: 1 }, { k: 'rij', t: 'ABC123', hl: 1 }, { k: 'knop', t: 'Koppelen', hl: 1 }])
+    + '<p class="msg" id="kcMsg" role="status"></p>',
+  opts: [{ i: '✅', l: 'Ik heb gekoppeld', go: async () => {
+    const m = $('kcMsg'); m.className = 'msg ok'; m.textContent = 'Even kijken…';
+    try { const r = await api({ action: 'alexastatus' }); if (r.gekoppeld) go(sSkill5); else { m.className = 'msg err'; m.textContent = 'Alexa is nog niet gekoppeld. Heb je de code ingevuld en op Koppelen getikt?'; } }
+    catch (e) { m.className = 'msg err'; m.textContent = e.message; } } }],
+  after: async () => {
+    try {
+      const d = { id: W.d.id || (W.d.id = crypto.randomUUID()), name: naamApp(), kind: 'alexa', skill: true, notify: true, rule: PRESETS[W.d.preset || 'anders'].rule };
+      devices = [...devices.filter(x => x.id !== d.id), d]; await sync();
+      const r = await api({ action: 'alexacode' }); $('kcCode').textContent = r.code;
+    } catch (e) { $('kcMsg').className = 'msg err'; $('kcMsg').textContent = e.message; }
+  } });
+const sSkill5 = () => { const n = naamApp(); return { t: 'Stap 4: maak twee routines', of: SX,
+  html: regels(['Tik in Alexa op <b>Meer</b> → <b>Routines</b> → <b>plusje (+)</b>.',
+    `Bij <b>Wanneer</b>: <b>Slim huis</b> → <b>Stroomwekker ${xe(n)} aan</b>.`, 'Bij <b>Actie</b>: <b>Slim huis</b> → je stekker → <b>Aan</b>. Tik op <b>Opslaan</b>.',
+    `Maak er nog één: <b>Stroomwekker ${xe(n)} uit</b> → je stekker → <b>Uit</b>.`])
+    + tel('Nieuwe routine', [{ k: 'kop', t: 'WANNEER' }, { k: 'rij', t: `Stroomwekker ${n} aan`, hl: 1 }, { k: 'kop', t: 'ZAL ALEXA' }, { k: 'rij', t: 'Je stekker', s: 'Stroom: Aan', hl: 1 }, { k: 'knop', t: 'Opslaan', hl: 1 }], 'De eerste routine. De tweede is hetzelfde, maar dan met "uit".'),
+  opts: verder(sSkill6) }; };
+const sSkill6 = () => ({ t: 'Stap 5: test het', of: SX,
+  p: 'Tik op <b>Test: zet aan</b>. Binnen een paar seconden gaat je stekker aan.',
+  html: testRow, after: () => wireTest() });
 function timerBlok(uren) {
   if (!data?.quarters) return null;
   const n = Math.max(1, Math.round(uren * 4)), nu = Date.now(), vd = nlDayBounds(nu), tm = nlDayBounds(vd.end + 60e3);
