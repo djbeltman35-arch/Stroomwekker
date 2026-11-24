@@ -210,6 +210,11 @@ export async function switchDevice(d, on) {
     headers: d.method === 'GET' ? {} : { 'Content-Type': 'application/json' },
     body: d.method === 'GET' ? undefined : JSON.stringify({ state: on === 'supply' ? 'supply' : on ? 'on' : 'off', source: 'stroomwekker' }),
   });
-  if (r.status >= 400) throw new Error(`Link antwoordde ${r.status}`);
+  if (r.status >= 400) {
+    if (/voicemonkey\.io/.test(url)) throw new Error(r.status === 401 || r.status === 403 || r.status === 404
+      ? 'Voice Monkey kent deze link niet. Kopieer de link opnieuw uit de API Playground en plak hem hier.'
+      : r.status === 429 ? 'Voice Monkey: je gratis aantal opdrachten voor deze maand is op.' : `Voice Monkey antwoordde met een fout (${r.status}). Probeer het straks opnieuw.`);
+    throw new Error(`Link antwoordde ${r.status}`);
+  }
   return 'ok';
 }

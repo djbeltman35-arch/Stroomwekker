@@ -553,7 +553,7 @@ const IC = {
 };
 const svg = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k] || IC.dots}</svg>`;
 document.querySelectorAll('[data-ic]').forEach(e => e.innerHTML = svg(e.dataset.ic));
-const EMO = { '🔌': 'plug', '🔋': 'battery', '☀️': 'sun', '🔔': 'bell', '🚿': 'drop', '👕': 'wash', '🚗': 'car', '⚙️': 'sliders', '🛒': 'shop', '📱': 'phone', '🔵': 'chip', '❓': 'help', '✅': 'check', '⏱️': 'clock', '👍': 'check', '🏠': 'home', '🟢': 'clock', '📅': 'calendar' };
+const EMO = { '🔌': 'plug', '🔋': 'battery', '☀️': 'sun', '🔔': 'bell', '🚿': 'drop', '👕': 'wash', '🚗': 'car', '⚙️': 'sliders', '🛒': 'shop', '📱': 'phone', '🔵': 'chip', '❓': 'help', '✅': 'check', '⏱️': 'clock', '👍': 'check', '🏠': 'home', '🟢': 'clock', '📅': 'calendar', '🗣️': 'phone', '🔧': 'sliders', '♨️': 'drop', '🔥': 'drop' };
 const ico = e => svg(EMO[e] || 'dots');
 
 // ================= Stappenplan (één vraag per scherm) =================
@@ -579,7 +579,7 @@ function show() {
   const total = v.of || 4, step = Math.min(W.stack.length, total);
   $('wizDots').innerHTML = Array.from({ length: total }, (_, i) => `<i class="${i < step ? 'on' : ''}"></i>`).join('');
   $('wizBack').textContent = W.stack.length > 1 ? '← Terug' : '← Sluiten';
-  if ((W.d.kind === 'tuya' || W.d.kind === 'shelly') && v.t !== 'Klaar') { $('wizB').insertAdjacentHTML('beforeend', hulpLink(v.t));
+  if ((W.d.kind === 'tuya' || W.d.kind === 'shelly' || W.d.alexa) && v.t !== 'Klaar') { $('wizB').insertAdjacentHTML('beforeend', hulpLink(v.t));
     const h = $('wizB').querySelector('.hulp a'); h.onclick = () => { h.href = new DOMParser().parseFromString(hulpLink(v.t), 'text/html').querySelector('a').getAttribute('href'); }; }
   v.after && v.after();
   wiz.scrollTop = 0;
@@ -596,8 +596,9 @@ const sStekker = () => ({ t: W.d.preset === 'auto' ? 'Hoe laad je je auto?' : 'W
   ...(W.d.preset === 'auto' ? [{ i: '🚗', l: 'Easee-laadpaal', s: 'Rechtstreeks gekoppeld, geen stekker nodig. Klaar in 2 minuten.', go: () => { W.d.kind = 'easee'; go(sEasee); } },
     { i: '❓', l: 'Andere laadpaal of Tesla', s: 'Zaptec, Wallbox, Alfen, Tesla en andere', go: () => go(sLaadAnders) }] : []),
   { i: '🛒', l: 'Van de Action (LSC)', s: 'Makkelijk met een timer, of volledig automatisch', go: () => { W.d.kind = 'tuya'; W.d.lsc = true; go(sLscKeuze); } },
-  { i: '📱', l: 'Smart Life of Tuya', s: 'Ook Hema, Calex, Nedis, Woox. Aan en uit: altijd. Verbruik zien: alleen met energiemeter', go: () => { W.d.kind = 'tuya'; go(sTuya); } },
+  { i: '📱', l: 'Smart Life of Tuya', s: 'Ook Hema, Calex, Nedis, Woox. Makkelijk via Alexa, of via Tuya', go: () => { W.d.kind = 'tuya'; W.d.lsc = false; go(sLscKeuze); } },
   { i: '🔵', l: 'Shelly', s: 'Snelst te koppelen (3 minuten). Verbruik zien: Plug S, Plus Plug S en modellen met PM', go: () => { W.d.kind = 'shelly'; go(sShelly); } },
+  { i: '🗣️', l: 'Een andere stekker die met Alexa werkt', s: 'Bijvoorbeeld TP-Link, Meross of Philips Hue', go: () => { W.d.merkApp = ''; W.d.kind = 'webhook'; W.d.alexa = true; go(sAlexa1); } },
   { i: '❓', l: 'Ik heb nog geen slimme stekker', go: () => go(sGeenStekker) },
 ] });
 const BOLSHELLY = 'https://partner.bol.com/click/click?p=1&t=url&s=1558346&url=' + encodeURIComponent('https://www.bol.com/nl/nl/s/?searchtext=shelly+plug+s') + '&f=TXL&name=stroomwekker-shelly';
@@ -631,6 +632,7 @@ function wDevice() {
   if (W.d.kind === 'tuya') Object.assign(d, { accessId: v('wA'), accessSecret: v('wS'), deviceId: v('wD'), region: 'eu', code: 'switch_1' });
   if (W.d.kind === 'shelly') Object.assign(d, { host: v('wH'), key: v('wK'), deviceId: v('wD'), channel: 0 });
   if (W.d.kind === 'easee') Object.assign(d, { deviceId: v('wD'), ...(W.d.easee || {}) });
+  if (W.d.kind === 'webhook') Object.assign(d, { onUrl: v('wOn'), offUrl: v('wOff'), method: 'GET' });
   return d;
 }
 const meetZin = r => r?.meet === true ? ' Deze stekker meet ook het verbruik: je ziet straks wat je apparaat kost en wat je bespaart.' : r?.meet === false ? ' Deze stekker meet geen verbruik. Dat is niet erg: aan en uit zetten werkt gewoon.' : '';
@@ -682,7 +684,7 @@ const SCH = {
 
 // ---- Hulp: contactformulier met de stap en de foutmelding al ingevuld ----
 function hulpLink(stapNaam) {
-  const merk = W.d.kind === 'shelly' ? 'Shelly' : W.d.lsc ? 'Action (LSC Smart Connect)' : W.d.kind === 'tuya' ? 'Smart Life of Tuya (Hema, Calex, Nedis, Woox, Hombli…)' : '';
+  const merk = W.d.alexa ? 'Via Alexa (' + appNaam() + ')' : W.d.kind === 'shelly' ? 'Shelly' : W.d.lsc ? 'Action (LSC Smart Connect)' : W.d.kind === 'tuya' ? 'Smart Life of Tuya (Hema, Calex, Nedis, Woox, Hombli…)' : '';
   const q = new URLSearchParams({ onderwerp: 'Hulp bij het koppelen van mijn slimme stekker', merk, bericht: `Ik loop vast bij: ${stapNaam}.` + (W.d.fout ? `\nIk zie deze melding: ${W.d.fout}` : '') + '\n\n' });
   return `<p class="hulp"><a href="/contact/?${q}" target="_blank" rel="noopener">${svg('help')}<span>Kom je er niet uit? <b>Vraag hulp</b>. Wij zien dan meteen bij welke stap je bent.</span></a></p>`;
 }
@@ -731,10 +733,86 @@ function wireZoek() {
 }
 
 // ---- Action (LSC): makkelijk met een timer, of volledig automatisch ----
-const sLscKeuze = () => ({ t: 'Hoe wil je het doen?', p: 'Met de app van de Action kunnen wij je stekker niet zelf schakelen. Je kunt kiezen:', opts: [
-  { i: '⏱️', l: 'Makkelijk: ik zet zelf een timer', s: 'Blijf in de LSC-app. Geen codes nodig. Je krijgt elke dag een bericht met de goedkoopste tijden. Klaar in 2 minuten.', go: () => { W.d.kind = ''; go(sLscTimer); } },
-  { i: '🔌', l: 'Volledig automatisch', s: 'Verhuis je stekker naar de app Smart Life. Daarna doet Stroomwekker alles zelf. Kost ongeveer 20 minuten op een computer.', go: () => { W.d.kind = 'tuya'; go(sTuya); } },
+const sLscKeuze = () => ({ t: 'Hoe wil je het doen?', p: 'Je kunt op drie manieren kiezen. De eerste is de makkelijkste die vanzelf gaat.', opts: [
+  { i: '🗣️', l: 'Vanzelf, via de app Alexa (aanrader)', s: 'Alles op je telefoon. Geen codes, geen computer. Kost ongeveer 10 minuten. Gratis.', go: () => { W.d.merkApp = W.d.lsc ? 'LSC Smart Connect' : 'Smart Life'; W.d.kind = 'webhook'; W.d.alexa = true; go(sAlexa1); } },
+  ...(W.d.lsc ? [{ i: '⏱️', l: 'Zelf een timer zetten', s: 'Je krijgt elke dag een bericht met de goedkoopste tijden. Die zet je zelf in de LSC-app. Klaar in 2 minuten.', go: () => { W.d.kind = ''; W.d.alexa = false; go(sLscTimer); } }] : []),
+  { i: '🔧', l: 'Vanzelf, via Tuya (voor gevorderden)', s: (W.d.lsc ? 'Verhuis je stekker naar de app Smart Life. ' : '') + 'Kost ongeveer 20 minuten op een computer.', go: () => { W.d.kind = 'tuya'; W.d.alexa = false; go(sTuya); } },
 ] });
+
+// ---- Via Alexa: Stroomwekker drukt op een "knop" bij Voice Monkey, Alexa zet je stekker aan of uit ----
+// Heel kleine stappen, één ding per scherm. Elke stap: wat je doet, en hoe je weet dat het gelukt is.
+const AX = 7;
+const appNaam = () => W.d.merkApp || 'de app van je stekker';
+const sAlexa1 = () => stap('Wat heb je nodig?', [
+  `Je telefoon.`,
+  `Je slimme stekker. Hij moet al werken in <b>${appNaam()}</b>: je kunt hem daar aan en uit zetten.`,
+  `Een account bij Amazon. Heb je er nog geen? Die maak je gratis aan in stap 1.`,
+  `Je hebt <b>geen</b> Amazon-speaker nodig, en ook geen computer.`,
+  `Het is gratis voor 1 apparaat. Wil je er meer, dan kost Voice Monkey een paar euro per maand.`,
+], AX, () => sAlexa2());
+const sAlexa2 = () => stap('Stap 1: installeer de app Alexa', [
+  'Open de <b>App Store</b> (iPhone) of <b>Play Store</b> (Android).',
+  'Zoek op <b>Amazon Alexa</b>. Het pictogram is een blauw rondje met een wit tekstballonnetje.',
+  'Tik op <b>Installeren</b> (of <b>Downloaden</b>) en open de app.',
+  'Log in met je Amazon-account. Heb je er geen? Tik op <b>Nieuw account maken</b> en volg de stappen.',
+  'Vraagt de app om een taal? Kies <b>Nederlands</b>. Vraagt hij om een speaker in te stellen? Tik op <b>Overslaan</b> of <b>Later</b>.',
+  '<b>Gelukt</b> als je het beginscherm van de Alexa-app ziet.',
+], AX, () => sAlexa3());
+const sAlexa3 = () => stap('Stap 2: zet je stekker in Alexa', [
+  'Tik in de Alexa-app onderin op <b>Meer</b> (de drie streepjes).',
+  'Tik op <b>Skills en games</b>.',
+  `Tik op het vergrootglas en typ: <b>${W.d.merkApp || 'de naam van de app van je stekker'}</b>.`,
+  'Tik op het resultaat en dan op <b>Inschakelen voor gebruik</b> (of <b>Inschakelen</b>).',
+  `Log in met hetzelfde account als in <b>${appNaam()}</b>. Tik op <b>Autoriseren</b> of <b>Toestaan</b>.`,
+  'Alexa zoekt nu je apparaten. Tik op <b>Apparaten zoeken</b> als hij het vraagt.',
+  '<b>Gelukt</b> als je stekker in de Alexa-app staat onder <b>Apparaten</b>. Tik erop: kun je hem aan en uit zetten? Mooi.',
+], AX, () => sAlexa4());
+const sAlexa4 = () => { const x = stap('Stap 3: maak een gratis account bij Voice Monkey', [
+  'Voice Monkey is een gratis hulpje. Het maakt een "knop" waarmee Stroomwekker een opdracht aan Alexa kan geven.',
+  'Tik hieronder op <b>Open Voice Monkey</b>. Tik daar op <b>Sign up</b> of <b>Login with Amazon</b>, en log in met <b>hetzelfde Amazon-account</b> als in de Alexa-app.',
+  'Ga terug naar de Alexa-app. Tik op <b>Meer</b>, dan <b>Skills en games</b>, en zoek op <b>Voice Monkey</b>.',
+  'Tik op <b>Inschakelen voor gebruik</b> en log weer in met hetzelfde Amazon-account.',
+  '<b>Gelukt</b> als de Alexa-app zegt dat Voice Monkey is gekoppeld.',
+], AX, () => sAlexa5()); x.html += '<p style="margin-top:14px"><a class="btn btn-line" href="https://voicemonkey.io" target="_blank" rel="noopener">Open Voice Monkey</a></p>'; return x; };
+const sAlexa5 = () => stap('Stap 4: maak twee knoppen', [
+  'Ga terug naar Voice Monkey (de website die je net opende).',
+  'Tik op <b>Devices</b> (apparaten) en dan op <b>Add Device</b> of het plusje.',
+  'Kies <b>Routine Trigger</b>. Geef hem de naam: <b>Stroomwekker aan</b>. Tik op <b>Save</b> (opslaan).',
+  'Doe het nog een keer, met de naam: <b>Stroomwekker uit</b>.',
+  'Ga naar de Alexa-app. Tik onderin op <b>Apparaten</b>, dan op het plusje en <b>Apparaat toevoegen</b>, en laat Alexa zoeken. Of trek het scherm omlaag.',
+  '<b>Gelukt</b> als je in de Alexa-app twee nieuwe apparaten ziet: <b>Stroomwekker aan</b> en <b>Stroomwekker uit</b>. Alexa noemt ze soms een deurbel. Dat is goed.',
+], AX, () => sAlexa6());
+const sAlexa6 = () => stap('Stap 5: maak twee routines in Alexa', [
+  'Een routine is een regel: "als dit gebeurt, doe dan dat". Je maakt er twee.',
+  'Tik in de Alexa-app op <b>Meer</b> en dan op <b>Routines</b>. Tik op het <b>plusje</b>.',
+  'Tik op <b>Wanneer dit gebeurt</b>, kies <b>Slim huis</b> en kies <b>Stroomwekker aan</b>.',
+  'Tik op <b>Actie toevoegen</b>, kies <b>Slim huis</b>, kies je <b>stekker</b> en kies <b>Aan</b>. Tik op <b>Opslaan</b>.',
+  'Maak nog een routine, precies hetzelfde, maar nu met <b>Stroomwekker uit</b> en je stekker op <b>Uit</b>.',
+  '<b>Gelukt</b> als je onder <b>Routines</b> twee routines ziet.',
+], AX, () => sAlexa7());
+const VMRE = /https:\/\/api-v\d\.voicemonkey\.io\/trigger\?[^\s"'<>]+/g;
+const sAlexa7 = () => ({ t: 'Stap 6: plak twee links hier', of: AX,
+  p: 'Nu vertel je Stroomwekker welke knop hij moet indrukken.',
+  html: '<ol class="kstap">' + [
+    'Tik hieronder op <b>Open de link-maker</b>. Je komt bij de <b>API Playground</b> van Voice Monkey.',
+    'Kies bij <b>Device</b> de knop <b>Stroomwekker aan</b>. Tik op <b>Copy</b> (kopiëren) bij de link. De link begint met <i>https://api-v3.voicemonkey.io/trigger</i>.',
+    'Kom terug naar Stroomwekker en plak hem in het eerste vak.',
+    'Doe hetzelfde voor <b>Stroomwekker uit</b> en plak die link in het tweede vak.',
+  ].map(x => `<li><span>${x}</span></li>`).join('') + '</ol>'
+    + `<p><a class="btn btn-line" href="https://voicemonkey.io/docs/api/playground" target="_blank" rel="noopener">Open de link-maker</a></p>`
+    + veldHTML('wOn', 'Link om AAN te zetten', 'De link van de knop "Stroomwekker aan".', 'In Voice Monkey, bij API Playground. Kies "Stroomwekker aan" en kopieer de link.', 'https://api-v3.voicemonkey.io/trigger?…', '^https://api-v\\d\\.voicemonkey\\.io/trigger\\?\\S+$')
+    + veldHTML('wOff', 'Link om UIT te zetten', 'De link van de knop "Stroomwekker uit".', 'Op dezelfde plek. Kies nu "Stroomwekker uit".', 'https://api-v3.voicemonkey.io/trigger?…', '^https://api-v\\d\\.voicemonkey\\.io/trigger\\?\\S+$')
+    + '<p class="hint">Gaat de stekker niet aan bij de test? Kijk dan in de Alexa-app of je routine aan staat, en of je de goede link in het goede vak plakte.</p>'
+    + '<p class="hint" style="margin-top:12px">Tik op <b>Test: zet aan</b>. Binnen een paar seconden gaat je stekker aan. Dan werkt alles.</p>' + testRow,
+  after: () => {
+    wireVelden();
+    $('wizB').querySelectorAll('#wOn, #wOff').forEach(i => i.addEventListener('paste', e => {
+      const t = (e.clipboardData || window.clipboardData)?.getData('text') || '', l = t.match(VMRE) || [];
+      if (l.length >= 2) { e.preventDefault(); $('wOn').value = l[0]; $('wOff').value = l[1]; $('wizB').querySelectorAll('input[data-p]').forEach(x => x.dispatchEvent(new Event('blur'))); }
+      else if (l.length === 1) { e.preventDefault(); i.value = l[0]; i.dispatchEvent(new Event('blur')); }
+    }));
+    wireTest();
+  } });
 function timerBlok(uren) {
   if (!data?.quarters) return null;
   const n = Math.max(1, Math.round(uren * 4)), nu = Date.now(), vd = nlDayBounds(nu), tm = nlDayBounds(vd.end + 60e3);
