@@ -7,7 +7,7 @@
     var a = e.target.closest && e.target.closest('a[href]');
     if (!a || a.target !== '_blank' || e.defaultPrevented) return;
     var u; try { u = new URL(a.href); } catch (x) { return; }
-    if (u.origin === location.origin || !/^https?:$/.test(u.protocol)) return;
+    if (u.origin === location.origin || !/^https?:$/.test(u.protocol) || /(^|\.)alexa\.amazon\./.test(u.host)) return; // Alexa-links: laat Android de Alexa-app openen
     e.preventDefault();
     location.href = 'intent://' + u.host + u.pathname + u.search + u.hash.replace(/#/g, '%23') +
       '#Intent;scheme=' + u.protocol.slice(0, -1) + ';package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(u.href) + ';end';

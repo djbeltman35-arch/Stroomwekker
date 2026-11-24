@@ -764,7 +764,8 @@ function startAlexa() {
 const urenTxt = () => { const u = W.d.alexaUren || 2; return u === 1 ? '1 uur' : String(u).replace('.', ',') + ' uur'; };
 const KNOPSITE = 'https://alexa.hapicom.jp/';
 // Directe links naar de skills in de Alexa-winkel (opent de Alexa-app als die er is)
-const SKILL = { 'Smart Life': '', 'LSC Smart Connect': '', knop: '' }; // amazon.nl/dp/… geeft 404: skills hebben in NL geen webpagina
+const SKILL_URL = asin => 'https://alexa.amazon.com/spa/index.html#skills/dp/' + asin;
+const SKILL = { 'Smart Life': SKILL_URL('B01N1ZVI7M'), 'LSC Smart Connect': SKILL_URL('B082VWZ372'), knop: SKILL_URL('B0GFT3BQBH') }; // opent de skill in de Alexa-app
 const skillKnop = (naam, label) => SKILL[naam] ? `<div class="knoprij"><a class="btn" href="${SKILL[naam]}" target="_blank" rel="noopener">${label}</a></div>` : '';
 
 // Schets van een telefoonscherm. Geel omrand = daar tik je op.
