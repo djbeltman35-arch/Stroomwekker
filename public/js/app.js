@@ -601,7 +601,7 @@ const sStekker = () => ({ t: W.d.preset === 'auto' ? 'Hoe laad je je auto?' : 'W
   ...(ALEXA_AAN ? [{ i: '🗣️', l: 'Een andere stekker die met Alexa werkt', s: 'Bijvoorbeeld TP-Link, Meross of Philips Hue', go: () => { W.d.merkApp = ''; W.d.kind = 'webhook'; W.d.alexa = true; go(sAlexa1); } }] : []),
   { i: '❓', l: 'Ik heb nog geen slimme stekker', go: () => go(sGeenStekker) },
 ] });
-const BOLSHELLY = 'https://partner.bol.com/click/click?p=1&t=url&s=1558346&url=' + encodeURIComponent('https://www.bol.com/nl/nl/p/shelly-plug-s-gen3-slim-wifi-matter-stekker-met-energiebewaking/9300000246796238/') + '&f=TXL&name=stroomwekker-shelly';
+const BOLSHELLY = 'https://partner.bol.com/click/click?p=1&t=url&s=1558346&url=' + encodeURIComponent('https://www.bol.com/nl/nl/p/shelly-plug-s-gen3-matter-stopcontact-bluetooth-wifi/9300000191960174/') + '&f=TXL&name=stroomwekker-shelly';
 const sGeenStekker = () => ({ t: 'Je hebt een slimme stekker nodig', of: 4,
   p: 'Een slimme stekker zet je tussen het stopcontact en je apparaat. Wij kunnen hem dan aan en uit zetten. Er zijn twee goede keuzes:',
   html: `<a class="koopstekker" href="${BOLSHELLY}" target="_blank" rel="sponsored noopener"><span aria-hidden="true">⚡</span><span><b>Makkelijkst: Shelly Plug S Gen3 (wit)</b><small>Rond de € 20. Meet ook het verbruik. Koppelen duurt 3 minuten, op je telefoon · advertentie</small></span></a>
