@@ -871,10 +871,19 @@ const sTuya1 = () => stap('Stap 1: zet je stekker in de app Smart Life', [
   'Download de gratis app <b>Smart Life</b> in de App Store of Google Play en maak een account.',
   'Tik in Smart Life op <b>+</b> en voeg je stekker toe, net zoals je in de LSC-app deed. Gaat het lampje van de stekker niet knipperen? Houd het knopje op de stekker 5 seconden ingedrukt.',
 ], W.d.lsc ? 8 : 7, () => sTuya2());
+const opTelefoon = () => matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 700;
+document.addEventListener('click', async e => {
+  if (!e.target.closest?.('[data-deel-tuya]')) return;
+  const tekst = 'Stroomwekker: stekker koppelen via Tuya. 1) Maak een Tuya-account: ' + TUYA_REG + ' 2) Volg daarna de stappen op https://stroomwekker.eu/?start=apparaat (kies je stekker en dan Tuya).';
+  try { if (navigator.share) { await navigator.share({ title: 'Stroomwekker: Tuya-account maken', text: tekst }); return; } } catch (x) { if (x.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(tekst); toast('Link gekopieerd. Plak hem in een mail of WhatsApp aan jezelf.'); } catch { location.href = 'mailto:?subject=' + encodeURIComponent('Stroomwekker: Tuya-account maken') + '&body=' + encodeURIComponent(tekst); }
+});
 const TUYA_REG = 'https://auth.tuya.com/register?from=https%3A%2F%2Fplatform.tuya.com%2F';
 const sTuya2 = () => stap(`Stap ${W.d.lsc ? 2 : 1}: maak een gratis Tuya-account`, [
-  'Dit doe je het makkelijkst op een <b>computer</b>. Tuya is het bedrijf achter Smart Life.',
-  `Klik op de knop hieronder. Je komt meteen op de aanmeldpagina van Tuya. Vul je e-mailadres in en kies een wachtwoord.<div class="knoprij"><a class="btn" href="${TUYA_REG}" target="_blank" rel="noopener">Maak een Tuya-account</a></div><small>Heb je al een account? <a href="https://platform.tuya.com/" target="_blank" rel="noopener">Log hier in</a>.</small>`,
+  `Dit ${opTelefoon() ? 'moet' : 'doe je het makkelijkst'} op een <b>computer</b>. Tuya is het bedrijf achter Smart Life.`,
+  opTelefoon()
+    ? `<b>Let op:</b> op een telefoon stuurt Tuya je naar een reclamepagina. Pak daarom je computer. Stuur jezelf de link met de knop hieronder, bijvoorbeeld via WhatsApp of e-mail. Open hem op je computer en doe daar de stappen.<div class="knoprij"><button class="btn" type="button" data-deel-tuya>Stuur mij de link</button></div>`
+    : `Klik op de knop hieronder. Je komt meteen op de aanmeldpagina van Tuya. Vul je e-mailadres in en kies een wachtwoord.<div class="knoprij"><a class="btn" href="${TUYA_REG}" target="_blank" rel="noopener">Maak een Tuya-account</a></div><small>Heb je al een account? <a href="https://platform.tuya.com/" target="_blank" rel="noopener">Log hier in</a>.</small>`,
   'Vraagt de site wat voor account je wilt? Kies dan <b>Individual Developer</b> (privépersoon).',
 ], W.d.lsc ? 8 : 7, () => sTuya3(), SCH.aanmelden());
 const sTuya3 = () => stap(`Stap ${W.d.lsc ? 3 : 2}: maak een project`, [
