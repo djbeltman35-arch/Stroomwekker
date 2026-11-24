@@ -860,7 +860,7 @@ const sAlexa10 = () => ({ t: 'Stap 9: plak je sleutel hier', of: AX,
     + `<p class="hint">Tik op <b>Test: zet aan</b>. Je stekker gaat aan, en na ${urenTxt()} vanzelf uit. Niet zo lang wachten? Zet hem zelf uit in de app.</p>` + testRow,
   after: () => { wireVelden(); wireTest(); } });
 // ---- Via de eigen Stroomwekker-skill: geen sleutels, één koppelcode ----
-const SX = 6;
+const SX = 7;
 const naamApp = () => (W.d.name || PRESETS[W.d.preset || 'anders'].name);
 const sSkill1 = () => ({ t: 'Wat heb je nodig?', of: SX,
   html: '<ul class="nodig">' + ['Je telefoon.', `Je slimme stekker. Hij werkt al in de app <b>${appNaam()}</b>.`, 'Een Amazon-account (gratis).', 'De app Alexa (gratis). Een Amazon-speaker is <b>niet</b> nodig.']
@@ -888,13 +888,19 @@ const sSkill4 = () => ({ t: 'Stap 3: koppel Stroomwekker aan Alexa', of: SX,
       const r = await api({ action: 'alexacode' }); $('kcCode').textContent = r.code;
     } catch (e) { $('kcMsg').className = 'msg err'; $('kcMsg').textContent = e.message; }
   } });
-const sSkill5 = () => { const n = naamApp(); return { t: 'Stap 4: maak twee routines', of: SX,
-  html: regels(['Tik in Alexa op <b>Meer</b> → <b>Routines</b> → <b>plusje (+)</b>.',
-    `Bij <b>Wanneer</b>: <b>Slim huis</b> → <b>Stroomwekker ${xe(n)} aan</b>.`, 'Bij <b>Actie</b>: <b>Slim huis</b> → je stekker → <b>Aan</b>. Tik op <b>Opslaan</b>.',
-    `Maak er nog één: <b>Stroomwekker ${xe(n)} uit</b> → je stekker → <b>Uit</b>.`])
-    + tel('Nieuwe routine', [{ k: 'kop', t: 'WANNEER' }, { k: 'rij', t: `Stroomwekker ${n} aan`, hl: 1 }, { k: 'kop', t: 'ZAL ALEXA' }, { k: 'rij', t: 'Je stekker', s: 'Stroom: Aan', hl: 1 }, { k: 'knop', t: 'Opslaan', hl: 1 }], 'De eerste routine. De tweede is hetzelfde, maar dan met "uit".'),
-  opts: verder(sSkill6) }; };
-const sSkill6 = () => ({ t: 'Stap 5: test het', of: SX,
+const ROUTINES = 'https://alexa.amazon.com/spa/index.html#routines'; // opent Routines in de Alexa-app
+const routineKnop = '<div class="knoprij"><a class="btn" href="' + ROUTINES + '" target="_blank" rel="noopener">Open Routines in Alexa</a></div>';
+const routineStap = (aan) => () => { const n = naamApp(), w = aan ? 'aan' : 'uit', W2 = aan ? 'Aan' : 'Uit';
+  return { t: aan ? 'Stap 4: routine 1 (aan)' : 'Stap 5: routine 2 (uit)', of: SX,
+  html: routineKnop
+    + regels(['Tik op de gele knop. Tik dan op het <b>plusje (+)</b>. Werkt de knop niet? Tik in Alexa onderin op <b>Meer</b> → <b>Routines</b>.',
+      `Tik bij <b>Wanneer</b> op <b>Slim huis</b>. Kies <b>Stroomwekker ${xe(n)} ${w}</b>.`,
+      `Tik op <b>Voeg een actie toe</b> → <b>Slim huis</b> → je stekker → <b>${W2}</b>.`, 'Tik op <b>Opslaan</b>.'])
+    + tel('Nieuwe routine', [{ k: 'kop', t: 'WANNEER' }, { k: 'rij', t: `Stroomwekker ${n} ${w}`, hl: 1 }, { k: 'kop', t: 'ZAL ALEXA' }, { k: 'rij', t: 'Je stekker', s: 'Stroom: ' + W2, hl: 1 }, { k: 'knop', t: 'Opslaan', hl: 1 }],
+      aan ? 'Zo ziet routine 1 eruit. Tik op wat geel omrand is.' : 'Bijna hetzelfde als routine 1, maar nu met "uit".'),
+  opts: verder(aan ? sSkill5b : sSkill6) }; };
+const sSkill5 = routineStap(true), sSkill5b = routineStap(false);
+const sSkill6 = () => ({ t: 'Stap 6: test het', of: SX,
   p: 'Tik op <b>Test: zet aan</b>. Binnen een paar seconden gaat je stekker aan.',
   html: testRow, after: () => wireTest() });
 function timerBlok(uren) {
