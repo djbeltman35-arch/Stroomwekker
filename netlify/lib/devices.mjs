@@ -34,6 +34,41 @@ async function tuyaSwitch(d, on) {
   await tuyaRequest(d, 'POST', `/v1.0/iot-03/devices/${d.deviceId}/commands`, { commands: [{ code: d.code || 'switch_1', value: !!on }] }, tok.access_token);
 }
 
+// ---------- Stekkers opzoeken bij een account (zodat niemand een apparaatnummer hoeft over te typen) ----------
+export async function listDevices(d) {
+  if (d.kind === 'tuya') {
+    const tok = (await tuyaRequest(d, 'GET', '/v1.0/token?grant_type=1')).access_token;
+    let lijst = [];
+    try {
+      const r = await tuyaRequest(d, 'GET', '/v2.0/cloud/thing/device?page_size=20', null, tok);
+      lijst = (Array.isArray(r) ? r : r?.list || []).map(x => ({ id: x.id, name: x.customName || x.name, online: x.isOnline }));
+    } catch (e) {
+      if (/verlopen|Access/.test(e.message)) throw e;
+      const r = await tuyaRequest(d, 'GET', '/v1.0/iot-01/associated-users/devices?size=50', null, tok);
+      lijst = (r?.devices || []).map(x => ({ id: x.id, name: x.name, online: x.online }));
+    }
+    return lijst.filter(x => x.id).slice(0, 30);
+  }
+  if (d.kind === 'shelly') {
+    const post = async pad => {
+      const r = await fetch(`https://${d.host}${pad}`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'auth_key=' + encodeURIComponent(d.key), signal: AbortSignal.timeout(8000) });
+      if (r.status === 401) throw new Error('Shelly: de cloud-sleutel klopt niet of hoort bij een andere server');
+      const j = await r.json().catch(() => ({}));
+      if (!j.isok) throw new Error('Shelly: ' + (Object.values(j.errors || {})[0] || 'de gegevens kloppen niet'));
+      return j.data || {};
+    };
+    const st = (await post('/device/all_status')).devices_status || {};
+    let namen = {};
+    try { namen = (await post('/interface/device/get_all_lists')).devices || {}; } catch { /* namen zijn een extraatje */ }
+    return Object.entries(st).map(([id, x]) => {
+      const sw = x['switch:0'] || x.relays?.[0];
+      return { id, name: namen[id]?.name || 'Shelly ' + (x._dev_info?.code || ''), online: x._dev_info?.online ?? x.cloud?.connected, aan: sw ? !!(sw.output ?? sw.ison) : null };
+    }).slice(0, 30);
+  }
+  return [];
+}
+
 // ---------- Verbruik meten (alleen stekkers met energiemeter) ----------
 // Geeft { w, totalWh, est } terug, of null als de stekker geen verbruik meet.
 export async function readMeter(d, cache = {}) {

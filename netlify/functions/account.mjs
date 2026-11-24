@@ -1,5 +1,5 @@
 import { store, keyFor } from '../lib/store.mjs';
-import { validateDevice, switchDevice, readMeter } from '../lib/devices.mjs';
+import { validateDevice, switchDevice, readMeter, listDevices } from '../lib/devices.mjs';
 import { nlDayBounds } from '../../public/js/engine.js';
 import { proefVoor, afdwingen } from '../lib/proef.mjs';
 
@@ -70,6 +70,12 @@ export default async (req) => {
       acc.updated = Date.now();
       await s.setJSON(key, acc);
       return Response.json(mask(acc));
+    }
+
+    if (body.action === 'list') {
+      const d = { ...(body.device || {}), deviceId: 'zoekennnnn', rule: { type: 'cheap' } };
+      const dev = validateDevice(d);
+      return Response.json({ devices: await listDevices(dev) });
     }
 
     if (body.action === 'test') {
