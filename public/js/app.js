@@ -590,9 +590,13 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && !wiz.hidden) wizClo
 
 // ---- Apparaat ----
 const sApparaat = () => ({ t: 'Wat wil je vanzelf laten aangaan?', p: 'Kies wat het meest lijkt. Wij kiezen dan de beste tijden.', opts: [
-  ...Object.entries(PRESETS).map(([k, v]) => ({ i: v.icon, l: { boiler: 'Boiler', was: 'Wasmachine, droger of vaatwasser', auto: 'Elektrische auto', anders: 'Iets anders' }[k], s: 'Aan ' + v.uitleg, go: () => { W.d.preset = k; go(sStekker); } })),
+  ...Object.entries(PRESETS).map(([k, v]) => ({ i: v.icon, l: { boiler: 'Boiler', was: 'Wasmachine, droger of vaatwasser', auto: 'Elektrische auto', anders: 'Iets anders' }[k], s: 'Aan ' + v.uitleg, go: () => { W.d.preset = k; if (k === 'was') return go(sWelkWas); W.d.name = uniekeNaam(v.name); go(sStekker); } })),
   { i: '⚙️', l: 'Zelf instellen', s: 'Voor wie alles zelf wil kiezen', go: () => { wizClose(); openMeer(); openDev(null); $('apparaten').scrollIntoView({ behavior: 'smooth' }); } },
 ] });
+// Elk apparaat een eigen naam, zodat een tweede apparaat het eerste nooit overschrijft (ook niet in Alexa)
+const uniekeNaam = n => { let x = n, i = 2; while (devices.some(d => d.name === x)) x = n + ' ' + i++; return x; };
+const sWelkWas = () => ({ t: 'Welk apparaat is het?', opts: [['👕', 'Wasmachine'], ['👕', 'Droger'], ['👕', 'Vaatwasser']].map(([i, l]) =>
+  ({ i, l, s: devices.some(d => d.name === l) ? 'Heb je al. Kies dit voor een tweede ' + l.toLowerCase() : '', go: () => { W.d.name = uniekeNaam(l); go(sStekker); } })) });
 const sStekker = () => ({ t: W.d.preset === 'auto' ? 'Hoe laad je je auto?' : 'Welke slimme stekker heb je?', p: W.d.preset === 'auto' ? 'Heb je een Easee-laadpaal? Die koppelen we rechtstreeks. Laad je met een gewone stekker, kies dan je slimme stekker.' : 'Aan en uit zetten werkt met élke stekker hieronder, ook de goedkoopste. Alleen voor het verbruik zien heb je een stekker met energiemeter nodig.', opts: [
   ...(W.d.preset === 'auto' ? [{ i: '🚗', l: 'Easee-laadpaal', s: 'Rechtstreeks gekoppeld, geen stekker nodig. Klaar in 2 minuten.', go: () => { W.d.kind = 'easee'; go(sEasee); } },
     { i: '❓', l: 'Andere laadpaal of Tesla', s: 'Zaptec, Wallbox, Alfen, Tesla en andere', go: () => go(sLaadAnders) }] : []),
@@ -873,7 +877,15 @@ const sSkill1 = () => ({ t: 'Wat heb je nodig?', of: SX,
     + '<p class="hint"><b>Zo werkt het:</b> Stroomwekker krijgt in Alexa twee knoppen: "aan" en "uit". Als stroom goedkoop is, drukt Stroomwekker op "aan". Alexa zet dan je stekker aan.</p>',
   opts: verder(sSkill2, 'Ik heb alles, begin') });
 const sSkill2 = () => { const x = sAlexa2(); x.t = 'Stap 1: open de app Alexa'; x.of = SX; x.opts = verder(sSkill3); return x; };
-const sSkill3 = () => { const x = sAlexa3(); x.t = W.d.al ? 'Stap 1: zet je nieuwe stekker in Alexa' : 'Stap 2: zet je stekker in Alexa'; x.of = SX; x.opts = verder(W.d.al ? sSkillAl : sSkill4); return x; };
+const sSkill3 = () => { if (W.d.al) return sSkill3Al(); const x = sAlexa3(); x.t = 'Stap 2: zet je stekker in Alexa'; x.of = SX; x.opts = verder(sSkill4); return x; };
+// Al eerder gekoppeld: de app van de stekker staat al in Alexa, dus Alexa vindt een nieuwe stekker vanzelf
+const sSkill3Al = () => { const app = W.d.merkApp || 'Smart Life'; return { t: 'Stap 1: zet je nieuwe stekker in de app', of: SX,
+  p: `Je hebt <b>${xe(app)}</b> al in Alexa staan. Dat hoef je niet opnieuw te doen.`,
+  html: regels([`Open de app <b>${xe(app)}</b> en voeg je nieuwe stekker toe (tik op het plusje). Staat hij er al? Dan kun je dit overslaan.`,
+    'Alexa vindt je nieuwe stekker vanzelf. Kijk in de app Alexa onder <b>Apparaten</b> of hij erbij staat.',
+    'Staat hij er niet bij? Tik in Alexa op <b>Apparaten</b> → <b>+</b> → <b>Apparaat toevoegen</b> → <b>Overige</b> → <b>Apparaten zoeken</b>.']),
+  opts: [...verder(sSkillAl, 'Mijn stekker staat in Alexa'),
+    { i: '❓', l: `Mijn nieuwe stekker werkt met een andere app dan ${xe(app)}`, s: 'Dan zet je die app eerst in Alexa', go: () => { go(() => ({ ...sAlexa3(), t: 'Zet de app van je stekker in Alexa', of: SX, opts: verder(sSkillAl) })); } }] }; };
 // Stroomwekker is al aan Alexa gekoppeld: geen code nodig, de nieuwe knoppen komen vanzelf in Alexa
 const bewaarSkillApparaat = async () => {
   const al = devices.find(x => x.kind === 'alexa' && x.skill && x.name === naamApp()); if (al) W.d.id = al.id; // niet dubbel toevoegen
