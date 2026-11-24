@@ -8,7 +8,7 @@ const SITE = 'https://stroomwekker.eu';
 
 // Samenvatting van het verbruik voor de app: nu, vandaag en deze maand.
 function verbruik(d, m) {
-  if (d.kind === 'webhook' || d.kind === 'easee') return { meet: false, reden: 'link' };
+  if (d.kind === 'webhook' || d.kind === 'easee' || d.kind === 'alexa') return { meet: false, reden: 'link' };
   if (!m) return { meet: null };
   if (m.meet === false) return { meet: false, reden: 'stekker' };
   const vandaag = nlDayBounds(Date.now()).day, maand = vandaag.slice(0, 7);
@@ -166,7 +166,7 @@ Stroomwekker`);
       if (dev.kind === 'easee') { const i = (acc.devices || []).findIndex(x => x.id === dev.id); if (i >= 0) { Object.assign(acc.devices[i], { eAccess: dev.eAccess, eRefresh: dev.eRefresh, eExp: dev.eExp }); await s.setJSON(key, acc); } }
       // Meteen kijken of deze stekker ook verbruik meet
       let meet = false;
-      if (dev.kind !== 'webhook') { try { await new Promise(r => setTimeout(r, dev.kind === 'shelly' ? 1100 : 0)); meet = !!(await readMeter(dev, {})); } catch { meet = null; } }
+      if (dev.kind !== 'webhook' && dev.kind !== 'alexa') { try { await new Promise(r => setTimeout(r, dev.kind === 'shelly' ? 1100 : 0)); meet = !!(await readMeter(dev, {})); } catch { meet = null; } }
       return Response.json({ ok: true, meet });
     }
   } catch (e) {

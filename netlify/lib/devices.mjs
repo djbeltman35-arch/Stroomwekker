@@ -179,6 +179,11 @@ export function validateDevice(d) {
     const code = /^[a-z0-9_]{3,20}$/.test(d.code || '') ? d.code : 'switch_1';
     return { ...base, kind: 'tuya', region, accessId, accessSecret, deviceId, code };
   }
+  if (d.kind === 'alexa') {
+    const key = String(d.key || '').trim(), trig = /^[\w-]{1,40}$/.test(d.trig || '') ? d.trig : 'default', trigUit = /^[\w-]{1,40}$/.test(d.trigUit || '') ? d.trigUit : '';
+    if (!/^tr_[\w-]{20,100}$/.test(key)) throw new Error('De sleutel klopt niet. Hij begint met tr_ en is heel lang. Kopieer hem opnieuw.');
+    return { ...base, kind: 'alexa', key, trig, trigUit };
+  }
   const onUrl = safeUrl(d.onUrl).href, offUrl = d.offUrl ? safeUrl(d.offUrl).href : '';
   const supplyUrl = cleanRule.type === 'battery' && d.supplyUrl ? safeUrl(d.supplyUrl).href : '';
   return { ...base, kind: 'webhook', onUrl, offUrl, supplyUrl, method: d.method === 'GET' ? 'GET' : 'POST' };
@@ -199,6 +204,17 @@ export async function switchDevice(d, on) {
     });
     const txt = await r.text();
     if (!r.ok) throw new Error(`Shelly antwoordde ${r.status}: ${txt.slice(0, 120)}`);
+    return 'ok';
+  }
+  if (d.kind === 'alexa') {
+    // Virtuele triggerknop (alexa.hapicom.jp). Zonder uit-knop zet de Alexa-routine de stekker zelf weer uit.
+    const t = on === true ? d.trig : d.trigUit;
+    if (!t) return 'alexa zet zelf uit';
+    const r = await fetch('https://alexa.hapicom.jp/tr/' + encodeURIComponent(t), { headers: { Authorization: 'Bearer ' + d.key }, signal: AbortSignal.timeout(10000) });
+    if (r.status === 401 || r.status === 403) throw new Error('Alexa-knop: de sleutel werkt niet meer. Maak een nieuwe sleutel op alexa.hapicom.jp en plak hem in Stroomwekker.');
+    if (r.status === 404) throw new Error('Alexa-knop: de knop "' + t + '" bestaat niet. Kijk op alexa.hapicom.jp bij Triggerinstellingen.');
+    if (r.status === 429) throw new Error('Alexa-knop: te vaak gedrukt. Het lukt straks weer.');
+    if (!r.ok) throw new Error(`Alexa-knop antwoordde met een fout (${r.status}). Probeer het straks opnieuw.`);
     return 'ok';
   }
   // on: true = aan/laden, false = uit/stoppen, 'supply' = batterij levert stroom
