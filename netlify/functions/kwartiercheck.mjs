@@ -5,6 +5,7 @@ import { refreshPrices } from '../lib/data.mjs';
 import { switchDevice, readMeter } from '../lib/devices.mjs';
 import { magSchakelen, afdwingen, proefVoor } from '../lib/proef.mjs';
 import { stuurMail, mailKlaar } from '../lib/mail.mjs';
+import { vasteTijd } from '../lib/vastetijd.mjs';
 import { alertsDue, deviceWants, batteryMode, batteryPlan, cheapestBlock, negativeWindows, gasUren, gasPrijs, fmtEuro, price, current, fmtCt, nlTime, nlDayBounds, inRange, quarterStart, Q, DEFAULT_SETTINGS } from '../../public/js/engine.js';
 
 // Verbruik van het afgelopen kwartier optellen bij de dag: kWh, wat het kostte, en wat het op een gemiddeld moment had gekost.
@@ -82,6 +83,23 @@ export default async () => {
     const st = acc.state || (acc.state = {});
     const settings = { ...DEFAULT_SETTINGS, ...(acc.settings || {}), gas: gas || {}, temp: temp || {} };
     const msgs = alertsDue(acc.alerts || [], quarters, now, settings, st.alerts || (st.alerts = {}));
+
+    // Vaste timer (LSC): één keer per week kijken of de goedkoopste vaste tijd duidelijk is verschoven
+    for (const a of (acc.alerts || []).filter(a => a.type === 'vastetimer')) {
+      const sa = (st.alerts[a.id] ||= {});
+      if (sa.vastCheck && now - sa.vastCheck < 7 * 86400e3) continue;
+      sa.vastCheck = now;
+      try {
+        const v = await vasteTijd(a.hours || 2, now), oud = sa.aan || a.aan;
+        const min = x => { const [h, m] = String(x).split(':').map(Number); return h * 60 + m; };
+        const verschil = oud ? Math.abs(min(v.aan) - min(oud)) : 0;
+        if (oud && Math.min(verschil, 1440 - verschil) >= 60) {
+          msgs.push({ id: 'vast-' + a.id, title: `⏰ Nieuwe tijd voor je timer: ${a.name || 'je apparaat'}`,
+            body: `De goedkoopste tijd is verschoven. Zet je timer in de app voortaan aan om ${v.aan} en uit om ${v.uit} (elke dag).` });
+        }
+        sa.aan = v.aan;
+      } catch { sa.vastCheck = now - 6 * 86400e3; } // prijzen niet bereikbaar: morgen opnieuw
+    }
 
     // Proefperiode per stekker bijhouden (ook voor oudere accounts)
     if ((acc.devices || []).some(d => !acc.proef?.[d.id])) acc.proef = await proefVoor(s, acc.devices, now, acc.created || now);
@@ -182,7 +200,7 @@ export default async () => {
     if (acc.email?.ok && acc.email.berichten !== false && (mailKlaar() || process.env.DEV_MEMORY)) {
       const dag = nlDayBounds(now).day, afmeld = `\n\nOpen Stroomwekker: https://stroomwekker.eu/\nGeen mails meer? Klik hier: https://stroomwekker.eu/api/email?a=${key.slice(2)}&uit=${acc.email.code}`;
       const gemeld = st.mailGemeld?.dag === dag ? st.mailGemeld.ids : [];
-      const urgent = msgs.filter(m => /^(fout-|proef-|maand-)/.test(String(m.id)) && !gemeld.includes(String(m.id)));
+      const urgent = msgs.filter(m => /^(fout-|proef-|maand-|vast-)/.test(String(m.id)) && !gemeld.includes(String(m.id)));
       if (urgent.length) {
         try {
           await stuurMail(acc.email.adres, urgent[0].title.replace(/^[^\p{L}\d€]+/u, ''), urgent.map(m => `${m.title}\n${m.body || ''}`).join('\n\n') + afmeld);
@@ -190,7 +208,7 @@ export default async () => {
         } catch (e) { console.error('mail', e.message); }
       }
       const uurNL = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Amsterdam', hour: '2-digit', hour12: false }).format(new Date(now))) % 24;
-      if (uurNL >= 7 && st.mailDag !== dag && ((acc.alerts || []).length || (acc.devices || []).length)) {
+      if (uurNL >= 7 && st.mailDag !== dag && ((acc.alerts || []).some(a => a.type !== 'vastetimer') || (acc.devices || []).length)) {
         st.mailDag = dag;
         const tekst = dagOverzicht(acc, quarters, now, settings);
         if (tekst) { try { await stuurMail(acc.email.adres, 'Je stroomdag: de beste tijden van vandaag', tekst + afmeld); sent++; } catch (e) { console.error('mail', e.message); } }

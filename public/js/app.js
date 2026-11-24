@@ -237,7 +237,7 @@ function renderWarmte(now) {
 
 // ---------- Meldingen ----------
 const alertText = a => a.type === 'below' ? `Stroom goedkoper dan ${ct(a.value)} cent` : a.type === 'above' ? `Stroom duurder dan ${ct(a.value)} cent`
-  : a.type === 'cheapest' ? `De goedkoopste ${a.hours} uur beginnen` : a.type === 'negative' ? 'Zonnepanelen beter uit' : a.type === 'battery' ? 'Thuisbatterij laden of gebruiken' : a.type === 'timer' ? `Timer-tijden voor ${esc(a.name || 'je apparaat')}` : a.type === 'warmte' ? 'Stoken op gas of stroom (hybride warmtepomp)' : a.type === 'gasmorgen' ? 'Gas morgen veel goedkoper of duurder' : 'De prijzen van morgen zijn er';
+  : a.type === 'cheapest' ? `De goedkoopste ${a.hours} uur beginnen` : a.type === 'negative' ? 'Zonnepanelen beter uit' : a.type === 'battery' ? 'Thuisbatterij laden of gebruiken' : a.type === 'timer' ? `Timer-tijden voor ${esc(a.name || 'je apparaat')}` : a.type === 'vastetimer' ? `Vaste timer voor ${esc(a.name || 'je apparaat')}: bericht als de tijd verandert` : a.type === 'warmte' ? 'Stoken op gas of stroom (hybride warmtepomp)' : a.type === 'gasmorgen' ? 'Gas morgen veel goedkoper of duurder' : 'De prijzen van morgen zijn er';
 function renderAlerts() {
   if (typeof renderMijn === 'function') setTimeout(renderMijn);
   $('alertList').innerHTML = alerts.map(a => `<li class="item"><div class="txt"><b>${alertText(a)}</b></div><button class="x" data-del="${a.id}" aria-label="Verwijderen">×</button></li>`).join('');
@@ -596,7 +596,7 @@ const sStekker = () => ({ t: W.d.preset === 'auto' ? 'Hoe laad je je auto?' : 'W
   ...(W.d.preset === 'auto' ? [{ i: '🚗', l: 'Easee-laadpaal', s: 'Rechtstreeks gekoppeld, geen stekker nodig. Klaar in 2 minuten.', go: () => { W.d.kind = 'easee'; go(sEasee); } },
     { i: '❓', l: 'Andere laadpaal of Tesla', s: 'Zaptec, Wallbox, Alfen, Tesla en andere', go: () => go(sLaadAnders) }] : []),
   { i: '🛒', l: 'Van de Action (LSC)', s: 'Makkelijk met een timer, of volledig automatisch', go: () => { W.d.kind = 'tuya'; W.d.lsc = true; go(sLscKeuze); } },
-  { i: '📱', l: 'Smart Life of Tuya', s: 'Ook Hema, Calex, Nedis, Woox. Makkelijk via Alexa, of via Tuya', go: () => { W.d.kind = 'tuya'; W.d.lsc = false; go(sLscKeuze); } },
+  { i: '📱', l: 'Smart Life of Tuya', s: 'Ook Hema, Calex, Nedis, Woox. Makkelijk met een timer, of volledig automatisch', go: () => { W.d.kind = 'tuya'; W.d.lsc = false; go(sLscKeuze); } },
   { i: '🔵', l: 'Shelly', s: 'Snelst te koppelen (3 minuten). Verbruik zien: Plug S, Plus Plug S en modellen met PM', go: () => { W.d.kind = 'shelly'; go(sShelly); } },
   ...(ALEXA_AAN ? [{ i: '🗣️', l: 'Een andere stekker die met Alexa werkt', s: 'Bijvoorbeeld TP-Link, Meross of Philips Hue', go: () => { W.d.merkApp = ''; W.d.kind = 'webhook'; W.d.alexa = true; go(sAlexa1); } }] : []),
   { i: '❓', l: 'Ik heb nog geen slimme stekker', go: () => go(sGeenStekker) },
@@ -735,9 +735,9 @@ function wireZoek() {
 // ---- Action (LSC): makkelijk met een timer, of volledig automatisch ----
 // De Alexa-route werkt (nog) niet: Voice Monkey en URL Routine Trigger staan niet in de Nederlandse Alexa-winkel.
 const ALEXA_AAN = false;
-const sLscKeuze = () => ({ t: 'Hoe wil je het doen?', p: ALEXA_AAN ? 'Je kunt op drie manieren kiezen. De eerste is de makkelijkste die vanzelf gaat.' : 'Je kunt op twee manieren kiezen.', opts: [
+const sLscKeuze = () => ({ t: 'Hoe wil je het doen?', p: ALEXA_AAN ? 'Je kunt op drie manieren kiezen. De eerste is de makkelijkste die vanzelf gaat.' : 'Je kunt op twee manieren kiezen. De eerste is het makkelijkst.', opts: [
   ...(ALEXA_AAN ? [{ i: '🗣️', l: 'Vanzelf, via de app Alexa (aanrader)', s: 'Alles op je telefoon. Geen codes, geen computer. Kost ongeveer 10 minuten. Gratis.', go: () => { W.d.merkApp = W.d.lsc ? 'LSC Smart Connect' : 'Smart Life'; W.d.kind = 'webhook'; W.d.alexa = true; go(sAlexa1); } }] : []),
-  ...(W.d.lsc ? [{ i: '⏱️', l: 'Zelf een timer zetten', s: 'Je krijgt elke dag een bericht met de goedkoopste tijden. Die zet je zelf in de LSC-app. Klaar in 2 minuten.', go: () => { W.d.kind = ''; W.d.alexa = false; go(sLscTimer); } }] : []),
+  { i: '⏱️', l: 'Een vaste timer zetten (makkelijkst)', s: `Je zet één keer een tijd in de app ${W.d.lsc ? 'LSC Smart Connect' : 'Smart Life'}. Wij zeggen welke tijd het goedkoopst is. Klaar in 2 minuten, gratis.`, go: async () => { W.d.kind = ''; W.d.alexa = false; await haalVast(); go(sLscTimer); } },
   { i: '🔧', l: 'Vanzelf, via Tuya (voor gevorderden)', s: (W.d.lsc ? 'Verhuis je stekker naar de app Smart Life. ' : '') + 'Kost ongeveer 20 minuten op een computer.', go: () => { W.d.kind = 'tuya'; W.d.alexa = false; go(sTuya); } },
 ] });
 
@@ -827,12 +827,35 @@ function timerBlok(uren) {
   const b = morgen ? cheapestBlock(data.quarters, tm.start, tm.end, n) : cheapestBlock(data.quarters, Math.max(vd.start, quarterStart(nu)), vd.end, n);
   return b ? { ...b, dag: morgen ? 'morgen' : 'vandaag' } : null;
 }
+async function haalVast() {
+  const p = PRESETS[W.d.preset || 'anders'];
+  W.d.vast = await fetch('/api/vastetijd?uren=' + (p.rule.hours || 2)).then(r => r.ok ? r.json() : null).catch(() => null);
+}
+const ctTxt = v => (v * 100).toFixed(1).replace('.', ',') + ' cent';
 const sLscTimer = () => {
+  const p = PRESETS[W.d.preset || 'anders'], uren = p.rule.hours || 2, v = W.d.vast;
+  if (!v?.aan) return sLscTimerDag();
+  const winst = Math.max(0, v.gem - v.vast);
+  return { t: 'Zet één keer een vaste timer', of: 4,
+    html: `<div class="timerkaart"><small>${esc(p.name)}, elke dag</small><b>Aan om ${v.aan}<br>Uit om ${v.uit}</b><small>Dit was de afgelopen 4 weken de goedkoopste tijd: gemiddeld ${ctTxt(v.vast)} per kWh. Dat is ${ctTxt(winst)} minder dan het daggemiddelde.</small></div>` +
+      '<ol class="kstap">' + [
+      `Open de app <b>${W.d.lsc ? 'LSC Smart Connect' : 'Smart Life'}</b> en tik op je stekker.`,
+      'Tik onderin op <b>Schema</b> of <b>Timer</b> (de naam verschilt per versie van de app).',
+      `Voeg een tijd toe: <b>${v.aan}</b>, stand <b>Aan</b>. Kies bij Herhalen: <b>elke dag</b>. Tik op Opslaan.`,
+      `Voeg nog een tijd toe: <b>${v.uit}</b>, stand <b>Uit</b>. Ook: <b>elke dag</b>. Tik op Opslaan.`,
+      'Klaar. Je stekker gaat nu elke dag vanzelf aan op de goedkope tijd.',
+    ].map(x => `<li><span>${x}</span></li>`).join('') + '</ol><p class="hint">De goedkoopste tijd verschuift soms, bijvoorbeeld in de zomer naar de middag. Dan sturen wij je één bericht met de nieuwe tijd. Meer niet.</p>',
+    opts: [
+      { i: '🔔', l: 'Stuur mij een bericht als de tijd verandert', go: async () => { addAlert({ type: 'vastetimer', hours: uren, name: p.name, aan: v.aan }); await enablePush(); go(sKlaarBericht); } },
+      { i: '📅', l: 'Liever elke dag de precieze tijden', s: 'Iets goedkoper, maar dan pas je de timer elke dag aan', go: () => go(sLscTimerDag) },
+    ] };
+};
+const sLscTimerDag = () => {
   const p = PRESETS[W.d.preset || 'anders'], uren = p.rule.hours || 2, b = timerBlok(uren);
   const nu = b ? `<div class="timerkaart"><small>${p.name}, ${b.dag}</small><b>Aan om ${nlTime(b.start)}<br>Uit om ${nlTime(b.end)}</b><small>Dan is stroom het goedkoopst</small></div>` : '';
-  return { t: 'Zet een timer in de LSC-app', of: 4,
+  return { t: 'Zet elke dag een timer', of: 4,
     html: nu + '<ol class="kstap">' + [
-      'Open de app <b>LSC Smart Connect</b> en tik op je stekker.',
+      `Open de app <b>${W.d.lsc ? 'LSC Smart Connect' : 'Smart Life'}</b> en tik op je stekker.`,
       'Tik onderin op <b>Schema</b> of <b>Timer</b> (de naam verschilt per versie van de app).',
       `Voeg een tijd toe om hem <b>aan</b> te zetten en een tijd om hem <b>uit</b> te zetten${b ? ', zoals hierboven' : ''}. Kies bij Herhalen: <b>alleen één keer</b>.`,
       `Elke middag, zodra de prijzen van morgen bekend zijn, sturen wij je een bericht met de goedkoopste ${uren} uur van morgen. Dan pas je de tijden aan. Dat duurt een halve minuut.`,
@@ -990,7 +1013,7 @@ const sKlaarBericht = () => {
     after: () => { $('wMailOk') && ($('wMailOk').onclick = () => slaMailOp($('wMail').value.trim(), true, $('wMailMsg'))); } };
 };
 function addAlert(a, quiet) {
-  if (!alerts.some(x => x.type === a.type && (a.type !== 'timer' || x.name === a.name))) alerts.push({ id: crypto.randomUUID(), value: 0, hours: 1, ...a });
+  if (!alerts.some(x => x.type === a.type && (!/timer/.test(a.type) || x.name === a.name))) alerts.push({ id: crypto.randomUUID(), value: 0, hours: 1, ...a });
   if (!quiet) { renderAlerts(); sync().catch(() => {}); }
 }
 
