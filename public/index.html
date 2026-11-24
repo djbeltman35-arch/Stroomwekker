@@ -333,6 +333,9 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
 .hm-g a:hover,.hm-g a:focus-visible{background:#F1F4F8}
 .hm-g b{display:block;font-size:16px;line-height:1.3}.hm-g small{display:block;font-size:13.5px;color:#5B6B80;line-height:1.35;margin-top:1px}
 @media (prefers-color-scheme:dark){.hm-grid{background:#122139;color:#E6ECF5}.hm-g a{color:#E6ECF5}.hm-g a:hover{background:#17294A}.hm-g small,.hm-kop{color:#9AA8BC}}
+.zweef{position:fixed;right:max(14px,env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom) + var(--instH,0px));z-index:25;display:flex;flex-direction:column;gap:10px}
+.zweef button{display:flex;align-items:center;gap:8px;min-height:48px;padding:0 16px 0 14px;border-radius:999px;border:2px solid #F5B700;background:#0F2340;color:#fff;font:600 15px/1 inherit;font-family:inherit;box-shadow:0 6px 18px rgba(5,15,35,.3);cursor:pointer}
+.zweef button[hidden]{display:none}.zweef svg{width:20px;height:20px;flex:none}
 </style>
 </head>
 <body>
@@ -758,6 +761,10 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
 <div class="wiz" id="wiz" hidden role="dialog" aria-modal="true" aria-labelledby="wizT">
   <div class="wiztop"><button type="button" id="wizBack">← Terug</button><div class="dots" id="wizDots"></div><button type="button" id="wizClose" aria-label="Sluiten">✕</button></div>
   <div class="wizbody wrap"><h2 id="wizT"></h2><div id="wizB"></div></div>
+</div>
+<div class="zweef" id="zweef">
+  <button type="button" id="zTerug" hidden aria-label="Terug naar waar je was"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Terug</button>
+  <button type="button" id="zHome" hidden aria-label="Naar boven"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>Home</button>
 </div>
 <div class="install" id="install" hidden>
   <div class="t"><b>Zet Stroomwekker op je telefoon</b>Dan krijg je een bericht als stroom goedkoop is.<div class="ios" id="iosHint" hidden>Tik onderin op <b>Deel</b> ⬆️ en kies <b>Zet op beginscherm</b>.</div></div>
