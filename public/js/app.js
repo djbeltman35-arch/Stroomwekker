@@ -807,16 +807,16 @@ const sAlexa2 = () => ({ t: 'Stap 1: open de app Alexa', of: AX,
 
 const sAlexa3 = () => { const app = W.d.merkApp || 'Smart Life'; return { t: 'Stap 2: zet je stekker in Alexa', of: AX,
   html: skillKnop(app, `Open ${app} in Alexa`)
-    + regels([SKILL[app] ? 'Tik op de gele knop.' : `Tik in Alexa op <b>Meer</b> → <b>Vaardigheden en games</b>. Zoek op <b>${xe(app)}</b>.`,
+    + regels([SKILL[app] ? 'Tik op de gele knop.' : `Tik in Alexa onderin op <b>Meer</b> → <b>Vaardigheden en games</b> → <b>Slim huis</b>.`, `Zoek <b>${xe(app)}</b> en tik erop.`,
       'Tik op <b>Inschakelen voor gebruik</b>.', `Log in met je account van <b>${xe(app)}</b>.`])
-    + tel(app, [{ k: 'tekst', t: app, groot: 1 }, { k: 'tekst', t: 'Vaardigheid voor slim huis' }, { k: 'ruimte', h: 6 }, { k: 'knop', t: 'INSCHAKELEN VOOR GEBRUIK', hl: 1 }]),
+    + tel('Slim huis', [{ k: 'zoek', t: app }, { k: 'rij', t: app, s: 'Vaardigheid voor slim huis', hl: 1 }, { k: 'ruimte', h: 4 }, { k: 'knop', t: 'INSCHAKELEN VOOR GEBRUIK', hl: 1 }]),
   opts: verder(sAlexa4) }; };
 
 const sAlexa4 = () => ({ t: 'Stap 3: zet de Stroomwekker-knop in Alexa', of: AX,
   html: skillKnop('knop', 'Open de knop in Alexa')
-    + regels([SKILL.knop ? 'Tik op de gele knop.' : 'Tik in Alexa op <b>Meer</b> → <b>Vaardigheden en games</b>. Zoek op <b>Virtuele triggerknop</b>.',
+    + regels([SKILL.knop ? 'Tik op de gele knop.' : 'Tik in Alexa onderin op <b>Meer</b> → <b>Vaardigheden en games</b> → <b>Slim huis</b>.', 'Zoek <b>Virtuele triggerknop voor Alexa-routines</b> en tik erop.',
       'Tik op <b>Inschakelen voor gebruik</b>.', 'Log in met je Amazon-account.', 'Vraagt Alexa om apparaten te zoeken? Tik op <b>Zoeken</b>.'])
-    + tel('Vaardigheden', [{ k: 'tekst', t: 'Virtuele triggerknop', groot: 1 }, { k: 'tekst', t: 'voor Alexa-routines' }, { k: 'ruimte', h: 6 }, { k: 'knop', t: 'INSCHAKELEN VOOR GEBRUIK', hl: 1 }]),
+    + tel('Slim huis', [{ k: 'zoek', t: 'Virtuele triggerknop' }, { k: 'rij', t: 'Virtuele triggerknop voor', s: 'Alexa-routines', hl: 1 }, { k: 'ruimte', h: 4 }, { k: 'knop', t: 'INSCHAKELEN VOOR GEBRUIK', hl: 1 }]),
   opts: verder(sAlexa5) });
 
 const sAlexa5 = () => ({ t: 'Stap 4: log in op de knop-website', of: AX,
