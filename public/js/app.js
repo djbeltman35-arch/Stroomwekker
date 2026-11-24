@@ -761,7 +761,9 @@ const AMAZON_REG = 'https://www.amazon.nl/ap/register?openid.return_to=https%3A%
 // Eigen Stroomwekker-skill: nog in test. Aanzetten met ?skill=1 (blijft bewaard op dit apparaat).
 const SKILL_AAN = (() => { try { if (new URLSearchParams(location.search).get('skill') === '1') localStorage.setItem('sw-skill', '1'); return localStorage.getItem('sw-skill') === '1'; } catch { return false; } })();
 function startAlexa() {
-  if (SKILL_AAN) { W.d.kind = 'alexa'; W.d.alexa = true; W.d.skill = true; W.d.rule = null; return go(sSkill1); }
+  if (SKILL_AAN) { W.d.kind = 'alexa'; W.d.alexa = true; W.d.skill = true; W.d.rule = null;
+    // Al eerder gekoppeld? Dan geen koppelcode meer: meteen naar de stekker in Alexa zetten
+    return api({ action: 'alexastatus' }).then(r => r.gekoppeld, () => false).then(g => { W.d.al = g; go(g ? sSkill3 : sSkill1); }); }
   const r = PRESETS[W.d.preset || 'anders'].rule;
   W.d.alexaUren = r.type === 'cheapest' ? Math.min(4, r.hours) : 2;
   W.d.rule = { type: 'cheapest', hours: W.d.alexaUren, block: true };
@@ -871,7 +873,19 @@ const sSkill1 = () => ({ t: 'Wat heb je nodig?', of: SX,
     + '<p class="hint"><b>Zo werkt het:</b> Stroomwekker krijgt in Alexa twee knoppen: "aan" en "uit". Als stroom goedkoop is, drukt Stroomwekker op "aan". Alexa zet dan je stekker aan.</p>',
   opts: verder(sSkill2, 'Ik heb alles, begin') });
 const sSkill2 = () => { const x = sAlexa2(); x.t = 'Stap 1: open de app Alexa'; x.of = SX; x.opts = verder(sSkill3); return x; };
-const sSkill3 = () => { const x = sAlexa3(); x.t = 'Stap 2: zet je stekker in Alexa'; x.of = SX; x.opts = verder(sSkill4); return x; };
+const sSkill3 = () => { const x = sAlexa3(); x.t = W.d.al ? 'Stap 1: zet je nieuwe stekker in Alexa' : 'Stap 2: zet je stekker in Alexa'; x.of = SX; x.opts = verder(W.d.al ? sSkillAl : sSkill4); return x; };
+// Stroomwekker is al aan Alexa gekoppeld: geen code nodig, de nieuwe knoppen komen vanzelf in Alexa
+const bewaarSkillApparaat = async () => {
+  const al = devices.find(x => x.kind === 'alexa' && x.skill && x.name === naamApp()); if (al) W.d.id = al.id; // niet dubbel toevoegen
+  const d = { id: W.d.id || (W.d.id = crypto.randomUUID()), name: naamApp(), kind: 'alexa', skill: true, notify: true, rule: PRESETS[W.d.preset || 'anders'].rule };
+  devices = [...devices.filter(x => x.id !== d.id), d]; await sync();
+};
+const sSkillAl = () => ({ t: 'Stap 2: je bent al gekoppeld', of: SX,
+  p: 'Je hebt Stroomwekker al eerder aan Alexa gekoppeld. <b>Je hoeft geen koppelcode meer in te vullen.</b>',
+  html: regels([`Wij zetten nu twee nieuwe knoppen in Alexa: <b>Stroomwekker ${xe(naamApp())} aan</b> en <b>uit</b>.`, 'Dat gaat vanzelf. Je hoeft er niets voor te doen.', 'Hierna maak je nog 2 routines, net als de vorige keer.'])
+    + '<p class="msg" id="kcMsg" role="status">Even bewaren…</p>',
+  opts: verder(sSkill5),
+  after: async () => { try { await bewaarSkillApparaat(); $('kcMsg').className = 'msg ok'; $('kcMsg').textContent = '✓ Klaar. De knoppen staan zo in Alexa.'; } catch (e) { $('kcMsg').className = 'msg err'; $('kcMsg').textContent = e.message; } } });
 const sSkill4 = () => ({ t: 'Stap 3: koppel Stroomwekker aan Alexa', of: SX,
   html: '<div class="timerkaart" id="kcKaart"><small>Je koppelcode</small><b id="kcCode" style="font-size:40px;letter-spacing:6px">…</b><small>20 minuten geldig</small></div>'
     + regels(['Tik in Alexa onderin op <b>Meer</b> → <b>Vaardigheden en games</b>. Zoek <b>Stroomwekker</b> en tik erop.',
@@ -893,7 +907,7 @@ const sSkill4 = () => ({ t: 'Stap 3: koppel Stroomwekker aan Alexa', of: SX,
 const ROUTINES = 'https://alexa.amazon.com/spa/index.html#routines'; // opent Routines in de Alexa-app
 const routineKnop = '<div class="knoprij"><a class="btn" href="' + ROUTINES + '" target="_blank" rel="noopener">Open Routines in Alexa</a></div>';
 const routineStap = (aan) => () => { const n = naamApp(), w = aan ? 'aan' : 'uit', W2 = aan ? 'Aan' : 'Uit';
-  return { t: aan ? 'Stap 4: routine 1 (aan)' : 'Stap 5: routine 2 (uit)', of: SX,
+  return { t: `Stap ${(aan ? 4 : 5) - (W.d.al ? 1 : 0)}: routine ${aan ? '1 (aan)' : '2 (uit)'}`, of: SX,
   html: routineKnop
     + regels(['Tik op de gele knop. Tik dan op het <b>plusje (+)</b>. Werkt de knop niet? Tik in Alexa onderin op <b>Meer</b> → <b>Routines</b>.',
       `Tik bij <b>Wanneer</b> op <b>Slim huis</b>. Kies <b>Stroomwekker ${xe(n)} ${w}</b>.`,
