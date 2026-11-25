@@ -596,7 +596,34 @@ const sApparaat = () => ({ t: 'Wat wil je vanzelf laten aangaan?', p: 'Kies wat 
 // Elk apparaat een eigen naam, zodat een tweede apparaat het eerste nooit overschrijft (ook niet in Alexa)
 const uniekeNaam = n => { let x = n, i = 2; while (devices.some(d => d.name === x)) x = n + ' ' + i++; return x; };
 const sWelkWas = () => ({ t: 'Welk apparaat is het?', opts: [['👕', 'Wasmachine'], ['👕', 'Droger'], ['👕', 'Vaatwasser']].map(([i, l]) =>
-  ({ i, l, s: devices.some(d => d.name === l) ? 'Heb je al. Kies dit voor een tweede ' + l.toLowerCase() : '', go: () => { W.d.name = uniekeNaam(l); go(sStekker); } })) });
+  ({ i, l, s: devices.some(d => d.name === l) ? 'Heb je al. Kies dit voor een tweede ' + l.toLowerCase() : '', go: () => { W.d.name = uniekeNaam(l); W.d.wasSoort = l; go(sWasHoe); } })) });
+// Moderne wasmachines, drogers en vaatwassers stoppen of wissen hun programma vaak als een slimme stekker de stroom eraf haalt.
+const wasNaam = () => (W.d.wasSoort || 'Wasmachine').toLowerCase();
+const wasBericht = async () => { addAlert({ type: 'tomorrow' }, true); addAlert({ type: 'cheapest', hours: 2 }, true); renderAlerts(); await enablePush(); sync().catch(() => {}); go(sKlaarBericht); };
+const sWasHoe = () => ({ t: `Wat voor ${wasNaam()} heb je?`,
+  p: `<b>Let op:</b> veel moderne machines stoppen of wissen hun programma als een slimme stekker de stroom eraf haalt. Daarom kiezen we samen de beste manier voor jouw ${wasNaam()}.`, opts: [
+  { i: '📱', l: 'Hij heeft wifi en een app', s: 'Bijvoorbeeld Bosch, Siemens, Miele, Samsung, LG of AEG', go: () => go(sWasWifi) },
+  { i: '⏱️', l: 'Geen wifi, wel uitgesteld starten', s: 'Een knop zoals "Starttijd", "Klaar over" of "Uitgestelde start"', go: () => go(sWasUitgesteld) },
+  { i: '🔌', l: 'Een oude machine met een draaiknop', s: 'Hij gaat vanzelf verder als de stroom terugkomt', go: () => go(sStekker) },
+  { i: '❓', l: 'Ik weet het niet', s: 'Dan raden we de veiligste manier aan', go: () => go(sWasUitgesteld) },
+] });
+const sWasWifi = () => ({ t: 'Laat je machine het zelf doen', of: 3,
+  html: `<p>Een ${wasNaam()} met wifi heeft <b>geen slimme stekker nodig</b>. Veel merken kunnen zelf starten als stroom goedkoop is:</p>
+    <ul style="padding-left:22px;margin:10px 0 14px">
+      <li style="margin-bottom:8px"><b>Bosch, Siemens, Neff:</b> zet in de Home Connect-app <b>smartStart</b> aan.</li>
+      <li style="margin-bottom:8px"><b>Miele:</b> kies op de machine <b>SmartStart</b> en stel in de Miele-app een tijdvak in.</li>
+      <li><b>Samsung, LG, AEG en andere:</b> kijk in de app van je merk naar een stand voor <b>dynamisch tarief</b> of <b>slim starten</b>. Heeft hij die niet, gebruik dan <b>uitgestelde start</b>.</li>
+    </ul>
+    <p>Wij sturen je elke avond de beste tijden voor morgen. Dan kun je het makkelijk controleren of zelf instellen.</p>`,
+  opts: [{ i: '🔔', l: 'Stuur me de beste tijden', go: wasBericht }, { i: '🏠', l: 'Terug naar het begin', go: wizClose }] });
+const sWasUitgesteld = () => ({ t: 'Zo doe je het het veiligst', of: 3,
+  html: `<ol class="kstap">
+      <li><span>Wij sturen je elke avond een bericht met de <b>goedkoopste tijd</b> voor morgen.</span></li>
+      <li><span>Vul je ${wasNaam()} en kies je programma, zoals altijd.</span></li>
+      <li><span>Druk op <b>uitgestelde start</b> (soms heet dat "Starttijd" of "Klaar over") en stel de tijd uit het bericht in.</span></li>
+    </ol>
+    <p class="small muted">Zo stopt je machine nooit halverwege. Een slimme stekker gebruik je beter voor een boiler, laadpaal of pomp.</p>`,
+  opts: [{ i: '🔔', l: 'Stuur me de beste tijden', go: wasBericht }, { i: '🔌', l: 'Toch een slimme stekker gebruiken', s: 'Alleen als je machine vanzelf verder gaat na een stroomonderbreking', go: () => go(sStekker) }] });
 const sStekker = () => ({ t: W.d.preset === 'auto' ? 'Hoe laad je je auto?' : 'Welke slimme stekker heb je?', p: W.d.preset === 'auto' ? 'Heb je een Easee-laadpaal? Die koppelen we rechtstreeks. Laad je met een gewone stekker, kies dan je slimme stekker.' : 'Aan en uit zetten werkt met élke stekker hieronder, ook de goedkoopste. Alleen voor het verbruik zien heb je een stekker met energiemeter nodig.', opts: [
   ...(W.d.preset === 'auto' ? [{ i: '🚗', l: 'Easee-laadpaal', s: 'Rechtstreeks gekoppeld, geen stekker nodig. Klaar in 2 minuten.', go: () => { W.d.kind = 'easee'; go(sEasee); } },
     { i: '❓', l: 'Andere laadpaal of Tesla', s: 'Zaptec, Wallbox, Alfen, Tesla en andere', go: () => go(sLaadAnders) }] : []),

@@ -419,6 +419,40 @@ html,body{overflow-x:clip}
 </section>
 
 
+<section class="wrap" aria-labelledby="obh">
+  <div class="card opbrengst">
+    <h2 id="obh">Wat levert het jou op?</h2>
+    <p class="small muted" style="margin:-4px 0 12px">Vink aan wat je hebt. Wij rekenen het uit met de echte stroomprijzen van de afgelopen 30 dagen.</p>
+    <form id="obForm" class="obform">
+      <fieldset><legend>Met een bericht <small>jij start het apparaat</small></legend>
+        <label class="chk"><input type="checkbox" value="was" checked> Wasmachine</label>
+        <label class="chk"><input type="checkbox" value="droger"> Droger</label>
+        <label class="chk"><input type="checkbox" value="vaat" checked> Vaatwasser</label>
+      </fieldset>
+      <fieldset><legend>Volledig automatisch <small>Stroomwekker doet het</small></legend>
+        <label class="chk"><input type="checkbox" value="boiler"> Elektrische boiler</label>
+        <label class="chk"><input type="checkbox" value="auto"> Elektrische auto</label>
+        <label class="chk"><input type="checkbox" value="batterij"> Thuisbatterij</label>
+      </fieldset>
+    </form>
+    <div id="obUit" aria-live="polite" style="margin-top:14px"><p class="muted">Even rekenen…</p></div>
+    <button type="button" class="btn obknop" data-flow="apparaat">Zet het nu gratis automatisch aan</button>
+  </div>
+</section>
+<style>
+.obform{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:620px){.obform{grid-template-columns:1fr}}
+.obform fieldset{border:1px solid var(--line);border-radius:6px;padding:10px 14px 8px;margin:0;display:grid;gap:4px}
+.obform legend{font-weight:700;padding:0 6px}.obform legend small{display:block;font-weight:400;color:var(--muted);font-size:13.5px}
+.obform .chk{padding:5px 0;font-size:16px}
+.obkop{font-size:24px;line-height:1.3;margin:0 0 10px}.obkop b{color:#13703A}
+@media (prefers-color-scheme:dark){.obkop b{color:var(--green-dark)}}
+.obtabel{width:100%;border-collapse:collapse}.obtabel td{padding:9px 4px;border-top:1px solid var(--line)}
+.obtabel td small{display:block;color:var(--muted);font-size:13.5px}.obtabel td:last-child{text-align:right;white-space:nowrap;font-weight:700}
+.obconcl{background:var(--soft);border-radius:6px;padding:10px 14px;margin:12px 0 0;font-size:15.5px}
+.obknop{margin-top:16px;width:100%;min-height:48px;font-weight:700}
+</style>
+
 <section class="wrap" aria-labelledby="zwh">
   <div class="card uitleg">
     <h2 id="zwh">Zo werkt het</h2>
@@ -451,6 +485,7 @@ html,body{overflow-x:clip}
     <h2>Wanneer is stroom het goedkoopst?</h2>
     <p class="small muted" style="margin:-4px 0 10px">Zet dan je wasmachine, droger, vaatwasser of auto aan.</p>
     <div class="best" id="best"></div>
+    <p class="notice" style="margin:12px 0 0"><b>Tip voor wasmachines en vaatwassers:</b> gebruik de knop <b>uitgestelde start</b> op je machine, of de slimme start in de app van je merk. Veel moderne machines stoppen of wissen hun programma als een slimme stekker de stroom eraf haalt. Een slimme stekker is ideaal voor een boiler, laadpaal of pomp.</p>
   </div>
 
   <details class="meer" id="meer">
@@ -775,5 +810,6 @@ html,body{overflow-x:clip}
 </div>
 
 <script type="module" src="/js/app.js"></script>
+<script type="module" src="/js/opbrengst.js"></script>
 </body>
 </html>
