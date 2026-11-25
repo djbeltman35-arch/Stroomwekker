@@ -1,4 +1,5 @@
 // Rekenblok op de homepage: wat levert slim schakelen jou per jaar op, met de echte prijzen van de afgelopen 30 dagen?
+import { TOP3, PEIL, topLink } from '/js/top3.js';
 const $ = id => document.getElementById(id);
 const eur = v => '€ ' + Math.max(0, Math.round(v)).toLocaleString('nl-NL');
 const ct = v => (v * 100).toFixed(1).replace('.', ',');
@@ -47,5 +48,8 @@ function reken() {
       ${som.auto ? `<tr><td>Volledig automatisch <small>boiler, auto, thuisbatterij</small></td><td>${eur(som.auto)}</td></tr>` : ''}
     </tbody></table>
     <p class="obconcl">${conclusie}</p>
+    ${totaal >= 100 ? `<h3 class="obtop">Nog geen dynamisch contract? De 3 goedkoopste:</h3>
+    <ol class="top3">${TOP3.dynamisch.r.map(([, pak, pm, pad], i) => `<li><a href="${topLink(pad, 'rekenblok')}" target="_blank" rel="sponsored noopener"><span class="nr">${i + 1}</span><span><b>${pak}</b><small>Dynamisch · altijd opzegbaar</small></span><span class="pr">€ ${pm}<small> p/m</small></span></a></li>`).join('')}</ol>
+    <p class="small muted" style="margin:6px 0 0">Advertentie. Stroom en gas samen bij 2.300 kWh en 1.000 m³, inclusief welkomstkorting, ${PEIL}.</p>` : ''}
     <p class="small muted" style="margin:10px 0 0">Indicatie, geen advies. Gerekend met de echte prijzen van de afgelopen 30 dagen: gemiddeld ${ct(P.stroom)} cent per kWh, in de goedkoopste uren ${ct(P.stroomGoedkoop)} cent${P.stroomDuur ? `, in de duurste uren ${ct(P.stroomDuur)} cent` : ''}. Met gemiddeld verbruik: wasmachine 150, droger 250, vaatwasser 230, boiler 1.500 en auto 2.500 kWh per jaar, thuisbatterij 5 kWh per dag met 15% verlies. <a href="/bespaarcheck/">Reken het precies uit met je eigen verbruik</a>.</p>`;
 }

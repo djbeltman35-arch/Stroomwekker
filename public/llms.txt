@@ -21,7 +21,7 @@
 - [Startpagina en app](https://stroomwekker.eu/): live prijs, apparaten koppelen, berichten instellen, veelgestelde vragen.
 - [Prijsarchief](https://stroomwekker.eu/stroomprijs/): per dag alle kwartierprijzen en per maand gemiddelde, laagste en hoogste prijs, sinds oktober 2025.
 - [Gratis stroomprijs-widget](https://stroomwekker.eu/widget/): de actuele prijs op je eigen website.
-- [Uitleg en tips](https://stroomwekker.eu/gids/): dynamisch energiecontract, kwartierprijzen, negatieve stroomprijs, Action-stekker koppelen, thuisbatterij, einde saldering 2027.
+- [Uitleg en tips](https://stroomwekker.eu/gids/): dynamisch energiecontract, kwartierprijzen, negatieve stroomprijs, Action-stekker koppelen, thuisbatterij, einde saldering 2027, wasmachine en vaatwasser slim aansturen.
 - [Zo berekenen wij de prijs](https://stroomwekker.eu/zo-rekenen-wij/): formule, bronnen en rekenvoorbeeld.
 - [Over Stroomwekker](https://stroomwekker.eu/over/): wie het maakt en hoe de site onafhankelijk blijft.
 - [Privacy](https://stroomwekker.eu/privacy/) · [Auteursrecht en gebruiksvoorwaarden](https://stroomwekker.eu/gebruiksvoorwaarden/)

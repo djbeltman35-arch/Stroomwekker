@@ -67,6 +67,9 @@ def maak(pad, title, desc, h1, intro, body, soort='Article', kruimels=None, extr
 <main class="wrap pagina">
 {body}
 ''' + FOOTER
+    import os
+    if os.environ.get('ALLEEN') and pad not in os.environ['ALLEEN'].split(','):
+        return
     f = PUB / pad.strip('/') / 'index.html'
     f.parent.mkdir(parents=True, exist_ok=True)
     f.write_text(out)
@@ -96,6 +99,7 @@ GIDSEN = [
     ('/gids/action-slimme-stekker-koppelen/', 'Slimme stekker van de Action automatisch laten schakelen', 'Stap voor stap: LSC-stekker via Smart Life koppelen.'),
     ('/gids/thuisbatterij-dynamisch-contract/', 'Thuisbatterij met een dynamisch contract', 'Wanneer laden, wanneer leveren, en wanneer het loont.'),
     ('/gids/saldering-stopt-2027/', 'Saldering stopt in 2027: wat betekent dat?', 'Zonnepanelen, terugleveren en een dynamisch contract.'),
+    ('/gids/wasmachine-slim-aansturen/', 'Wasmachine, droger en vaatwasser slim aansturen', 'Met wifi, uitgestelde start of een slimme stekker: wat werkt.'),
 ]
 
 
@@ -410,6 +414,55 @@ maak('/gids/saldering-stopt-2027/', 'Saldering stopt in 2027: wat betekent het m
   </section>
 {faq_html(fq)}
 {CTA}''', kruimels=G, extra_ld=[faq_ld(fq)])
+
+# ---------------- Gids: wasmachine ----------------
+fq = [
+    ('Kan ik mijn wasmachine op een slimme stekker zetten?', 'Bij een oude machine met een draaiknop meestal wel. Veel moderne machines stoppen of wissen hun programma als de stroom eraf gaat. Gebruik daar liever uitgestelde start of de slimme start in de app van je merk.'),
+    ('Wat is de goedkoopste tijd om te wassen?', 'Bij een dynamisch contract is stroom vaak het goedkoopst \'s nachts en op zonnige middagen. Tussen 17:00 en 21:00 uur is stroom vaak duur. De prijzen van morgen zijn rond 13:00 uur bekend.'),
+    ('Hoeveel bespaar ik met slim wassen?', 'Een wasmachine, droger en vaatwasser samen gebruiken ongeveer 600 kWh per jaar. Draai je die in de goedkope uren, dan bespaar je meestal een paar tientjes per jaar. Een boiler, elektrische auto of thuisbatterij levert veel meer op.'),
+    ('Werkt dit zonder wifi op de machine?', 'Ja. Bijna elke moderne machine heeft een knop voor uitgestelde start. Stroomwekker stuurt je de goedkoopste tijd, en die stel je zelf in op de machine.'),
+]
+maak('/gids/wasmachine-slim-aansturen/', 'Wasmachine slim aansturen met een dynamisch contract | Stroomwekker',
+     'Je wasmachine, droger of vaatwasser laten draaien als stroom goedkoop is? Lees wat werkt: smartStart, SmartStart, uitgestelde start of een slimme stekker, en waar je op let.',
+     'Wasmachine, droger en vaatwasser slim aansturen', 'Draaien als stroom goedkoop is, zonder dat je machine halverwege stopt.', f"""
+  <section class="card">
+    <h2>Eerst dit: let op met een slimme stekker</h2>
+    <p>Een slimme stekker zet de stroom aan en uit. Voor een boiler, laadpaal of pomp is dat prima. Maar veel <b>moderne wasmachines, drogers en vaatwassers</b> stoppen of wissen hun programma als de stroom eraf gaat. Ze gaan dan niet vanzelf verder.</p>
+    <p>Gebruik daarom bij deze machines liever een van de manieren hieronder.</p>
+  </section>
+  <section class="card">
+    <h2>1. Je machine heeft wifi en een app</h2>
+    <p>Dan heb je <b>geen slimme stekker nodig</b>. Veel merken kunnen zelf starten als stroom goedkoop is:</p>
+    <ul>
+      <li><b>Bosch, Siemens, Neff:</b> zet in de Home Connect-app de functie <b>smartStart</b> aan. De machine kiest dan zelf een goedkoop moment.</li>
+      <li><b>Miele:</b> kies op de machine <b>SmartStart</b>. De machine start dan binnen een tijdvak dat jij kiest, op een signaal van bijvoorbeeld je energiebedrijf of energiebeheer.</li>
+      <li><b>Samsung, LG, AEG en andere:</b> kijk in de app van je merk naar een stand voor dynamisch tarief of slim starten. Niet gevonden? Gebruik dan uitgestelde start.</li>
+    </ul>
+    <p class="small muted">Wat precies kan, verschilt per model. Kijk in de handleiding of app van je machine.</p>
+  </section>
+  <section class="card">
+    <h2>2. Geen wifi, wel uitgestelde start</h2>
+    <p>Bijna elke machine van de laatste jaren heeft een knop zoals <b>Starttijd</b>, <b>Klaar over</b> of <b>Uitgestelde start</b>. Zo gebruik je die:</p>
+    <ol>
+      <li>Stroomwekker stuurt je elke avond de goedkoopste tijd voor morgen.</li>
+      <li>Vul je machine en kies je programma, zoals altijd.</li>
+      <li>Stel met de knop de tijd uit het bericht in. Klaar.</li>
+    </ol>
+    <p>Dit is de veiligste manier. Je machine stopt nooit halverwege.</p>
+  </section>
+  <section class="card">
+    <h2>3. Een oude machine met een draaiknop</h2>
+    <p>Gaat je machine vanzelf verder als de stroom even weg is geweest? Dan kun je wel een slimme stekker gebruiken. Zet de knop op je programma, laat de deur dicht, en laat Stroomwekker de stekker aanzetten in de goedkoopste uren achter elkaar. Twijfel je? Test het eerst één keer terwijl je thuis bent.</p>
+    <p class="small muted">Let op: een slimme stekker kan meestal maximaal 3.680 watt aan. Een wasmachine of droger past daar meestal binnen.</p>
+  </section>
+  <section class="card">
+    <h2>Wat levert het op?</h2>
+    <p>Een wasmachine, droger en vaatwasser gebruiken samen ongeveer 600 kWh per jaar. Draai je ze in de goedkope uren, dan scheelt dat meestal een paar tientjes per jaar. Het grote geld zit in apparaten die veel verbruiken: een <b>elektrische boiler</b>, een <b>elektrische auto</b> of een <b>thuisbatterij</b>. Die zet Stroomwekker volledig automatisch aan. <a href="/#obh">Reken uit wat het jou oplevert</a>.</p>
+    {lees_ook('/gids/wasmachine-slim-aansturen/')}
+  </section>
+{faq_html(fq)}
+{CTA}
+{BRONNEN_ALG}""", kruimels=G, extra_ld=[faq_ld(fq)])
 
 # ---------------- Privacy ----------------
 maak('/privacy/', 'Privacyverklaring | Stroomwekker',

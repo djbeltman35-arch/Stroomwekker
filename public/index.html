@@ -419,6 +419,49 @@ html,body{overflow-x:clip}
 </section>
 
 
+<section class="wrap mijnwrap">
+  <div class="card" id="mijn" hidden>
+    <h2>Wat staat er aan</h2>
+    <ul class="list" id="mijnList"></ul>
+    <button class="btn-line btn-sm" type="button" id="mijnMeer">+ Nog iets toevoegen</button>
+  </div>
+</section>
+
+<style>
+.obform{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:620px){.obform{grid-template-columns:1fr}}
+.obform fieldset{border:1px solid var(--line);border-radius:6px;padding:10px 14px 8px;margin:0;display:grid;gap:4px}
+.obform legend{font-weight:700;padding:0 6px}.obform legend small{display:block;font-weight:400;color:var(--muted);font-size:13.5px}
+.obform .chk{padding:5px 0;font-size:16px}
+.obkop{font-size:24px;line-height:1.3;margin:0 0 10px}.obkop b{color:#13703A}
+@media (prefers-color-scheme:dark){.obkop b{color:var(--green-dark)}}
+.obtabel{width:100%;border-collapse:collapse}.obtabel td{padding:9px 4px;border-top:1px solid var(--line)}
+.obtabel td small{display:block;color:var(--muted);font-size:13.5px}.obtabel td:last-child{text-align:right;white-space:nowrap;font-weight:700}
+.obconcl{background:var(--soft);border-radius:6px;padding:10px 14px;margin:12px 0 0;font-size:15.5px}
+.obknop{margin-top:16px;width:100%;min-height:48px;font-weight:700}
+.obtop{font-size:17px;margin:18px 0 8px}
+.opbrengst .top3{list-style:none;padding:0;margin:0;display:grid;gap:8px}.opbrengst .top3 li{margin:0}
+.opbrengst .top3 a{display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:10px;text-decoration:none;color:var(--ink);background:var(--surface)}
+.opbrengst .top3 .nr{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:#F5B700;color:#0F2340}
+.opbrengst .top3 b{display:block;font-size:15.5px}.opbrengst .top3 small{display:block;color:var(--muted);font-size:13.5px}.opbrengst .top3 .pr{text-align:right;font-weight:800;white-space:nowrap}
+</style>
+
+<section class="wrap" aria-labelledby="zwh">
+  <div class="card uitleg">
+    <h2 id="zwh">Zo werkt het</h2>
+    <ol class="stappen">
+      <li><b>Kies wat je wilt regelen</b><span>Bijvoorbeeld je boiler, wasmachine, auto of thuisbatterij. Tik bovenaan op een van de knoppen.</span></li>
+      <li><b>Koppel je slimme stekker</b><span>Dat doe je één keer. Wij leggen elke stap uit. Het duurt ongeveer 15 minuten.</span></li>
+      <li><b>Wij kiezen de goedkoopste uren</b><span>Je hoeft geen prijzen in te vullen. Wij weten elke dag de prijzen en kiezen de beste momenten.</span></li>
+      <li><b>Je apparaat gaat vanzelf aan en uit</b><span>Elk kwartier kijken wij naar de prijs. Ook als je telefoon uit staat of je niet thuis bent.</span></li>
+    </ol>
+    <p style="margin:14px 0 0"><a href="/hoe-werkt-het/" style="font-weight:600">Lees in gewone woorden hoe Stroomwekker je apparaten aan en uit zet</a></p>
+    <div class="watis">
+      <h3>Wat is een dynamisch energiecontract?</h3>
+      <p>Bij een gewoon contract betaal je altijd dezelfde prijs voor stroom. Bij een dynamisch contract verandert de prijs elk kwartier. 's Nachts en op zonnige middagen is stroom vaak goedkoop. Tussen 17:00 en 21:00 uur is stroom vaak duur. Gebruik je stroom op goedkope momenten, dan betaal je minder.</p>
+    </div>
+  </div>
+</section>
 <section class="wrap" aria-labelledby="obh">
   <div class="card opbrengst">
     <h2 id="obh">Wat levert het jou op?</h2>
@@ -439,53 +482,13 @@ html,body{overflow-x:clip}
     <button type="button" class="btn obknop" data-flow="apparaat">Zet het nu gratis automatisch aan</button>
   </div>
 </section>
-<style>
-.obform{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media (max-width:620px){.obform{grid-template-columns:1fr}}
-.obform fieldset{border:1px solid var(--line);border-radius:6px;padding:10px 14px 8px;margin:0;display:grid;gap:4px}
-.obform legend{font-weight:700;padding:0 6px}.obform legend small{display:block;font-weight:400;color:var(--muted);font-size:13.5px}
-.obform .chk{padding:5px 0;font-size:16px}
-.obkop{font-size:24px;line-height:1.3;margin:0 0 10px}.obkop b{color:#13703A}
-@media (prefers-color-scheme:dark){.obkop b{color:var(--green-dark)}}
-.obtabel{width:100%;border-collapse:collapse}.obtabel td{padding:9px 4px;border-top:1px solid var(--line)}
-.obtabel td small{display:block;color:var(--muted);font-size:13.5px}.obtabel td:last-child{text-align:right;white-space:nowrap;font-weight:700}
-.obconcl{background:var(--soft);border-radius:6px;padding:10px 14px;margin:12px 0 0;font-size:15.5px}
-.obknop{margin-top:16px;width:100%;min-height:48px;font-weight:700}
-</style>
-
-<section class="wrap" aria-labelledby="zwh">
-  <div class="card uitleg">
-    <h2 id="zwh">Zo werkt het</h2>
-    <ol class="stappen">
-      <li><b>Kies wat je wilt regelen</b><span>Bijvoorbeeld je boiler, wasmachine, auto of thuisbatterij. Tik bovenaan op een van de vier knoppen.</span></li>
-      <li><b>Koppel je slimme stekker</b><span>Dat doe je één keer. Wij leggen elke stap uit. Het duurt ongeveer 15 minuten.</span></li>
-      <li><b>Wij kiezen de goedkoopste uren</b><span>Je hoeft geen prijzen in te vullen. Wij weten elke dag de prijzen en kiezen de beste momenten.</span></li>
-      <li><b>Je apparaat gaat vanzelf aan en uit</b><span>Elk kwartier kijken wij naar de prijs. Ook als je telefoon uit staat of je niet thuis bent.</span></li>
-    </ol>
-    <p style="margin:14px 0 0"><a href="/hoe-werkt-het/" style="font-weight:600">Lees in gewone woorden hoe Stroomwekker je apparaten aan en uit zet</a></p>
-    <div class="watis">
-      <h3>Zien wat je apparaat verbruikt</h3>
-      <p>Stroomwekker kan bij elk apparaat laten zien wat het verbruikt, kost en bespaart. Dat werkt alleen met een stekker die een energiemeter heeft. Aan en uit zetten werkt met elke stekker, ook de goedkoopste. <a href="/hoe-werkt-het/#welkemeet">Welke stekkers meten het verbruik?</a></p>
-    </div>
-    <div class="watis">
-      <h3>Wat is een dynamisch energiecontract?</h3>
-      <p>Bij een gewoon contract betaal je altijd dezelfde prijs voor stroom. Bij een dynamisch contract verandert de prijs elk kwartier. 's Nachts en op zonnige middagen is stroom vaak goedkoop. Tussen 17:00 en 21:00 uur is stroom vaak duur. Gebruik je stroom op goedkope momenten, dan betaal je minder.</p>
-    </div>
-  </div>
-</section>
 
 <section class="wrap">
-  <div class="card" id="mijn" hidden>
-    <h2>Wat staat er aan</h2>
-    <ul class="list" id="mijnList"></ul>
-    <button class="btn-line btn-sm" type="button" id="mijnMeer">+ Nog iets toevoegen</button>
-  </div>
-
   <div class="card">
     <h2>Wanneer is stroom het goedkoopst?</h2>
     <p class="small muted" style="margin:-4px 0 10px">Zet dan je wasmachine, droger, vaatwasser of auto aan.</p>
     <div class="best" id="best"></div>
-    <p class="notice" style="margin:12px 0 0"><b>Tip voor wasmachines en vaatwassers:</b> gebruik de knop <b>uitgestelde start</b> op je machine, of de slimme start in de app van je merk. Veel moderne machines stoppen of wissen hun programma als een slimme stekker de stroom eraf haalt. Een slimme stekker is ideaal voor een boiler, laadpaal of pomp.</p>
+    <p class="notice" style="margin:12px 0 0"><b>Tip voor wasmachines en vaatwassers:</b> gebruik de knop <b>uitgestelde start</b> op je machine, of de slimme start in de app van je merk. Veel moderne machines stoppen of wissen hun programma als een slimme stekker de stroom eraf haalt. Een slimme stekker is ideaal voor een boiler, laadpaal of pomp. <a href="/gids/wasmachine-slim-aansturen/">Lees hoe het werkt</a></p>
   </div>
 
   <details class="meer" id="meer">
@@ -632,6 +635,7 @@ html,body{overflow-x:clip}
       <button class="btn btn-sm" type="button" id="batAlert">Stuur mij een bericht</button>
       <button class="btn-line btn-sm" type="button" id="batDevice">Batterij vanzelf laten werken</button>
     </div>
+    <p class="small muted" style="margin:10px 0 0">Nog geen batterij? <a href="https://salderingscheck-nl.netlify.app/" rel="noopener">Reken uit of een thuisbatterij loont na het einde van saldering in 2027</a>.</p>
   </div>
 
   <div class="card" id="meldingen">
