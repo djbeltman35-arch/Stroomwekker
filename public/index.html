@@ -314,6 +314,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 .foot .cols{grid-template-columns:1.3fr 1fr 1.5fr}.foot .cols nav.twee{grid-template-columns:1fr 1fr;column-gap:20px}
 @media (max-width:720px){.foot .cols{grid-template-columns:1fr}.foot .cols nav{grid-template-columns:1fr 1fr;column-gap:20px}}
+html,body{overflow-x:clip}
 </style>
 <script src="/js/nav.js" defer></script>
 <style id="hmenu-css">
@@ -326,7 +327,7 @@ details.meer[open]>summary::after{transform:rotate(-135deg)}
 .hm-i{display:grid;gap:3px;width:18px}.hm-i i{display:block;height:2.5px;border-radius:2px;background:#0F2340;transition:transform .2s,opacity .2s}
 .hmenu[open] .hm-i i:nth-child(1){transform:translateY(5.5px) rotate(45deg)}.hmenu[open] .hm-i i:nth-child(2){opacity:0}.hmenu[open] .hm-i i:nth-child(3){transform:translateY(-5.5px) rotate(-45deg)}
 .hm-paneel{position:absolute;left:0;right:0;top:100%;z-index:60;padding:0 max(12px,env(safe-area-inset-left)) 16px}
-.hm-grid{background:#fff;color:#0F2340;border-radius:16px;box-shadow:0 18px 50px rgba(5,15,35,.35);padding:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px 22px;max-height:min(78vh,760px);overflow:auto}
+.hm-grid{background:#fff;color:#0F2340;border-radius:16px;box-shadow:0 18px 50px rgba(5,15,35,.35);padding:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:6px 22px;max-height:min(78vh,760px);overflow:auto}
 .hm-kop{margin:6px 0 4px;font-size:13px;font-weight:700;color:#5B6B80}
 .sublinks .hmenu a::after{display:none}.hmenu a{white-space:normal;font-weight:400}
 .hm-g a{display:block;text-decoration:none;color:#0F2340;padding:9px 10px;margin:0 -10px;border-radius:10px}

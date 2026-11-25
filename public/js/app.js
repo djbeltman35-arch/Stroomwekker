@@ -754,7 +754,7 @@ const sLscKeuze = () => ({ t: 'Hoe wil je het doen?', p: ALEXA_AAN ? 'Je kunt op
   { i: '🔧', l: bestaand('tuya') ? 'Vanzelf, via een ander Tuya-account' : 'Vanzelf, via Tuya (voor gevorderden)', s: (W.d.lsc ? 'Verhuis je stekker naar de app Smart Life. ' : '') + 'Kost ongeveer 20 minuten op een computer.', go: () => { W.d.kind = 'tuya'; W.d.alexa = false; W.d.copyFrom = ''; go(sTuya); } },
 ] });
 
-// ---- Via Alexa: Stroomwekker drukt op een "knop" bij Voice Monkey, Alexa zet je stekker aan of uit ----
+// ---- Via Alexa: Stroomwekker drukt op een "knop" (knop-skill of eigen Stroomwekker-skill), Alexa zet je stekker aan of uit ----
 // Heel kleine stappen, één ding per scherm. Elke stap: wat je doet, en hoe je weet dat het gelukt is.
 const AX = 10;
 const appNaam = () => W.d.merkApp || 'de app van je stekker';
