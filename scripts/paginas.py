@@ -327,7 +327,7 @@ maak('/gids/action-slimme-stekker-koppelen/', 'Slimme stekker Action (LSC) laten
       <tr><td>Action (LSC Smart Connect) <b>met</b> energiemeter</td><td class="ja">Ja</td><td class="ja">Ja <small>(schatting per kwartier)</small></td></tr>
       <tr><td>Smart Life of Tuya (ook Hema, Calex, Nedis, Woox) <b>zonder</b> energiemeter</td><td class="ja">Ja</td><td class="nee">Nee</td></tr>
       <tr><td>Smart Life of Tuya <b>met</b> energiemeter</td><td class="ja">Ja</td><td class="ja">Ja <small>(schatting per kwartier)</small></td></tr>
-      <tr><td>Shelly Plug S, Shelly Plus Plug S en Shelly-modellen met <b>PM</b> in de naam</td><td class="ja">Ja</td><td class="ja">Ja <small>(precieze meterstand)</small></td></tr>
+      <tr><td>Shelly Plug M Gen3, Shelly Plug S, Shelly Plus Plug S en Shelly-modellen met <b>PM</b> in de naam</td><td class="ja">Ja</td><td class="ja">Ja <small>(precieze meterstand)</small></td></tr>
       <tr><td>Shelly zonder PM, zoals Shelly 1 en Plus 1</td><td class="ja">Ja</td><td class="nee">Nee</td></tr>
       <tr><td>Eigen link: IFTTT, Homey, Home Assistant</td><td class="ja">Ja</td><td class="nee">Nee</td></tr>
     </tbody>
