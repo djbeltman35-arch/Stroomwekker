@@ -14,7 +14,7 @@
     Strict-Transport-Security = "max-age=31536000"
     X-Frame-Options = "DENY"
     Cross-Origin-Opener-Policy = "same-origin"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' https://daisycon.tools https://energie.whitelabeled.nl; style-src 'self' 'unsafe-inline' https://daisycon.tools https://energie.whitelabeled.nl; img-src 'self' data: https://energie.whitelabeled.nl https://daisycon.tools; font-src 'self' https://energie.whitelabeled.nl https://daisycon.tools; connect-src 'self' https://api-energie.whitelabeled.nl https://energie.whitelabeled.nl https://daisycon.tools; manifest-src 'self'; worker-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://gc.zgo.at https://daisycon.tools https://energie.whitelabeled.nl; style-src 'self' 'unsafe-inline' https://daisycon.tools https://energie.whitelabeled.nl; img-src 'self' data: https://stroomw.goatcounter.com https://energie.whitelabeled.nl https://daisycon.tools; font-src 'self' https://energie.whitelabeled.nl https://daisycon.tools; connect-src 'self' https://stroomw.goatcounter.com https://api-energie.whitelabeled.nl https://energie.whitelabeled.nl https://daisycon.tools; manifest-src 'self'; worker-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests"
 
 [[headers]]
   for = "/icons/*"
