@@ -1,0 +1,37 @@
+name: Dagprijzen naar social-data
+# Zet de tekst van /stroomprijs-vandaag/ en /stroomprijs-morgen/ in de branch social-data,
+# zodat de dagelijkse video-taak de dagprijzen ook kan lezen als hij de site niet kan openen.
+# Raakt main en de website niet; commits eindigen op [skip netlify] (geen deploy, geen credits).
+on:
+  schedule:
+    - cron: "17 5 * * *"   # 06:17 (winter) / 07:17 (zomer): prijzen van vandaag
+    - cron: "37 12 * * *"  # 13:37 (winter) / 14:37 (zomer): ook de prijzen van morgen
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: social-data
+  cancel-in-progress: false
+jobs:
+  dagprijzen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: code
+      - name: Branch social-data ophalen of aanmaken
+        run: |
+          git clone --depth 1 -b social-data "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" data \
+          || { mkdir data && cd data && git init -q -b social-data \
+               && git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}"; }
+      - name: Dagprijzen ophalen
+        run: python3 code/scripts/dagprijzen.py data
+      - name: Opslaan in social-data
+        run: |
+          cd data
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && { echo "Niets veranderd"; exit 0; }
+          git commit -q -m "Dagprijzen $(TZ=Europe/Amsterdam date +%F) [skip netlify]"
+          git push -q origin social-data
