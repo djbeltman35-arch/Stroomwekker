@@ -112,7 +112,7 @@ BRONNEN_ALG = '<p class="bronnen">Bronnen: Energy-Charts van Fraunhofer ISE (EPE
 
 # ---------------- Over ----------------
 maak('/over/', 'Over Stroomwekker en de maker | Stroomwekker',
-     'Wie maakt Stroomwekker, waarom, en hoe de site onafhankelijk blijft. Gemaakt door Erik Beltman om mensen met een dynamisch energiecontract geld te laten besparen.',
+     'Wie maakt Stroomwekker, waarom, en hoe de site onafhankelijk blijft. Gemaakt door Erik Beltman om mensen met een dynamisch contract te laten besparen.',
      'Over Stroomwekker', 'Wie het maakt, waarom, en hoe we eerlijk en onafhankelijk blijven.', '''
   <section class="card">
     <h2>Waarom Stroomwekker bestaat</h2>
@@ -146,7 +146,7 @@ maak('/over/', 'Over Stroomwekker en de maker | Stroomwekker',
 
 # ---------------- Rekenmethode ----------------
 maak('/zo-rekenen-wij/', 'Zo berekenen wij de stroomprijs: formule en bronnen',
-     'Hoe Stroomwekker de dynamische stroomprijs berekent: beursprijs per kwartier plus btw, energiebelasting en inkoopvergoeding. Met bronnen, voorbeeld en updatetijden.',
+     'Zo berekent Stroomwekker de dynamische stroomprijs: beursprijs per kwartier plus btw, energiebelasting en inkoopvergoeding. Met bronnen en voorbeeld.',
      'Zo berekenen wij de stroomprijs', 'Open en controleerbaar: de bron, de formule en een rekenvoorbeeld.', '''
   <section class="card">
     <h2>De formule</h2>
@@ -209,8 +209,8 @@ fq = [('Is een dynamisch contract goedkoper dan een vast contract?', 'Vaak wel, 
       ('Heb ik een slimme meter nodig?', 'Ja. Zonder slimme meter kan je energiebedrijf niet zien hoeveel stroom je per kwartier gebruikt.'),
       ('Hoe vaak verandert de prijs?', 'De stroomprijs verandert elk kwartier, dus 96 keer per dag. De gasprijs verandert één keer per dag.'),
       ('Kan ik zomaar overstappen?', 'Een dynamisch contract kun je meestal per maand opzeggen. Kijk wel of je huidige contract een opzegboete heeft.')]
-maak('/gids/dynamisch-energiecontract/', 'Dynamisch energiecontract: uitleg, voor- en nadelen | Stroomwekker',
-     'Een dynamisch energiecontract volgt de beursprijs per kwartier. Lees in gewone woorden hoe het werkt, voor wie het loont, de voor- en nadelen en hoe je het meeste bespaart.',
+maak('/gids/dynamisch-energiecontract/', 'Dynamisch energiecontract: uitleg, voor- en nadelen',
+     'Een dynamisch energiecontract volgt de beursprijs per kwartier. In gewone woorden: hoe het werkt, voor wie het loont, voor- en nadelen en besparen.',
      'Wat is een dynamisch energiecontract?', 'Hoe het werkt, voor wie het loont en hoe je het meeste bespaart.', f'''
   <section class="card">
     <h2>In het kort</h2>
@@ -243,8 +243,8 @@ maak('/gids/dynamisch-energiecontract/', 'Dynamisch energiecontract: uitleg, voo
 {CTA}''', kruimels=G, extra_ld=[faq_ld(fq)])
 
 # ---------------- Gids: kwartierprijzen ----------------
-maak('/gids/stroomprijs-per-kwartier/', 'Stroomprijs per kwartier: waarom 96 prijzen per dag? | Stroomwekker',
-     'Sinds oktober 2025 wordt stroom op de beurs per kwartier verhandeld in plaats van per uur. Wat dat betekent voor je dynamische contract en hoe je ervan profiteert.',
+maak('/gids/stroomprijs-per-kwartier/', 'Stroomprijs per kwartier: waarom 96 prijzen per dag?',
+     'Sinds oktober 2025 wordt stroom per kwartier verhandeld in plaats van per uur. Wat dat betekent voor je dynamische contract en hoe je ervan profiteert.',
      'Waarom verandert de stroomprijs elk kwartier?', 'Van 24 naar 96 prijzen per dag: wat dat voor je betekent.', f'''
   <section class="card">
     <h2>Van uur naar kwartier</h2>
@@ -271,8 +271,8 @@ maak('/gids/stroomprijs-per-kwartier/', 'Stroomprijs per kwartier: waarom 96 pri
 fq = [('Krijg ik echt geld als ik stroom gebruik?', 'Alleen als de beursprijs zo laag is dat ook de belasting en de inkoopvergoeding worden goedgemaakt. Met de bedragen van 2026 is dat bij een beursprijs onder ongeveer min 10,8 cent per kWh. Dat gebeurt niet vaak.'),
       ('Moet ik mijn zonnepanelen uitzetten bij een negatieve prijs?', 'Met een dynamisch contract kost terugleveren je dan geld. Uitzetten of zelf de stroom gebruiken is dan slim. Laat het uitzetten van je omvormer wel regelen door een installateur.'),
       ('Hoe weet ik van tevoren dat de prijs negatief wordt?', 'De prijzen van morgen zijn rond 13:00 uur bekend. Stroomwekker stuurt je dan een bericht als er negatieve prijzen aankomen.')]
-maak('/gids/negatieve-stroomprijs/', 'Negatieve stroomprijs: wat doe je met zonnepanelen? | Stroomwekker',
-     'Bij een negatieve stroomprijs is stroom op de beurs minder dan niets waard. Lees wanneer het gebeurt, wanneer je echt gratis stroom hebt en wat je met je zonnepanelen doet.',
+maak('/gids/negatieve-stroomprijs/', 'Negatieve stroomprijs: wat doe je met zonnepanelen?',
+     'Bij een negatieve stroomprijs is stroom minder dan niets waard. Lees wanneer het gebeurt, wanneer stroom echt gratis is en wat je met zonnepanelen doet.',
      'Negatieve stroomprijs: gratis stroom en zonnepanelen', 'Wanneer het gebeurt, wat je ervan merkt en wat je dan het beste doet.', f'''
   <section class="card">
     <h2>Wat is een negatieve stroomprijs?</h2>
@@ -314,7 +314,7 @@ fq = [('Werkt de slimme stekker van de Action met Stroomwekker?', 'Ja. Zet de st
       ('Werkt het ook als mijn telefoon uit staat?', 'Ja. Stroomwekker stuurt het seintje via internet naar je stekker. Je telefoon hoeft niet aan te staan.'),
       ('Welke apparaten kan ik op de stekker zetten?', 'Apparaten die vanzelf weer starten als de stroom terugkomt: een boiler, een elektrische kachel of een lader. Een wasmachine moet je vaak eerst op uitgesteld starten zetten. Let op het maximale vermogen van de stekker.')]
 maak('/gids/action-slimme-stekker-koppelen/', 'Slimme stekker Action (LSC) laten schakelen op de stroomprijs',
-     'Stap voor stap: de slimme stekker van de Action (LSC Smart Connect) via Smart Life koppelen, zodat hij vanzelf aangaat als stroom goedkoop is. Gratis en in 15 minuten.',
+     'Stap voor stap de slimme stekker van de Action (LSC Smart Connect) koppelen, zodat hij vanzelf aangaat als stroom goedkoop is. Gratis, in 15 minuten.',
      'Slimme stekker van de Action automatisch laten schakelen', 'Stap voor stap uitgelegd. Je doet het één keer, in ongeveer 15 minuten.', f'''
   <section class="card">
     <h2>Wat heb je nodig?</h2>
@@ -354,7 +354,7 @@ fq = [('Wanneer moet ik mijn thuisbatterij laden?', 'Als stroom het goedkoopst i
       ('Wanneer moet de batterij stroom leveren?', 'Als stroom het duurst is. Vaak is dat \'s ochtends vroeg en tussen 17:00 en 21:00 uur.'),
       ('Wanneer loont laden en ontladen niet?', 'Bij laden en ontladen gaat ongeveer 15 procent verloren. Is het verschil tussen goedkoop en duur kleiner dan dat verlies, dan loont het die dag niet.')]
 maak('/gids/thuisbatterij-dynamisch-contract/', 'Thuisbatterij en dynamisch contract: wanneer laden en leveren?',
-     'Met een thuisbatterij en een dynamisch contract laad je als stroom goedkoop is en gebruik je de stroom als hij duur is. Lees wanneer het loont en hoe je het automatisch regelt.',
+     'Met een thuisbatterij en dynamisch contract laad je als stroom goedkoop is en gebruik je hem als die duur is. Wanneer loont het en hoe regel je het?',
      'Thuisbatterij met een dynamisch contract', 'Wanneer laden, wanneer leveren, en wanneer het niet loont.', f'''
   <section class="card">
     <h2>Het idee</h2>
@@ -385,8 +385,8 @@ maak('/gids/thuisbatterij-dynamisch-contract/', 'Thuisbatterij en dynamisch cont
 fq = [('Wanneer stopt de salderingsregeling?', 'Op 1 januari 2027. Tot en met 31 december 2026 mag je teruggeleverde stroom nog wegstrepen tegen je verbruik.'),
       ('Wat krijg ik na 2027 voor teruggeleverde stroom?', 'Een terugleververgoeding van je energiebedrijf. Tot 2030 is die volgens de wet minimaal de helft van de kale stroomprijs. Daarnaast kunnen terugleverkosten gelden.'),
       ('Is een dynamisch contract slim met zonnepanelen na 2027?', 'Vaak wel, als je je verbruik verschuift naar zonnige uren en terugleveren bij negatieve prijzen voorkomt. Het hangt af van je verbruik en je contract.')]
-maak('/gids/saldering-stopt-2027/', 'Saldering stopt in 2027: wat betekent het met een dynamisch contract?',
-     'Op 1 januari 2027 stopt de salderingsregeling. Lees in gewone woorden wat er verandert voor zonnepanelen, terugleveren en een dynamisch energiecontract, en wat je nu al kunt doen.',
+maak('/gids/saldering-stopt-2027/', 'Saldering stopt in 2027: wat betekent dat voor jou?',
+     'Op 1 januari 2027 stopt salderen. In gewone woorden wat er verandert voor zonnepanelen, terugleveren en een dynamisch contract, en wat je nu al kunt doen.',
      'Saldering stopt in 2027: wat betekent dat?', 'Zonnepanelen, terugleveren en een dynamisch contract na 1 januari 2027.', f'''
   <section class="card">
     <h2>Wat verandert er?</h2>
@@ -422,8 +422,8 @@ fq = [
     ('Hoeveel bespaar ik met slim wassen?', 'Een wasmachine, droger en vaatwasser samen gebruiken ongeveer 600 kWh per jaar. Draai je die in de goedkope uren, dan bespaar je meestal een paar tientjes per jaar. Een boiler, elektrische auto of thuisbatterij levert veel meer op.'),
     ('Werkt dit zonder wifi op de machine?', 'Ja. Bijna elke moderne machine heeft een knop voor uitgestelde start. Stroomwekker stuurt je de goedkoopste tijd, en die stel je zelf in op de machine.'),
 ]
-maak('/gids/wasmachine-slim-aansturen/', 'Wasmachine slim aansturen met een dynamisch contract | Stroomwekker',
-     'Je wasmachine, droger of vaatwasser laten draaien als stroom goedkoop is? Lees wat werkt: smartStart, SmartStart, uitgestelde start of een slimme stekker, en waar je op let.',
+maak('/gids/wasmachine-slim-aansturen/', 'Wasmachine slim aansturen met een dynamisch contract',
+     'Wasmachine, droger of vaatwasser laten draaien als stroom goedkoop is? Lees wat werkt: SmartStart, uitgestelde start of een slimme stekker.',
      'Wasmachine, droger en vaatwasser slim aansturen', 'Draaien als stroom goedkoop is, zonder dat je machine halverwege stopt.', f"""
   <section class="card">
     <h2>Eerst dit: let op met een slimme stekker</h2>
@@ -539,7 +539,7 @@ print('gemaakt /404.html')
 code_licht = '<iframe src="https://stroomwekker.eu/widget/stroomprijs" width="340" height="150" style="border:0;max-width:100%" title="Stroomprijs nu" loading="lazy"></iframe>\n<p style="font-size:13px"><a href="https://stroomwekker.eu/">Stroomprijs per kwartier van Stroomwekker</a></p>'
 code_donker = code_licht.replace('stroomprijs"', 'stroomprijs?stijl=donker"')
 
-maak('/bespaarcheck/', 'Bespaarcheck: is een dynamisch energiecontract goedkoper voor jou? | Stroomwekker',
+maak('/bespaarcheck/', 'Bespaarcheck: is een dynamisch contract goedkoper?',
      'Reken in een minuut uit wat een dynamisch contract jou had gekost, met de echte stroom- en gasprijzen van de afgelopen 30 dagen. Gratis, zonder account.',
      'Bespaarcheck: is dynamisch goedkoper voor jou?', 'Vul je verbruik en je huidige prijs in. Wij rekenen het uit met de echte prijzen van de afgelopen 30 dagen.', """
   <section class="card">

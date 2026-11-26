@@ -153,7 +153,7 @@ ${rijen}
     <p>Meer weten? <a href="/gids/dynamisch-energiecontract/">Wat is een dynamisch energiecontract?</a> · <a href="/gids/negatieve-stroomprijs/">Negatieve stroomprijs</a> · <a href="/gids/stroomprijs-per-kwartier/">Waarom per kwartier?</a> · <a href="/zo-rekenen-wij/">Zo berekenen wij de prijs</a></p>
   </section>`;
 
-  const desc = `Stroomprijs ${archief ? dag : (morgen ? 'morgen' : 'vandaag') + ' (' + dag + ')'}: gemiddeld ${ct(gem)} cent per kWh. Goedkoopst om ${nlTime(laag.t)} uur (${ct(P(laag))} ct), duurst om ${nlTime(hoog.t)} uur. Alle 96 kwartierprijzen inclusief belasting.`;
+  const desc = `Stroomprijs ${archief ? dag : (morgen ? 'morgen' : 'vandaag') + ' (' + dag + ')'}: gemiddeld ${ct(gem)} ct/kWh. Goedkoopst om ${nlTime(laag.t)} (${ct(P(laag))} ct), duurst om ${nlTime(hoog.t)} (${ct(P(hoog))} ct). Per kwartier, incl. belasting.`;
   const ld = ldBasis(title, url, archief ? [['Prijsarchief', 'https://stroomwekker.eu/stroomprijs/'], [maandNaam(archief.slice(0, 7)), `https://stroomwekker.eu/stroomprijs/${archief.slice(0, 7)}/`]] : []);
   ld['@graph'].push({
     '@type': 'Dataset', name: `Dynamische stroomprijs Nederland per kwartier, ${dag}`, description: desc, url,
@@ -189,7 +189,7 @@ async function gasPagina(now) {
   const { start, end } = nlDayBounds(now), stukken = gasUren(data.quarters, Math.max(start, cur ? cur.t : start), end, s);
   const datumTxt = datum(now);
   const title = vd != null ? `Gasprijs vandaag: ${eur(all(vd))} per m³ (${datumTxt.split(' ').slice(1, 3).join(' ')}) | Stroomwekker` : 'Gasprijs vandaag per m³ | Stroomwekker';
-  const desc = vd != null ? `De dynamische gasprijs van vandaag is ${eur(all(vd))} per m³, inclusief belasting en een gemiddelde opslag. Met de prijs van morgen, de laatste 30 dagen en of je beter met gas of stroom stookt.` : 'De dynamische gasprijs van vandaag per m³, inclusief belasting.';
+  const desc = vd != null ? `De dynamische gasprijs van vandaag is ${eur(all(vd))} per m³, inclusief belasting en een gemiddelde opslag. Met morgen, de laatste 30 dagen en: gas of stroom?` : 'De dynamische gasprijs van vandaag per m³, inclusief belasting.';
   const kc = [['Vandaag', vd != null ? eur(all(vd)) : '–', 'per m³, vanaf 06:00'],
     ['Morgen', mg != null && morgenDag !== vandaagDag ? eur(all(mg)) : 'nog niet bekend', mg != null ? (all(mg) < all(vd ?? mg) ? 'goedkoper dan vandaag' : all(mg) > all(vd ?? mg) ? 'duurder dan vandaag' : 'gelijk aan vandaag') : ''],
     ['Gemiddeld', gem != null ? eur(all(gem)) : '–', 'laatste 30 dagen'],
